@@ -1,0 +1,7 @@
+**/.project
+**/.vs/
+**/bin/
+**/obj/
+**/.vscode/
+**/*.xproj.user
+**/*.csproj.user
