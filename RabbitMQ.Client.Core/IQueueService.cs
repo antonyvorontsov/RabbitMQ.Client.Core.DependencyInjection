@@ -4,77 +4,77 @@ using System.Threading.Tasks;
 namespace RabbitMQ.Client.Core
 {
     /// <summary>
-    /// Интерфейс кастомного клиента обмена сообщениями RabbitMQ.
+    /// Custom RabbitMQ queue service interface.
     /// </summary>
     public interface IQueueService : IDisposable
     {
         /// <summary>
-        /// Интерфейс соединения RabbitMQ.
+        /// RabbitMQ connection.
         /// </summary>
         IConnection Connection { get; }
 
         /// <summary>
-        /// Канал RabbitMQ.
+        /// RabbitMQ channel.
         /// </summary>
         IModel Channel { get; }
         
         /// <summary>
-        /// Начать "прослушивать" очереди (получать сообщения).
+        /// Start comsuming (getting messages).
         /// </summary>
         void StartConsuming();
 
         /// <summary>
-        /// Отправить сообщение.
+        /// Send a message.
         /// </summary>
-        /// <typeparam name="T">Класс.</typeparam>
-        /// <param name="object">Объект, отправляемый в качестве сообщения.</param>
-        /// <param name="exchangeName">Наименование обменника.</param>
-        /// <param name="routingKey">Ключ маршрутизации.</param>
+        /// <typeparam name="T">Model class.</typeparam>
+        /// <param name="object">Object message.</param>
+        /// <param name="exchangeName">Exchange name.</param>
+        /// <param name="routingKey">Routing key.</param>
         void Send<T>(T @object, string exchangeName, string routingKey) where T : class;
 
         /// <summary>
-        /// Отправить сообщение.
+        /// Send a message.
         /// </summary>
-        /// <param name="json">Сообщение в формате json.</param>
-        /// <param name="exchangeName">Наименование обменника.</param>
-        /// <param name="routingKey">Ключ маршрутизации.</param>
+        /// <param name="json">Json message.</param>
+        /// <param name="exchangeName">Exchange name.</param>
+        /// <param name="routingKey">Routing key.</param>
         void SendJson(string json, string exchangeName, string routingKey);
 
         /// <summary>
-        /// Отправить сообщение.
+        /// Send a message.
         /// </summary>
-        /// <param name="bytes">Собщение в формате массива байт.</param>
-        /// <param name="properties"></param>
-        /// <param name="exchangeName">Наименование обменника.</param>
-        /// <param name="routingKey">Ключ маршрутизации.</param>
+        /// <param name="bytes">Byte array message.</param>
+        /// <param name="properties">Message properties.</param>
+        /// <param name="exchangeName">Exchange name.</param>
+        /// <param name="routingKey">Routing key.</param>
         void Send(byte[] bytes, IBasicProperties properties, string exchangeName, string routingKey);
 
         /// <summary>
-        /// Асинхронно отправить сообщение.
+        /// Send a message asynchronously.
         /// </summary>
-        /// <typeparam name="T">Класс.</typeparam>
-        /// <param name="object">Объект, отправляемый в качестве сообщения.</param>
-        /// <param name="exchangeName">Наименование обменника.</param>
-        /// <param name="routingKey">Ключ маршрутизации.</param>
+        /// <typeparam name="T">Model class.</typeparam>
+        /// <param name="object">Object message.</param>
+        /// <param name="exchangeName">Exchange name.</param>
+        /// <param name="routingKey">Routing key.</param>
         /// <returns></returns>
         Task SendAsync<T>(T @object, string exchangeName, string routingKey) where T : class;
 
         /// <summary>
-        /// Асинхронно отправить сообщение.
+        /// Send a message asynchronously.
         /// </summary>
-        /// <param name="json">Сообщение в формате json.</param>
-        /// <param name="exchangeName">Наименование обменника.</param>
-        /// <param name="routingKey">Ключ маршрутизации.</param>
+        /// <param name="json">Json message.</param>
+        /// <param name="exchangeName">Exchange name.</param>
+        /// <param name="routingKey">Routing key.</param>
         /// <returns></returns>
         Task SendJsonAsync(string json, string exchangeName, string routingKey);
 
         /// <summary>
-        /// Асинхронно отправить сообщение.
+        /// Send a message asynchronously.
         /// </summary>
-        /// <param name="bytes">Собщение в формате массива байт.</param>
-        /// <param name="properties"></param>
-        /// <param name="exchangeName">Наименование обменника.</param>
-        /// <param name="routingKey">Ключ маршрутизации.</param>
+        /// <param name="bytes">Byte array message.</param>
+        /// <param name="properties">Message properties.</param>
+        /// <param name="exchangeName">Exchange name.</param>
+        /// <param name="routingKey">Routing key.</param>
         /// <returns></returns>
         Task SendAsync(byte[] bytes, IBasicProperties properties, string exchangeName, string routingKey);
     }

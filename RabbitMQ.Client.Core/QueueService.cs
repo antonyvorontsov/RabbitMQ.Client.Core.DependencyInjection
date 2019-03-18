@@ -12,17 +12,17 @@ using System.Threading.Tasks;
 namespace RabbitMQ.Client.Core
 {
     /// <summary>
-    /// Реализация интерфейса кастомного клиента обмена сообщениями RabbitMQ.
+    /// Implementation of the custom RabbitMQ queue service.
     /// </summary>
     public class QueueService : IQueueService
     {
         /// <summary>
-        /// Интерфейс соединения RabbitMQ.
+        /// RabbitMQ connection.
         /// </summary>
         public IConnection Connection => _connection;
 
         /// <summary>
-        /// Канал RabbitMQ.
+        /// RabbitMQ channel.
         /// </summary>
         public IModel Channel => _channel;
 
@@ -62,7 +62,7 @@ namespace RabbitMQ.Client.Core
                 Password = optionsValue.Password,
                 VirtualHost = optionsValue.VirtualHost,
 
-                // Настройки по умолчанию.
+                // Default settings.
                 AutomaticRecoveryEnabled = true,
                 TopologyRecoveryEnabled = true,
                 RequestedConnectionTimeout = 60000,
@@ -70,12 +70,12 @@ namespace RabbitMQ.Client.Core
             };
 
             _connection = factory.CreateConnection();
-            // Обработка событий.
+            // Event handling.
             _connection.CallbackException += HandleConnectionCallbackException;
             _connection.ConnectionRecoveryError += HandleConnectionRecoveryError;
 
             _channel = _connection.CreateModel();
-            // Обработка событий.
+            // Event handling.
             _channel.CallbackException += HandleChannelCallbackException;
             _channel.BasicRecoverOk += HandleChannelBasicRecoverOk;
 
@@ -104,7 +104,7 @@ namespace RabbitMQ.Client.Core
         }
 
         /// <summary>
-        /// Начать "прослушивать" очереди (получать сообщения).
+        /// Start comsuming (getting messages).
         /// </summary>
         public void StartConsuming()
         {
@@ -120,12 +120,12 @@ namespace RabbitMQ.Client.Core
         }
 
         /// <summary>
-        /// Отправить сообщение.
+        /// Send a message.
         /// </summary>
-        /// <typeparam name="T">Класс.</typeparam>
-        /// <param name="object">Объект, отправляемый в качестве сообщения.</param>
-        /// <param name="exchangeName">Наименование обменника.</param>
-        /// <param name="routingKey">Ключ маршрутизации.</param>
+        /// <typeparam name="T">Model class.</typeparam>
+        /// <param name="object">Object message.</param>
+        /// <param name="exchangeName">Exchange name.</param>
+        /// <param name="routingKey">Routing key.</param>
         public void Send<T>(T @object, string exchangeName, string routingKey) where T : class
         {
             if (string.IsNullOrEmpty(exchangeName))
@@ -141,11 +141,11 @@ namespace RabbitMQ.Client.Core
         }
 
         /// <summary>
-        /// Отправить сообщение.
+        /// Send a message.
         /// </summary>
-        /// <param name="json">Сообщение в формате json.</param>
-        /// <param name="exchangeName">Наименование обменника.</param>
-        /// <param name="routingKey">Ключ маршрутизации.</param>
+        /// <param name="json">Json message.</param>
+        /// <param name="exchangeName">Exchange name.</param>
+        /// <param name="routingKey">Routing key.</param>
         public void SendJson(string json, string exchangeName, string routingKey)
         {
             if (string.IsNullOrEmpty(exchangeName))
@@ -160,12 +160,12 @@ namespace RabbitMQ.Client.Core
         }
 
         /// <summary>
-        /// Отправить сообщение.
+        /// Send a message.
         /// </summary>
-        /// <param name="bytes">Собщение в формате массива байт.</param>
-        /// <param name="properties"></param>
-        /// <param name="exchangeName">Наименование обменника.</param>
-        /// <param name="routingKey">Ключ маршрутизации.</param>
+        /// <param name="bytes">Byte array message.</param>
+        /// <param name="properties">Message properties.</param>
+        /// <param name="exchangeName">Exchange name.</param>
+        /// <param name="routingKey">Routing key.</param>
         public void Send(byte[] bytes, IBasicProperties properties, string exchangeName, string routingKey)
         {
             if (string.IsNullOrEmpty(exchangeName))
@@ -174,7 +174,7 @@ namespace RabbitMQ.Client.Core
             if (string.IsNullOrEmpty(routingKey))
                 throw new ArgumentException($"Argument {nameof(routingKey)} is null or empty.", nameof(routingKey));
 
-            // BasicPublish операция не потокобезопасная.
+            // BasicPublish is not thread-safe.
             lock (_lock)
             {
                 _channel.BasicPublish(exchange: exchangeName,
@@ -185,33 +185,33 @@ namespace RabbitMQ.Client.Core
         }
 
         /// <summary>
-        /// Асинхронно отправить сообщение.
+        /// Send a message asynchronously.
         /// </summary>
-        /// <typeparam name="T">Класс.</typeparam>
-        /// <param name="object">Объект, отправляемый в качестве сообщения.</param>
-        /// <param name="exchangeName">Наименование обменника.</param>
-        /// <param name="routingKey">Ключ маршрутизации.</param>
+        /// <typeparam name="T">Model class.</typeparam>
+        /// <param name="object">Object message.</param>
+        /// <param name="exchangeName">Exchange name.</param>
+        /// <param name="routingKey">Routing key.</param>
         /// <returns></returns>
         public async Task SendAsync<T>(T @object, string exchangeName, string routingKey) where T : class =>
             await Task.Run(() => Send(@object, exchangeName, routingKey));
 
         /// <summary>
-        /// Асинхронно отправить сообщение.
+        /// Send a message asynchronously.
         /// </summary>
-        /// <param name="json">Сообщение в формате json.</param>
-        /// <param name="exchangeName">Наименование обменника.</param>
-        /// <param name="routingKey">Ключ маршрутизации.</param>
+        /// <param name="json">Json message.</param>
+        /// <param name="exchangeName">Exchange name.</param>
+        /// <param name="routingKey">Routing key.</param>
         /// <returns></returns>
         public async Task SendJsonAsync(string json, string exchangeName, string routingKey) =>
             await Task.Run(() => SendJson(json, exchangeName, routingKey));
 
         /// <summary>
-        /// Асинхронно отправить сообщение.
+        /// Send a message asynchronously.
         /// </summary>
-        /// <param name="bytes">Собщение в формате массива байт.</param>
-        /// <param name="properties"></param>
-        /// <param name="exchangeName">Наименование обменника.</param>
-        /// <param name="routingKey">Ключ маршрутизации.</param>
+        /// <param name="bytes">Byte array message.</param>
+        /// <param name="properties">Message properties.</param>
+        /// <param name="exchangeName">Exchange name.</param>
+        /// <param name="routingKey">Routing key.</param>
         /// <returns></returns>
         public async Task SendAsync(byte[] bytes, IBasicProperties properties, string exchangeName, string routingKey) =>
             await Task.Run(() => Send(bytes, properties, exchangeName, routingKey));
@@ -337,8 +337,7 @@ namespace RabbitMQ.Client.Core
                 autoDelete: exchange.Options.AutoDelete,
                 arguments: exchange.Options.Arguments);
 
-            // Добавить отложенные сообщения через dead-letter-exchanges.
-            // Отправлять туда сообщения, которым был выдан "отказ" или не пришло подтверждение о получении.
+            // TODO: Add dead-letter-exchanges functionality.
 
             foreach (var queue in exchange.Options.Queues)
                 StartQueue(queue, exchange.Name);
@@ -354,7 +353,7 @@ namespace RabbitMQ.Client.Core
 
             if (queue.RoutingKeys.Count > 0)
             {
-                // Делаем привязку очереди и обменника по ключам маршрутизации.
+                // If there are not any routing keys then make a bind with a queue name.
                 foreach (var route in queue.RoutingKeys)
                     _channel.QueueBind(
                         queue: queue.Name,
@@ -363,8 +362,6 @@ namespace RabbitMQ.Client.Core
             }
             else
             {
-                // Делаем привязку обменника и очереди по наменованию очереди.
-                // Наименование очереди и будет routing-key.
                 _channel.QueueBind(
                     queue: queue.Name,
                     exchange: exchangeName,

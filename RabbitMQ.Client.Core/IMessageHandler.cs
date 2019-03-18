@@ -3,20 +3,20 @@
 namespace RabbitMQ.Client.Core
 {
     /// <summary>
-    /// Интерфейс обработчика полученных сообщений.
+    /// Interface of a service that handle messages.
     /// </summary>
     public interface IMessageHandler
     {
         /// <summary>
-        /// Коллекция ключей маршрутизации, которые прослушивает обработчик сообщений.
+        /// Collection of routing keys which that handler will be "listening".
         /// </summary>
         IEnumerable<string> RoutingKeys { get; set; }
 
         /// <summary>
-        /// Обработать сообщение.
+        /// Handle message from a queue.
         /// </summary>
-        /// <param name="message">Входящее сообщение в формате json.</param>
-        /// <param name="routingKey">Ключ маршрутизации, по которому сообщение поступило на обработку.</param>
+        /// <param name="message">Json message.</param>
+        /// <param name="routingKey">Routing key.</param>
         void Handle(string message, string routingKey);
     }
 }

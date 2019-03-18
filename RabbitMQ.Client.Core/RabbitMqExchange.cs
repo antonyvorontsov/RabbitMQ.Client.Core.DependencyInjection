@@ -3,17 +3,17 @@
 namespace RabbitMQ.Client.Core
 {
     /// <summary>
-    /// Модель точки обмена (exchange).
+    /// Exchange model.
     /// </summary>
     public class RabbitMqExchange
     {
         /// <summary>
-        /// Наименование точки обмена.
+        /// The unique name of the exchange.
         /// </summary>
         public string Name { get; set; }
 
         /// <summary>
-        /// Опции точки обмена.
+        /// Exchange options.
         /// </summary>
         public RabbitMqExchangeOptions Options { get; set; }
     }

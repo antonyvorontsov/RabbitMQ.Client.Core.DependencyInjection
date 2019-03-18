@@ -3,15 +3,18 @@
 namespace RabbitMQ.Client.Core
 {
     /// <summary>
-    /// Интерфейс клиентского логгера.
+    /// Custom logger interface.
     /// </summary>
+    /// <remarks>
+    /// Allows handle logging by client logic e.g. writing logs in the database.
+    /// </remarks>
     public interface ILogger
     {
         /// <summary>
-        /// Записать лог.
+        /// Write a log message.
         /// </summary>
-        /// <param name="logLevel">Уровень сообщения.</param>
-        /// <param name="message">Сообщение.</param>
+        /// <param name="logLevel">Log message level.</param>
+        /// <param name="message">Message.</param>
         void Log(Log​Level logLevel, string message);
     }
 }

@@ -3,35 +3,32 @@
 namespace RabbitMQ.Client.Core.Configuration
 {
     /// <summary>
-    /// Опции (конфигурация) обменника сообщений.
+    /// Echange options.
     /// </summary>
     public class RabbitMqExchangeOptions
     {
         /// <summary>
-        /// Тип обменника.
+        /// Exchange type.
         /// </summary>
         public string Type { get; set; } = "direct";
 
         /// <summary>
-        /// Опция хранения сообщений.
-        /// true - на диске,
-        /// false - в кэше.
+        /// Durable option.
         /// </summary>
         public bool Durable { get; set; } = true;
 
         /// <summary>
-        /// Автоматически удалять обменник, когда сообщения в нём заканчиваются.
+        /// AutoDelete option.
         /// </summary>
         public bool AutoDelete { get; set; } = false;
         
         /// <summary>
-        /// Дополнительные аргументы.
-        /// TODO: на потом, а пока пустой словарь.
+        /// Additional arguments.
         /// </summary>
         public IDictionary<string, object> Arguments { get; set; } = new Dictionary<string, object>();
         
         /// <summary>
-        /// Коллекция очередей, подписанных на точку обмена.
+        /// Collection of queues connected to the exchange.
         /// </summary>
         public IList<RabbitMqQueueOptions> Queues { get; set; } = new List<RabbitMqQueueOptions>();    }
 }

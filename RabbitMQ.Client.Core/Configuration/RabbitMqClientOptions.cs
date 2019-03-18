@@ -1,32 +1,32 @@
 ﻿namespace RabbitMQ.Client.Core.Configuration
 {
     /// <summary>
-    /// Модель опций (конфигурации) RabbitMQ.
+    /// RabbitMQ configuration model.
     /// </summary>
     public class RabbitMqClientOptions
     {
         /// <summary>
-        /// Адрес сервера.
+        /// RabbitMQ server.
         /// </summary>
         public string HostName { get; set; } = "127.0.0.1";
         
         /// <summary>
-        /// Порт.
+        /// Port.
         /// </summary>
         public int Port { get; set; } = 5672;
         
         /// <summary>
-        /// Пользователь.
+        /// UserName that connects to the server.
         /// </summary>
         public string UserName { get; set; } = "guest";
         
         /// <summary>
-        /// Пароль.
+        /// Password of the chosen user.
         /// </summary>
         public string Password { get; set; } = "guest";
         
         /// <summary>
-        /// Виртуальный хост (к которому пользователь имеет доступ).
+        /// Virtual host.
         /// </summary>
         public string VirtualHost { get; set; } = "/";
     }

@@ -3,38 +3,37 @@
 namespace RabbitMQ.Client.Core.Configuration
 {
     /// <summary>
-    /// Модель (опций) очереди сообщений.
+    /// Queue options.
     /// </summary>
     public class RabbitMqQueueOptions
     {
         /// <summary>
-        /// Наименование очереди.
+        /// Queue name.
         /// </summary>
         public string Name { get; set; }
 
         /// <summary>
-        /// Восстановить после перезапуска (хранить сообщения на диске).
+        /// Durable option.
         /// </summary>
         public bool Durable { get; set; } = true;
 
         /// <summary>
-        /// Использовать только данным подключением.
+        /// Exclusive option.
         /// </summary>
         public bool Exclusive { get; set; } = false;
 
         /// <summary>
-        /// Автоматически удалить, когда все подключенные получатели отключатся.
+        /// AutoDelete option.
         /// </summary>
         public bool AutoDelete { get; set; } = false;
 
         /// <summary>
-        /// Коллекция ключей маршрутизации, на которые смотрит очередь.
+        /// Routing keys collection that queue "listens".
         /// </summary>
         public HashSet<string> RoutingKeys { get; set; } = new HashSet<string>();
 
         /// <summary>
-        /// Дополнительные аргументы.
-        /// TODO: на потом, а пока пустой словарь.
+        /// Additional arguments.
         /// </summary>
         public IDictionary<string, object> Arguments { get; set; } = new Dictionary<string, object>();
     }
