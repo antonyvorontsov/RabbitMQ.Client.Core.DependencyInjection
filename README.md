@@ -4,7 +4,7 @@ This is a wrapper-library of RabbitMQ.Client with Dependency Injection infrastru
 
 ### Producer
 
-!TBD
+First of all you need to add all service dependencies in the *ConfigureServices*. *AddRabbitMqClient* adds IQueueService that can send messages and *AddExchange* configures and adds an exchange. You can add multiple exchanges but the queue service will be single (and it will be added as singleton obviously).
 
 ```csharp
 
@@ -20,14 +20,27 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
-!TBD
+If you using a console application then you can get an instance of the queue service like this:
 
 ```csharp
 var serviceCollection = new ServiceCollection();
 ConfigureServices(serviceCollection);
 var serviceProvider = serviceCollection.BuildServiceProvider();
 var queueService = serviceProvider.GetRequiredService<IQueueService>();
+```
 
+Or you can inject that queue service inside any class (service/controller/whatever) like this:
+
+```csharp
+[Route("api/[controller]")]
+public class HomeController : Controller
+{
+    private readonly IQueueService _queueService;
+    public HomeController(IQueueService queueService)
+    {
+        _queueService = queueService;
+    }
+}
 ```
 
 And now you can send messages using *Send* and *SendAsync* methods like this:
@@ -46,7 +59,7 @@ queueService.Send(
 
 ### Consumer
 
-!TBD
+Lets imagine that you wanna make a consumer as a console application. Then code will look like this:
 
 ```csharp
 class Program
@@ -81,8 +94,11 @@ class Program
 }
 ```
 
-Message handler example:
+You have to configure QueueService the same way as you've done with producer.
+The key point is adding custom message handlers by implementing *IMessageHandler* interface and adding it in *AddMessageHandlerSingleton<T>* method.
+After configuring the queueService you need to start "listening" by simply calling *StartConsuming* method. After that you can get messages and handle it in any way you want.
 
+Message handler example:
 ```csharp
 public class CustomMessageHandler : IMessageHandler
 {
@@ -94,7 +110,7 @@ public class CustomMessageHandler : IMessageHandler
 }
 ```
 
- You can also add custom loggers to handle log messages which comes from the library with your own business logic.
+ And you can also add custom loggers to handle log messages which comes from the library with your own business logic.
 ```csharp
 public class CustomLogger : ILogger
 {
