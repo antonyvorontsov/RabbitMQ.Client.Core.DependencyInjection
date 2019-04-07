@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace RabbitMQ.Client.Core
 {
@@ -30,6 +31,7 @@ namespace RabbitMQ.Client.Core
         bool _consumingStarted = false;
 
         readonly IDictionary<string, IList<IMessageHandler>> _messageHandlers;
+        readonly IDictionary<Type, List<string>> _routingKeys;
         readonly IEnumerable<RabbitMqExchange> _exchanges;
         readonly ILogger<QueueService> _logger;
         readonly ILogger _clientLogger;
@@ -41,6 +43,7 @@ namespace RabbitMQ.Client.Core
         public QueueService(
             IEnumerable<IMessageHandler> messageHandlers,
             IEnumerable<RabbitMqExchange> exchanges,
+            IEnumerable<MessageHandlerRouter> routers,
             ILoggerFactory loggerFactory,
             IOptions<RabbitMqClientOptions> options,
             ILogger clientLogger = null)
@@ -48,8 +51,9 @@ namespace RabbitMQ.Client.Core
             if (options is null)
                 throw new ArgumentException($"Argument {nameof(options)} is null.", nameof(options));
 
-            _messageHandlers = TransformMessageHandlersCollection(messageHandlers);
             _exchanges = exchanges;
+            _routingKeys = TransformMessageHandlerRouters(routers);
+            _messageHandlers = TransformMessageHandlersCollection(messageHandlers);
             _logger = loggerFactory.CreateLogger<QueueService>();
             _clientLogger = clientLogger;
 
@@ -256,15 +260,32 @@ namespace RabbitMQ.Client.Core
             _logger.LogError(new EventId(), @event.Exception, @event.Exception.Message, @event);
         }
 
+        IDictionary<Type, List<string>> TransformMessageHandlerRouters(IEnumerable<MessageHandlerRouter> routers)
+        {
+            var dictionary = new Dictionary<Type, List<string>>();
+            foreach (var router in routers)
+            {
+                if (dictionary.ContainsKey(router.Type))
+                    dictionary[router.Type] = dictionary[router.Type].Union(router.RoutingKeys).ToList();
+                else
+                    dictionary.Add(router.Type, router.RoutingKeys);
+            }
+            return dictionary;
+        }
+
         IDictionary<string, IList<IMessageHandler>> TransformMessageHandlersCollection(IEnumerable<IMessageHandler> messageHandlers)
         {
             var dictionary = new Dictionary<string, IList<IMessageHandler>>();
             foreach (var handler in messageHandlers)
             {
-                foreach (var routingKey in handler.RoutingKeys)
+                var type = handler.GetType();
+                foreach (var routingKey in _routingKeys[type])
                 {
                     if (dictionary.ContainsKey(routingKey))
-                        dictionary[routingKey].Add(handler);
+                    {
+                        if (!dictionary[routingKey].Any(x => x.GetType() == handler.GetType()))
+                            dictionary[routingKey].Add(handler);
+                    }
                     else
                         dictionary.Add(routingKey, new List<IMessageHandler>() { handler });
                 }

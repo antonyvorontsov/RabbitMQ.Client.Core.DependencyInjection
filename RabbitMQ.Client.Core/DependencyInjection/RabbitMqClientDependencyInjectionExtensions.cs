@@ -87,10 +87,11 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// <param name="routingKey">Routing key.</param>
         /// <returns>Service collection.</returns>
         public static IServiceCollection AddMessageHandlerTransient<T>(this IServiceCollection services, string routingKey)
-            where T : class, IMessageHandler, new()
+            where T : class, IMessageHandler
         {
-            var handler = new T { RoutingKeys = new[] { routingKey } };
-            services.AddTransient<IMessageHandler, T>(_ => handler);
+            services.AddTransient<IMessageHandler, T>();
+            var router = new MessageHandlerRouter { Type = typeof(T), RoutingKeys = new[] { routingKey }.ToList() };
+            services.Add(new ServiceDescriptor(typeof(MessageHandlerRouter), router));
             return services;
         }
 
@@ -102,10 +103,11 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// <param name="routingKeys">Routing keys.</param>
         /// <returns>Service collection.</returns>
         public static IServiceCollection AddMessageHandlerTransient<T>(this IServiceCollection services, IEnumerable<string> routingKeys)
-            where T : class, IMessageHandler, new()
+            where T : class, IMessageHandler
         {
-            var handler = new T { RoutingKeys = routingKeys };
-            services.AddTransient<IMessageHandler, T>(_ => handler);
+            services.AddTransient<IMessageHandler, T>();
+            var router = new MessageHandlerRouter { Type = typeof(T), RoutingKeys = routingKeys.ToList() };
+            services.Add(new ServiceDescriptor(typeof(MessageHandlerRouter), router));
             return services;
         }
 
@@ -117,10 +119,11 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// <param name="routingKey">Routing key.</param>
         /// <returns>Service collection.</returns>
         public static IServiceCollection AddMessageHandlerSingleton<T>(this IServiceCollection services, string routingKey)
-            where T : class, IMessageHandler, new()
+            where T : class, IMessageHandler
         {
-            var handler = new T { RoutingKeys = new[] { routingKey } };
-            services.AddSingleton<IMessageHandler, T>(_ => handler);
+            services.AddSingleton<IMessageHandler, T>();
+            var router = new MessageHandlerRouter { Type = typeof(T), RoutingKeys = new[] { routingKey }.ToList() };
+            services.Add(new ServiceDescriptor(typeof(MessageHandlerRouter), router));
             return services;
         }
 
@@ -132,40 +135,11 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// <param name="routingKeys">Routing keys.</param>
         /// <returns>Service collection.</returns>
         public static IServiceCollection AddMessageHandlerSingleton<T>(this IServiceCollection services, IEnumerable<string> routingKeys)
-            where T : class, IMessageHandler, new()
+            where T : class, IMessageHandler
         {
-            var handler = new T { RoutingKeys = routingKeys };
-            services.AddSingleton<IMessageHandler, T>(_ => handler);
-            return services;
-        }
-
-        /// <summary>
-        /// Add scoped message handler.
-        /// </summary>
-        /// <typeparam name="T">Message handler type.</typeparam>
-        /// <param name="services">Service collection.</param>
-        /// <param name="routingKey">Routing key.</param>
-        /// <returns>Service collection.</returns>
-        public static IServiceCollection AddMessageHandlerScoped<T>(this IServiceCollection services, string routingKey)
-            where T : class, IMessageHandler, new()
-        {
-            var handler = new T { RoutingKeys = new[] { routingKey } };
-            services.AddScoped<IMessageHandler, T>(_ => handler);
-            return services;
-        }
-
-        /// <summary>
-        /// Add scoped message handler.
-        /// </summary>
-        /// <typeparam name="T">Message handler type.</typeparam>
-        /// <param name="services">Service collection.</param>
-        /// <param name="routingKeys">Routing keys.</param>
-        /// <returns>Service collection.</returns>
-        public static IServiceCollection AddMessageHandlerScoped<T>(this IServiceCollection services, IEnumerable<string> routingKeys)
-            where T : class, IMessageHandler, new()
-        {
-            var handler = new T { RoutingKeys = routingKeys };
-            services.AddScoped<IMessageHandler, T>(_ => handler);
+            services.AddSingleton<IMessageHandler, T>();
+            var router = new MessageHandlerRouter { Type = typeof(T), RoutingKeys = routingKeys.ToList() };
+            services.Add(new ServiceDescriptor(typeof(MessageHandlerRouter), router));
             return services;
         }
 

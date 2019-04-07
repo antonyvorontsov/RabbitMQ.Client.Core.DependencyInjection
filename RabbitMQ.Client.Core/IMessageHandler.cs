@@ -8,11 +8,6 @@ namespace RabbitMQ.Client.Core
     public interface IMessageHandler
     {
         /// <summary>
-        /// Collection of routing keys which that handler will be "listening".
-        /// </summary>
-        IEnumerable<string> RoutingKeys { get; set; }
-
-        /// <summary>
         /// Handle message from a queue.
         /// </summary>
         /// <param name="message">Json message.</param>

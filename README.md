@@ -89,7 +89,7 @@ class Program
         services.AddRabbitMqClient(rabbitMqSection)
             .AddExchange("exchange.name", exchangeSection)
             .AddMessageHandlerSingleton<CustomMessageHandler>("routing.key")
-            .AddClientLogger<CustomLogger>();
+            .AddClientLogger<CustomLogger>();  // <- if you want, you can add a custom logger.
        }
 }
 ```
@@ -102,10 +102,16 @@ Message handler example:
 ```csharp
 public class CustomMessageHandler : IMessageHandler
 {
-    public IEnumerable<string> RoutingKeys { get; set; }
+	readonly ILogger<CustomMessageHandler> _logger;
+	public CustomMessageHandler(ILogger<CustomMessageHandler> logger)
+	{
+		_logger = logger;
+	}
+
     public void Handle(string message, string routingKey)
     {
-		// Do something.
+		_logger.LogInformation("Ho-ho-hoooo");
+		// Do whatever you want!
     }
 }
 ```
