@@ -1,4 +1,4 @@
-﻿# RabbitMQ.Client.Core
+﻿# RabbitMQ.Client.Core.DependencyInjection
 
 This is a wrapper-library of RabbitMQ.Client with Dependency Injection infrastructure under the .Net Core 2.2 platform.
 
@@ -66,6 +66,9 @@ queueService.Send(
 	   secondsDelay: 10);
 ```
 
+In order to make this possible, a default dead-letter-exchange exchanger with `"default.dlx.exchange"` name will be created. You can change it via main exchange configuration (example is down below).
+And also you have a default functionality of resending failed messages (if you get an error while processing recieved message).
+
 ### Consumer
 
 Lets imagine that you wanna make a consumer as a console application. Then code will look like this:
@@ -132,23 +135,43 @@ public class CustomMessageHandler : IMessageHandler
 ```
 {
   "RabbitMq": {
-       "HostName": "127.0.0.1",
-       "Port": "5672",
-       "UserName": "guest",
-       "Password": "guest"
+    "HostName": "127.0.0.1",
+    "Port": "5672",
+    "UserName": "guest",
+    "Password": "guest"
   },
   "RabbitMqExchange": {
-       "Type": "direct",
-       "Durable": true,
-       "AutoDelete": false,
-       "Queues": [
-         {
-             "Name": "myqueue",
-             "RoutingKeys": [
-               "routing.key"
-             ]
-         }
-       ]
+    "Type": "direct",
+    "Durable": true,
+    "AutoDelete": false,
+	"DeadLetterExchange": "default.dlx.exchange",
+	"RequeueFailedMessages": true
+    "Queues": [
+	  {
+        "Name": "myqueue",
+        "RoutingKeys": [ "routing.key" ]
+      }
+    ]
+  }
+}
+```
+
+"Type", "Durable", "AutoDelete", "DeadLetterExchange", "RequeueFailedMessages" are set with default values in this example. So you can change it or leave it like this:
+```
+{
+  "RabbitMq": {
+    "HostName": "127.0.0.1",
+    "Port": "5672",
+    "UserName": "guest",
+    "Password": "guest"
+  },
+  "RabbitMqExchange": {
+    "Queues": [
+	  {
+        "Name": "myqueue",
+        "RoutingKeys": [ "routing.key" ]
+      }
+    ]
   }
 }
 ```
