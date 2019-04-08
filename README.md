@@ -100,7 +100,8 @@ class Program
 
         services.AddRabbitMqClient(rabbitMqSection)
             .AddExchange("exchange.name", exchangeSection)
-            .AddMessageHandlerSingleton<CustomMessageHandler>("routing.key");
+            .AddMessageHandlerSingleton<CustomMessageHandler>("routing.key")
+            .AddAsyncMessageHandlerSingleton<CustomAsyncMessageHandler>("other.routing.key");
        }
 }
 ```
@@ -123,6 +124,24 @@ public class CustomMessageHandler : IMessageHandler
     {
 		_logger.LogInformation("Ho-ho-hoooo");
 		// Do whatever you want!
+    }
+}
+```
+
+Or you can add another message handler that will run asynchronously:
+```csharp
+public class CustomAsyncMessageHandler : IAsyncMessageHandler
+{
+	readonly ILogger<CustomAsyncMessageHandler> _logger;
+	public CustomAsyncMessageHandler(ILogger<CustomAsyncMessageHandler> logger)
+	{
+		_logger = logger;
+	}
+
+    public async Task Handle(string message, string routingKey)
+    {
+		// Do whatever you want asynchronously!
+		_logger.LogInformation("Merry christmas!");
     }
 }
 ```

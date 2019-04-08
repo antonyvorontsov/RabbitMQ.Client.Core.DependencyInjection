@@ -31,6 +31,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         bool _consumingStarted = false;
 
         readonly IDictionary<string, IList<IMessageHandler>> _messageHandlers;
+        readonly IDictionary<string, IList<IAsyncMessageHandler>> _asyncMessageHandlers;
         readonly IDictionary<Type, List<string>> _routingKeys;
         readonly IEnumerable<RabbitMqExchange> _exchanges;
         readonly ILogger<QueueService> _logger;
@@ -44,6 +45,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
 
         public QueueService(
             IEnumerable<IMessageHandler> messageHandlers,
+            IEnumerable<IAsyncMessageHandler> asyncMessageHandlers,
             IEnumerable<RabbitMqExchange> exchanges,
             IEnumerable<MessageHandlerRouter> routers,
             ILoggerFactory loggerFactory,
@@ -56,6 +58,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             _exchanges = exchanges;
             _routingKeys = TransformMessageHandlerRouters(routers);
             _messageHandlers = TransformMessageHandlersCollection(messageHandlers);
+            _asyncMessageHandlers = TransformAsyncMessageHandlersCollection(asyncMessageHandlers);
+
             _logger = loggerFactory.CreateLogger<QueueService>();
             _clientLogger = clientLogger;
 
@@ -297,6 +301,26 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             return dictionary;
         }
 
+        IDictionary<string, IList<IAsyncMessageHandler>> TransformAsyncMessageHandlersCollection(IEnumerable<IAsyncMessageHandler> messageHandlers)
+        {
+            var dictionary = new Dictionary<string, IList<IAsyncMessageHandler>>();
+            foreach (var handler in messageHandlers)
+            {
+                var type = handler.GetType();
+                foreach (var routingKey in _routingKeys[type])
+                {
+                    if (dictionary.ContainsKey(routingKey))
+                    {
+                        if (!dictionary[routingKey].Any(x => x.GetType() == handler.GetType()))
+                            dictionary[routingKey].Add(handler);
+                    }
+                    else
+                        dictionary.Add(routingKey, new List<IAsyncMessageHandler>() { handler });
+                }
+            }
+            return dictionary;
+        }
+
         void StartClient()
         {
             _receivedMessage = (sender, @event) =>
@@ -308,14 +332,19 @@ namespace RabbitMQ.Client.Core.DependencyInjection
 
                 try
                 {
+                    if (_asyncMessageHandlers.ContainsKey(@event.RoutingKey))
+                    {
+                        var tasks = new List<Task>();
+                        foreach (var handler in _asyncMessageHandlers[@event.RoutingKey])
+                            tasks.Add(RunAsyncHandler(handler, message, @event.RoutingKey));
+                        Task.WaitAll(tasks.ToArray());
+                    }
                     if (_messageHandlers.ContainsKey(@event.RoutingKey))
                     {
                         foreach (var handler in _messageHandlers[@event.RoutingKey])
                         {
                             _logger.LogDebug($"Starting processing the message by message handler {handler?.GetType().Name}.");
-
                             handler.Handle(message, @event.RoutingKey);
-
                             _logger.LogDebug($"The message has been processed by message handler {handler?.GetType().Name}.");
                         }
                     }
@@ -361,6 +390,13 @@ namespace RabbitMQ.Client.Core.DependencyInjection
 
             foreach (var exchange in _exchanges)
                 StartExchange(exchange);
+        }
+
+        async Task RunAsyncHandler(IAsyncMessageHandler handler, string message, string routingKey)
+        {
+            _logger.LogDebug($"Starting processing the message by async message handler {handler?.GetType().Name}.");
+            await handler.Handle(message, routingKey);
+            _logger.LogDebug($"The message has been processed by async message handler {handler?.GetType().Name}.");
         }
 
         void StartDeadLetterExchange(string exchangeName) =>
