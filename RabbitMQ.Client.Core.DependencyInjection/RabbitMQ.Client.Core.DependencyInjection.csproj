@@ -3,7 +3,13 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
     <LangVersion>latest</LangVersion>
-    <Version>0.1.0</Version>
+    <Version>1.1.0</Version>
+    <PackageTags>RabbitMQ</PackageTags>
+    <RepositoryUrl>https://github.com/AntonyVorontsov/RabbitMQ.Client.Core.DependencyInjection</RepositoryUrl>
+    <Company />
+    <Description>.Net Core library-wrapper of RabbitMQ.Client for Dependency Injection.</Description>
+    <PackageLicenseUrl>https://github.com/AntonyVorontsov/RabbitMQ.Client.Core.DependencyInjection/blob/master/LICENSE</PackageLicenseUrl>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
