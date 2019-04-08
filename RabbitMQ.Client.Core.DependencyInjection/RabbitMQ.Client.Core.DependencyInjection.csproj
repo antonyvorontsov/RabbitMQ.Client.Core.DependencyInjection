@@ -10,6 +10,7 @@
     <Description>.Net Core library-wrapper of RabbitMQ.Client for Dependency Injection.</Description>
     <PackageLicenseUrl>https://github.com/AntonyVorontsov/RabbitMQ.Client.Core.DependencyInjection/blob/master/LICENSE</PackageLicenseUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageIconUrl>https://imgur.com/S4wyRA4</PackageIconUrl>
   </PropertyGroup>
 
   <ItemGroup>
