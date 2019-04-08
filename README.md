@@ -57,6 +57,15 @@ queueService.Send(
        routingKey: "routing.key");
 ```
 
+Or you can send a message with delay.
+```csharp
+queueService.Send(
+       @object: messageObject,
+       exchangeName: "exchange.name",
+       routingKey: "routing.key",
+	   secondsDelay: 10);
+```
+
 ### Consumer
 
 Lets imagine that you wanna make a consumer as a console application. Then code will look like this:
@@ -88,8 +97,7 @@ class Program
 
         services.AddRabbitMqClient(rabbitMqSection)
             .AddExchange("exchange.name", exchangeSection)
-            .AddMessageHandlerSingleton<CustomMessageHandler>("routing.key")
-            .AddClientLogger<CustomLogger>();  // <- if you want, you can add a custom logger.
+            .AddMessageHandlerSingleton<CustomMessageHandler>("routing.key");
        }
 }
 ```
@@ -115,18 +123,6 @@ public class CustomMessageHandler : IMessageHandler
     }
 }
 ```
-
- And you can also add custom loggers to handle log messages which comes from the library with your own business logic.
-```csharp
-public class CustomLogger : ILogger
-{
-    public void Log(Log​Level logLevel, string message)
-    {
-		// Some custom logic. You can write logs to the database for example.
-    }
-}
-```
-
 
 ### appsettings.json configuration
 

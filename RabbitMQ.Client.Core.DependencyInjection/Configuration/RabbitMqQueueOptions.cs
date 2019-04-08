@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace RabbitMQ.Client.Core.Configuration
+namespace RabbitMQ.Client.Core.DependencyInjection.Configuration
 {
     /// <summary>
     /// Queue options.

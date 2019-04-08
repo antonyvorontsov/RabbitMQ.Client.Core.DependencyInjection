@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace RabbitMQ.Client.Core
+﻿namespace RabbitMQ.Client.Core.DependencyInjection
 {
     /// <summary>
     /// Interface of a service that handle messages.

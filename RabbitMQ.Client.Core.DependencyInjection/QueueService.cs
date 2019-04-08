@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using RabbitMQ.Client.Events;
-using RabbitMQ.Client.Core.Configuration;
+using RabbitMQ.Client.Core.DependencyInjection.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Linq;
 
-namespace RabbitMQ.Client.Core
+namespace RabbitMQ.Client.Core.DependencyInjection
 {
     /// <summary>
     /// Implementation of the custom RabbitMQ queue service.
@@ -39,6 +39,8 @@ namespace RabbitMQ.Client.Core
         readonly IModel _channel;
         readonly EventingBasicConsumer _consumer;
         readonly object _lock = new object();
+
+        const int ResendTimeout = 60;
 
         public QueueService(
             IEnumerable<IMessageHandler> messageHandlers,
@@ -122,63 +124,58 @@ namespace RabbitMQ.Client.Core
                 foreach (var queue in exchange.Options.Queues)
                     _channel.BasicConsume(queue: queue.Name, autoAck: false, consumer: _consumer);
         }
-
-        /// <summary>
-        /// Send a message.
-        /// </summary>
-        /// <typeparam name="T">Model class.</typeparam>
-        /// <param name="object">Object message.</param>
-        /// <param name="exchangeName">Exchange name.</param>
-        /// <param name="routingKey">Routing key.</param>
+        
         public void Send<T>(T @object, string exchangeName, string routingKey) where T : class
         {
-            if (string.IsNullOrEmpty(exchangeName))
-                throw new ArgumentException($"Argument {nameof(exchangeName)} is null or empty.", nameof(exchangeName));
-
-            if (string.IsNullOrEmpty(routingKey))
-                throw new ArgumentException($"Argument {nameof(routingKey)} is null or empty.", nameof(routingKey));
-
+            ValidateArguments(exchangeName, routingKey);
             var json = JsonConvert.SerializeObject(@object);
             var bytes = Encoding.UTF8.GetBytes(json);
             var properties = CreateJsonProperties();
             Send(bytes, properties, exchangeName, routingKey);
         }
 
-        /// <summary>
-        /// Send a message.
-        /// </summary>
-        /// <param name="json">Json message.</param>
-        /// <param name="exchangeName">Exchange name.</param>
-        /// <param name="routingKey">Routing key.</param>
+        public void Send<T>(T @object, string exchangeName, string routingKey, int secondsDelay) where T : class
+        {
+            ValidateArguments(exchangeName, routingKey);
+            var deadLetterExchange = GetDeadLetterExchange(exchangeName);
+            var delayedQueueName = DeclareDelayedQueue(exchangeName, deadLetterExchange, routingKey, secondsDelay);
+            Send(@object, deadLetterExchange, delayedQueueName);
+        }
+
         public void SendJson(string json, string exchangeName, string routingKey)
         {
-            if (string.IsNullOrEmpty(exchangeName))
-                throw new ArgumentException($"Argument {nameof(exchangeName)} is null or empty.", nameof(exchangeName));
-
-            if (string.IsNullOrEmpty(routingKey))
-                throw new ArgumentException($"Argument {nameof(routingKey)} is null or empty.", nameof(routingKey));
-
+            ValidateArguments(exchangeName, routingKey);
             var bytes = Encoding.UTF8.GetBytes(json);
             var properties = CreateJsonProperties();
             Send(bytes, properties, exchangeName, routingKey);
         }
 
-        /// <summary>
-        /// Send a message.
-        /// </summary>
-        /// <param name="bytes">Byte array message.</param>
-        /// <param name="properties">Message properties.</param>
-        /// <param name="exchangeName">Exchange name.</param>
-        /// <param name="routingKey">Routing key.</param>
+        public void SendJson(string json, string exchangeName, string routingKey, int secondsDelay)
+        {
+            ValidateArguments(exchangeName, routingKey);
+            var deadLetterExchange = GetDeadLetterExchange(exchangeName);
+            var delayedQueueName = DeclareDelayedQueue(exchangeName, deadLetterExchange, routingKey, secondsDelay);
+            SendJson(json, deadLetterExchange, delayedQueueName);
+        }
+
+        public void SendString(string message, string exchangeName, string routingKey)
+        {
+            ValidateArguments(exchangeName, routingKey);
+            var bytes = Encoding.UTF8.GetBytes(message);
+            Send(bytes, CreateProperties(), exchangeName, routingKey);
+        }
+
+        public void SendString(string message, string exchangeName, string routingKey, int secondsDelay)
+        {
+            ValidateArguments(exchangeName, routingKey);
+            var deadLetterExchange = GetDeadLetterExchange(exchangeName);
+            var delayedQueueName = DeclareDelayedQueue(exchangeName, deadLetterExchange, routingKey, secondsDelay);
+            SendString(message, deadLetterExchange, delayedQueueName);
+        }
+
         public void Send(byte[] bytes, IBasicProperties properties, string exchangeName, string routingKey)
         {
-            if (string.IsNullOrEmpty(exchangeName))
-                throw new ArgumentException($"Argument {nameof(exchangeName)} is null or empty.", nameof(exchangeName));
-
-            if (string.IsNullOrEmpty(routingKey))
-                throw new ArgumentException($"Argument {nameof(routingKey)} is null or empty.", nameof(routingKey));
-
-            // BasicPublish is not thread-safe.
+            ValidateArguments(exchangeName, routingKey);
             lock (_lock)
             {
                 _channel.BasicPublish(exchange: exchangeName,
@@ -188,37 +185,44 @@ namespace RabbitMQ.Client.Core
             }
         }
 
-        /// <summary>
-        /// Send a message asynchronously.
-        /// </summary>
-        /// <typeparam name="T">Model class.</typeparam>
-        /// <param name="object">Object message.</param>
-        /// <param name="exchangeName">Exchange name.</param>
-        /// <param name="routingKey">Routing key.</param>
-        /// <returns></returns>
+        public void Send(byte[] bytes, IBasicProperties properties, string exchangeName, string routingKey, int secondsDelay)
+        {
+            ValidateArguments(exchangeName, routingKey);
+            var deadLetterExchange = GetDeadLetterExchange(exchangeName);
+            var delayedQueueName = DeclareDelayedQueue(exchangeName, deadLetterExchange, routingKey, secondsDelay);
+            Send(bytes, properties, deadLetterExchange, delayedQueueName);
+        }
+
         public async Task SendAsync<T>(T @object, string exchangeName, string routingKey) where T : class =>
             await Task.Run(() => Send(@object, exchangeName, routingKey));
 
-        /// <summary>
-        /// Send a message asynchronously.
-        /// </summary>
-        /// <param name="json">Json message.</param>
-        /// <param name="exchangeName">Exchange name.</param>
-        /// <param name="routingKey">Routing key.</param>
-        /// <returns></returns>
+        public async Task SendAsync<T>(T @object, string exchangeName, string routingKey, int secondsDelay) where T : class =>
+            await Task.Run(() => Send(@object, exchangeName, routingKey, secondsDelay));
+
         public async Task SendJsonAsync(string json, string exchangeName, string routingKey) =>
             await Task.Run(() => SendJson(json, exchangeName, routingKey));
 
-        /// <summary>
-        /// Send a message asynchronously.
-        /// </summary>
-        /// <param name="bytes">Byte array message.</param>
-        /// <param name="properties">Message properties.</param>
-        /// <param name="exchangeName">Exchange name.</param>
-        /// <param name="routingKey">Routing key.</param>
-        /// <returns></returns>
+        public async Task SendJsonAsync(string json, string exchangeName, string routingKey, int secondsDelay) =>
+            await Task.Run(() => SendJson(json, exchangeName, routingKey, secondsDelay));
+
+        public async Task SendStringAsync(string message, string exchangeName, string routingKey) =>
+            await Task.Run(() => SendString(message, exchangeName, routingKey));
+
+        public async Task SendStringAsync(string message, string exchangeName, string routingKey, int secondsDelay) =>
+            await Task.Run(() => SendString(message, exchangeName, routingKey, secondsDelay));
+
         public async Task SendAsync(byte[] bytes, IBasicProperties properties, string exchangeName, string routingKey) =>
             await Task.Run(() => Send(bytes, properties, exchangeName, routingKey));
+
+        public async Task SendAsync(byte[] bytes, IBasicProperties properties, string exchangeName, string routingKey, int secondsDelay) =>
+            await Task.Run(() => Send(bytes, properties, exchangeName, routingKey, secondsDelay));
+
+        IBasicProperties CreateProperties()
+        {
+            var properties = _channel.CreateBasicProperties();
+            properties.Persistent = true;
+            return properties;
+        }
 
         IBasicProperties CreateJsonProperties()
         {
@@ -295,17 +299,12 @@ namespace RabbitMQ.Client.Core
 
         void StartClient()
         {
-            var logMessage = string.Empty;
-
             _receivedMessage = (sender, @event) =>
             {
                 var message = Encoding.UTF8.GetString(@event.Body);
 
-                logMessage = $"New message was received with deliveryTag {@event.DeliveryTag}.";
-                _logger.LogInformation(logMessage);
+                _logger.LogInformation($"New message was received with deliveryTag {@event.DeliveryTag}.");
                 _logger.LogInformation(message);
-                Log(LogLevel.Information, logMessage);
-                Log(LogLevel.Information, message);
 
                 try
                 {
@@ -313,41 +312,64 @@ namespace RabbitMQ.Client.Core
                     {
                         foreach (var handler in _messageHandlers[@event.RoutingKey])
                         {
-                            logMessage = $"Starting processing the message by message handler {handler?.GetType().Name}.";
-                            _logger.LogDebug(logMessage);
-                            Log(LogLevel.Debug, logMessage);
+                            _logger.LogDebug($"Starting processing the message by message handler {handler?.GetType().Name}.");
 
                             handler.Handle(message, @event.RoutingKey);
 
-                            logMessage = $"The message has been processed by message handler {handler?.GetType().Name}.";
-                            _logger.LogDebug(logMessage);
-                            Log(LogLevel.Debug, logMessage);
+                            _logger.LogDebug($"The message has been processed by message handler {handler?.GetType().Name}.");
                         }
                     }
-                    logMessage = $"Success message with deliveryTag {@event.DeliveryTag}.";
-                    _logger.LogInformation(logMessage);
-                    Log(LogLevel.Information, logMessage);
-
+                    _logger.LogInformation($"Success message with deliveryTag {@event.DeliveryTag}.");
                     Channel.BasicAck(@event.DeliveryTag, false);
                 }
                 catch (Exception exception)
                 {
-                    logMessage = $"Error sending message with delivery tag {@event.DeliveryTag}.";
-                    _logger.LogError(new EventId(), exception, logMessage);
-                    Log(LogLevel.Error, logMessage);
+                    _logger.LogError(new EventId(), exception, $"An error occured while processing recieved message with delivery tag {@event.DeliveryTag}.");
+
+                    Channel.BasicAck(@event.DeliveryTag, false);
+
+                    if (@event.BasicProperties.Headers is null)
+                        @event.BasicProperties.Headers = new Dictionary<string, object>();
+
+                    var exchange = _exchanges.FirstOrDefault(x => x.Name == @event.Exchange);
+                    if (exchange is null)
+                    {
+                        _logger.LogError($"Could not detect exchange {@event.Exchange} to detect the necessity of resending the failed message.");
+                        return;
+                    }
+
+                    if (exchange.Options.RequeueFailedMessages
+                        && !string.IsNullOrEmpty(exchange.Options.DeadLetterExchange)
+                        && !@event.BasicProperties.Headers.ContainsKey("requeued"))
+                    {
+                        @event.BasicProperties.Headers.Add("requeued", true);
+                        Send(@event.Body, @event.BasicProperties, @event.Exchange, @event.RoutingKey, ResendTimeout);
+                        _logger.LogInformation("The failed message has been requeued.");
+                    }
+                    else
+                        _logger.LogInformation("The failed message would not be requeued.");
                 }
             };
+
+            var deadLetterExchanges = _exchanges
+                .Where(x => !string.IsNullOrEmpty(x.Options.DeadLetterExchange))
+                .Select(x => x.Options.DeadLetterExchange)
+                .Distinct();
+
+            foreach (var exchangeName in deadLetterExchanges)
+                StartDeadLetterExchange(exchangeName);
 
             foreach (var exchange in _exchanges)
                 StartExchange(exchange);
         }
 
-        void Log(LogLevel logLevel, string message)
-        {
-            if (_clientLogger is null)
-                return;
-            _clientLogger.Log(logLevel, message);
-        }
+        void StartDeadLetterExchange(string exchangeName) =>
+            _channel.ExchangeDeclare(
+                exchange: exchangeName,
+                type: "direct",
+                durable: true,
+                autoDelete: false,
+                arguments: null);
 
         void StartExchange(RabbitMqExchange exchange)
         {
@@ -357,8 +379,6 @@ namespace RabbitMQ.Client.Core
                 durable: exchange.Options.Durable,
                 autoDelete: exchange.Options.AutoDelete,
                 arguments: exchange.Options.Arguments);
-
-            // TODO: Add dead-letter-exchanges functionality.
 
             foreach (var queue in exchange.Options.Queues)
                 StartQueue(queue, exchange.Name);
@@ -389,5 +409,54 @@ namespace RabbitMQ.Client.Core
                     routingKey: queue.Name);
             }
         }
+
+        void ValidateArguments(string exchangeName, string routingKey)
+        {
+            if (string.IsNullOrEmpty(exchangeName))
+                throw new ArgumentException($"Argument {nameof(exchangeName)} is null or empty.", nameof(exchangeName));
+            if (string.IsNullOrEmpty(routingKey))
+                throw new ArgumentException($"Argument {nameof(routingKey)} is null or empty.", nameof(routingKey));
+
+            var deadLetterExchanges = _exchanges.Select(x => x.Options.DeadLetterExchange).Distinct();
+            if (!_exchanges.Any(x => x.Name == exchangeName)
+                && !deadLetterExchanges.Any(x => x == exchangeName))
+                throw new ArgumentException($"Exchange {nameof(exchangeName)} has not been deaclared yet.", nameof(exchangeName));
+        }
+
+        string GetDeadLetterExchange(string exchangeName)
+        {
+            var exchange = _exchanges.FirstOrDefault(x => x.Name == exchangeName);
+            if (string.IsNullOrEmpty(exchange.Options.DeadLetterExchange))
+                throw new ArgumentException($"Exchange {nameof(exchangeName)} has not been configured with a dead letter exchange.", nameof(exchangeName));
+            return exchange.Options.DeadLetterExchange;
+        }
+
+        string DeclareDelayedQueue(string exchange, string deadLetterExchange, string routingKey, int secondsDelay)
+        {
+            var delayedQueueName = $"{routingKey}.delayed.{secondsDelay}";
+            var arguments = CreateArguments(exchange, routingKey, secondsDelay);
+
+            _channel.QueueDeclare(
+                queue: delayedQueueName,
+                durable: true,
+                exclusive: false,
+                autoDelete: false,
+                arguments: arguments);
+
+            _channel.QueueBind(
+                queue: delayedQueueName,
+                exchange: deadLetterExchange,
+                routingKey: delayedQueueName);
+            return delayedQueueName;
+        }
+
+        Dictionary<string, object> CreateArguments(string exchangeName, string routingKey, int secondsDelay) =>
+            new Dictionary<string, object>
+            {
+                { "x-dead-letter-exchange", exchangeName },
+                { "x-dead-letter-routing-key", routingKey },
+                { "x-message-ttl", secondsDelay * 1000 },
+                { "x-expires", secondsDelay * 1000 + 60 * 1000 }
+            };
     }
 }

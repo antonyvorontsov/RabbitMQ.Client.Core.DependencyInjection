@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace RabbitMQ.Client.Core.Configuration
+namespace RabbitMQ.Client.Core.DependencyInjection.Configuration
 {
     /// <summary>
     /// Echange options.
@@ -21,14 +21,25 @@ namespace RabbitMQ.Client.Core.Configuration
         /// AutoDelete option.
         /// </summary>
         public bool AutoDelete { get; set; } = false;
-        
+
+        /// <summary>
+        /// Default dead-letter-exchange.
+        /// </summary>
+        public string DeadLetterExchange { get; set; } = "default.dlx.exchange";
+
+        /// <summary>
+        /// Option to requeue failed messages (once).
+        /// </summary>
+        public bool RequeueFailedMessages { get; set; } = true;
+
         /// <summary>
         /// Additional arguments.
         /// </summary>
         public IDictionary<string, object> Arguments { get; set; } = new Dictionary<string, object>();
-        
+
         /// <summary>
         /// Collection of queues connected to the exchange.
         /// </summary>
-        public IList<RabbitMqQueueOptions> Queues { get; set; } = new List<RabbitMqQueueOptions>();    }
+        public IList<RabbitMqQueueOptions> Queues { get; set; } = new List<RabbitMqQueueOptions>();
+    }
 }

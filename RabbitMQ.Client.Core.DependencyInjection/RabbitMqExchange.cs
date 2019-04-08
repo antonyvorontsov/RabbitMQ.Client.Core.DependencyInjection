@@ -1,6 +1,6 @@
-﻿using RabbitMQ.Client.Core.Configuration;
+﻿using RabbitMQ.Client.Core.DependencyInjection.Configuration;
 
-namespace RabbitMQ.Client.Core
+namespace RabbitMQ.Client.Core.DependencyInjection
 {
     /// <summary>
     /// Exchange model.

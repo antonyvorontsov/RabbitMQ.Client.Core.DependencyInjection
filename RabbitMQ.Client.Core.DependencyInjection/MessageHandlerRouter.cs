@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace RabbitMQ.Client.Core
+namespace RabbitMQ.Client.Core.DependencyInjection
 {
     /// <summary>
     /// Message handler router model.

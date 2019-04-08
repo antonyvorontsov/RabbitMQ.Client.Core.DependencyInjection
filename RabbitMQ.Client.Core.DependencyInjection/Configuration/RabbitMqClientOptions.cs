@@ -1,4 +1,4 @@
-﻿namespace RabbitMQ.Client.Core.Configuration
+﻿namespace RabbitMQ.Client.Core.DependencyInjection.Configuration
 {
     /// <summary>
     /// RabbitMQ configuration model.
