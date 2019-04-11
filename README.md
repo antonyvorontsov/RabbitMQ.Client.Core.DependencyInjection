@@ -4,7 +4,7 @@ This is a wrapper-library of RabbitMQ.Client with Dependency Injection infrastru
 
 ### Producer
 
-First of all you need to add all service dependencies in the *ConfigureServices*. *AddRabbitMqClient* adds IQueueService that can send messages and *AddExchange* configures and adds an exchange. You can add multiple exchanges but the queue service will be single (and it will be added as singleton obviously).
+First of all you need to add all service dependencies in the `ConfigureServices` method. `AddRabbitMqClient` adds `IQueueService` that can send messages and `AddExchange` configures and adds an exchange. You can add multiple exchanges but the queue service will be single (and it will be added as singleton obviously).
 
 ```csharp
 
@@ -20,7 +20,7 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
-If you using a console application then you can get an instance of the queue service like this:
+If you are using a console application then you can get an instance of the queue service like this:
 
 ```csharp
 var serviceCollection = new ServiceCollection();
@@ -43,12 +43,12 @@ public class HomeController : Controller
 }
 ```
 
-And now you can send messages using *Send* and *SendAsync* methods like this:
+And now you can send messages using `Send` and `SendAsync` methods like this:
 ```csharp
 var messageObject = new
 {
-       Id = 1,
-	   Name = "RandomName"
+	Id = 1,
+	Name = "RandomName"
 };
 
 queueService.Send(
@@ -56,17 +56,19 @@ queueService.Send(
        exchangeName: "exchange.name",
        routingKey: "routing.key");
 ```
+There is a bunch of different methods like `SendJson` or `SendString` with their async versions but the `Send` method allows you to send any object of any type and makes communication process kinda easier.
+Any message will be persistent and sent with `application/json` Content Type. Only exception for this is `SendString` method just in case you want to send something of your own (e.g. xml).
 
-Or you can send a message with delay.
+You can also send messages with delay.
 ```csharp
 queueService.Send(
-       @object: messageObject,
-       exchangeName: "exchange.name",
-       routingKey: "routing.key",
-	   secondsDelay: 10);
+	@object: messageObject,
+	exchangeName: "exchange.name",
+	routingKey: "routing.key",
+	secondsDelay: 10);
 ```
 
-In order to make this possible, a default dead-letter-exchange exchanger with `"default.dlx.exchange"` name will be created. You can change it via main exchange configuration (example is down below).
+In order to make this possible, a default dead-letter-exchange with `"default.dlx.exchange"` name will be created. You can change it via main exchange configuration (example is down below).
 And also you have a default functionality of resending failed messages (if you get an error while processing recieved message).
 
 ### Consumer
@@ -76,39 +78,40 @@ Lets imagine that you wanna make a consumer as a console application. Then code 
 ```csharp
 class Program
 {
-       const string ExchangeName = "exchange.name";
-       public static IConfiguration Configuration { get; set; }
-       static void Main(string[] args)
-       {
-             var builder = new ConfigurationBuilder()
-                    .SetBasePath(Directory.GetCurrentDirectory())
-                    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-             Configuration = builder.Build();
+	const string ExchangeName = "exchange.name";
+	public static IConfiguration Configuration { get; set; }
 
-             var serviceCollection = new ServiceCollection();
-             ConfigureServices(serviceCollection);
+	static void Main(string[] args)
+	{
+		var builder = new ConfigurationBuilder()
+			.SetBasePath(Directory.GetCurrentDirectory())
+			.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+		Configuration = builder.Build();
 
-             var serviceProvider = serviceCollection.BuildServiceProvider();
-             var queueService = serviceProvider.GetRequiredService<IQueueService>();
-             queueService.StartConsuming();
-       }
+		var serviceCollection = new ServiceCollection();
+		ConfigureServices(serviceCollection);
 
-       static void ConfigureServices(IServiceCollection services)
-       {
-        var rabbitMqSection = Configuration.GetSection("RabbitMq");
-        var exchangeSection = Configuration.GetSection("RabbitMqExchange");
+		var serviceProvider = serviceCollection.BuildServiceProvider();
+		var queueService = serviceProvider.GetRequiredService<IQueueService>();
+		queueService.StartConsuming();
+	}
 
-        services.AddRabbitMqClient(rabbitMqSection)
-            .AddExchange("exchange.name", exchangeSection)
-            .AddMessageHandlerSingleton<CustomMessageHandler>("routing.key")
-            .AddAsyncMessageHandlerSingleton<CustomAsyncMessageHandler>("other.routing.key");
-       }
+	static void ConfigureServices(IServiceCollection services)
+	{
+		var rabbitMqSection = Configuration.GetSection("RabbitMq");
+		var exchangeSection = Configuration.GetSection("RabbitMqExchange");
+
+		services.AddRabbitMqClient(rabbitMqSection)
+			.AddExchange("exchange.name", exchangeSection)
+			.AddMessageHandlerSingleton<CustomMessageHandler>("routing.key")
+			.AddAsyncMessageHandlerSingleton<CustomAsyncMessageHandler>("other.routing.key");
+	}
 }
 ```
 
 You have to configure QueueService the same way as you've done with producer.
-The key point is adding custom message handlers by implementing *IMessageHandler* interface and adding it in *AddMessageHandlerSingleton<T>* method.
-After configuring the queueService you need to start "listening" by simply calling *StartConsuming* method. After that you can get messages and handle it in any way you want.
+The key point is adding custom message handlers by implementing `IMessageHandler` interface and adding it in `AddMessageHandlerSingleton<T>` or `AddMessageHandlerTransient<T>` methods.
+After configuring the queueService you have to start "listening" by simply calling `StartConsuming` method of `IQueueService`. After that you can get messages and handle them in any way you want.
 
 Message handler example:
 ```csharp
@@ -120,11 +123,11 @@ public class CustomMessageHandler : IMessageHandler
 		_logger = logger;
 	}
 
-    public void Handle(string message, string routingKey)
-    {
-		_logger.LogInformation("Ho-ho-hoooo");
+	public void Handle(string message, string routingKey)
+	{
 		// Do whatever you want!
-    }
+		_logger.LogInformation("Ho-ho-hoooo");
+	}
 }
 ```
 
@@ -133,18 +136,22 @@ Or you can add another message handler that will run asynchronously:
 public class CustomAsyncMessageHandler : IAsyncMessageHandler
 {
 	readonly ILogger<CustomAsyncMessageHandler> _logger;
+
 	public CustomAsyncMessageHandler(ILogger<CustomAsyncMessageHandler> logger)
 	{
 		_logger = logger;
 	}
 
-    public async Task Handle(string message, string routingKey)
-    {
+	public async Task Handle(string message, string routingKey)
+	{
 		// Do whatever you want asynchronously!
 		_logger.LogInformation("Merry christmas!");
-    }
+	}
 }
 ```
+
+
+*Example projects will be provided soon...*
 
 ### appsettings.json configuration
 
@@ -175,7 +182,7 @@ public class CustomAsyncMessageHandler : IAsyncMessageHandler
 }
 ```
 
-"Type", "Durable", "AutoDelete", "DeadLetterExchange", "RequeueFailedMessages" are set with default values in this example. So you can change it or leave it like this:
+`Type`, `Durable`, `AutoDelete`, `DeadLetterExchange`, `RequeueFailedMessages` are set with default values in this example. So you can change it or leave it like this:
 ```
 {
   "RabbitMq": {
