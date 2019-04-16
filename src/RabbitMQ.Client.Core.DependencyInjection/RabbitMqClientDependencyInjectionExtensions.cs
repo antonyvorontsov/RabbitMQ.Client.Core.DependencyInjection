@@ -207,18 +207,5 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             services.Add(new ServiceDescriptor(typeof(MessageHandlerRouter), router));
             return services;
         }
-
-        /// <summary>
-        /// Add custom (client) logger.
-        /// </summary>
-        /// <typeparam name="T">Logger type.</typeparam>
-        /// <param name="services">Service collection.</param>
-        /// <returns>Service collection.</returns>
-        public static IServiceCollection AddClientLogger<T>(this IServiceCollection services)
-            where T : class, ILogger
-        {
-            services.AddSingleton<ILogger, T>();
-            return services;
-        }
     }
 }

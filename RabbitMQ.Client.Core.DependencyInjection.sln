@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.271
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28803.156
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RabbitMQ.Client.Core.DependencyInjection", "RabbitMQ.Client.Core.DependencyInjection\RabbitMQ.Client.Core.DependencyInjection.csproj", "{0C8EA737-64AC-4C41-8F80-11BFFEE23CE2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RabbitMQ.Client.Core.DependencyInjection", "src\RabbitMQ.Client.Core.DependencyInjection\RabbitMQ.Client.Core.DependencyInjection.csproj", "{0C8EA737-64AC-4C41-8F80-11BFFEE23CE2}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{98236217-C249-4D30-8646-B1FCF4070910}"
 	ProjectSection(SolutionItems) = preProject
@@ -11,6 +11,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		LICENSE.txt = LICENSE.txt
 		README.md = README.md
 	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{19ADB6D2-AC61-476A-9FF4-F827574658C7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -25,6 +27,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{0C8EA737-64AC-4C41-8F80-11BFFEE23CE2} = {19ADB6D2-AC61-476A-9FF4-F827574658C7}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0EBBD182-65B2-47F9-ABBE-64B5B8C9652F}

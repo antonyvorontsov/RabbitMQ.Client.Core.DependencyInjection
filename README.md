@@ -1,10 +1,10 @@
 ﻿# RabbitMQ.Client.Core.DependencyInjection
 
-This is a wrapper-library of RabbitMQ.Client with Dependency Injection infrastructure under the .Net Core 2.2 platform.
+Wrapper-library of RabbitMQ.Client with Dependency Injection infrastructure under the .Net Core 2.2 platform.
 
 ### Producer
 
-First of all you need to add all service dependencies in the `ConfigureServices` method. `AddRabbitMqClient` adds `IQueueService` that can send messages and `AddExchange` configures and adds an exchange. You can add multiple exchanges but the queue service will be single (and it will be added as singleton obviously).
+First of all you have to add all service dependencies in the `ConfigureServices` method. `AddRabbitMqClient` adds `IQueueService` that can send messages and `AddExchange` configures and adds an exchange. You can add multiple exchanges but the queue service will be single (and it will be added as singleton obviously).
 
 ```csharp
 
@@ -29,7 +29,7 @@ var serviceProvider = serviceCollection.BuildServiceProvider();
 var queueService = serviceProvider.GetRequiredService<IQueueService>();
 ```
 
-Or you can inject that queue service inside any class (service/controller/whatever) like this:
+Or you can inject that queue service inside anything (service/controller/whatever):
 
 ```csharp
 [Route("api/[controller]")]
@@ -43,7 +43,8 @@ public class HomeController : Controller
 }
 ```
 
-And now you can send messages using `Send` and `SendAsync` methods like this:
+Now you can send messages using `Send` and `SendAsync` methods:
+
 ```csharp
 var messageObject = new
 {
@@ -56,8 +57,9 @@ queueService.Send(
        exchangeName: "exchange.name",
        routingKey: "routing.key");
 ```
+
 There is a bunch of different methods like `SendJson` or `SendString` with their async versions but the `Send` method allows you to send any object of any type and makes communication process kinda easier.
-Any message will be persistent and sent with `application/json` Content Type. Only exception for this is `SendString` method just in case you want to send something of your own (e.g. xml).
+Any message will be persistent and sent with `application/json` Content Type. Only exception is `SendString` method that was written just in case you want to send something of your own (e.g. xml).
 
 You can also send messages with delay.
 ```csharp
@@ -155,9 +157,9 @@ public class CustomAsyncMessageHandler : IAsyncMessageHandler
 
 ### appsettings.json configuration
 
- You have to have couple configuration sections - settings to connect to the RabbitMQ server and one section per exchange.
- Exchange sections define how to bind queues and exchanges and which routing keys to use.
- You can bind a queue to an exchange with more that one routing key, but if there are no routing keys in the queue section, then that queue will be bind to the exchange with its name.
+ You have to add a couple configuration sections: (1) settings to connect to the RabbitMQ server and (2) a section that configures an exchange (one section per exchange frankly speaking).
+ Exchange sections define how to bind queues and exchanges with each ohter and which routing keys to use for that.
+ You can bind a queue to an exchange with more than one routing key, but if there are no routing keys in the queue section, then that queue will be bound to the exchange with its name.
 ```
 {
   "RabbitMq": {

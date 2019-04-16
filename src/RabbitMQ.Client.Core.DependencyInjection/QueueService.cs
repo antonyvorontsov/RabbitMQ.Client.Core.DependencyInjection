@@ -1,14 +1,14 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Core.DependencyInjection.Configuration;
+using RabbitMQ.Client.Events;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using System.Linq;
 
 namespace RabbitMQ.Client.Core.DependencyInjection
 {
@@ -35,13 +35,13 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         readonly IDictionary<Type, List<string>> _routingKeys;
         readonly IEnumerable<RabbitMqExchange> _exchanges;
         readonly ILogger<QueueService> _logger;
-        readonly ILogger _clientLogger;
         readonly IConnection _connection;
         readonly IModel _channel;
         readonly EventingBasicConsumer _consumer;
         readonly object _lock = new object();
 
         const int ResendTimeout = 60;
+        const int QueueExpirationTime = 60000;
 
         public QueueService(
             IEnumerable<IMessageHandler> messageHandlers,
@@ -49,19 +49,18 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             IEnumerable<RabbitMqExchange> exchanges,
             IEnumerable<MessageHandlerRouter> routers,
             ILoggerFactory loggerFactory,
-            IOptions<RabbitMqClientOptions> options,
-            ILogger clientLogger = null)
+            IOptions<RabbitMqClientOptions> options)
         {
             if (options is null)
                 throw new ArgumentException($"Argument {nameof(options)} is null.", nameof(options));
 
             _exchanges = exchanges;
+
             _routingKeys = TransformMessageHandlerRouters(routers);
             _messageHandlers = TransformMessageHandlersCollection(messageHandlers);
             _asyncMessageHandlers = TransformAsyncMessageHandlersCollection(asyncMessageHandlers);
 
             _logger = loggerFactory.CreateLogger<QueueService>();
-            _clientLogger = clientLogger;
 
             var optionsValue = options.Value;
             var factory = new ConnectionFactory
@@ -71,12 +70,10 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                 UserName = optionsValue.UserName,
                 Password = optionsValue.Password,
                 VirtualHost = optionsValue.VirtualHost,
-
-                // Default settings.
-                AutomaticRecoveryEnabled = true,
-                TopologyRecoveryEnabled = true,
-                RequestedConnectionTimeout = 60000,
-                RequestedHeartbeat = 60
+                AutomaticRecoveryEnabled = optionsValue.AutomaticRecoveryEnabled,
+                TopologyRecoveryEnabled = optionsValue.TopologyRecoveryEnabled,
+                RequestedConnectionTimeout = optionsValue.RequestedConnectionTimeout,
+                RequestedHeartbeat = optionsValue.RequestedHeartbeat
             };
 
             _connection = factory.CreateConnection();
@@ -128,7 +125,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                 foreach (var queue in exchange.Options.Queues)
                     _channel.BasicConsume(queue: queue.Name, autoAck: false, consumer: _consumer);
         }
-        
+
         public void Send<T>(T @object, string exchangeName, string routingKey) where T : class
         {
             ValidateArguments(exchangeName, routingKey);
@@ -240,7 +237,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         {
             if (@event is null)
                 return;
-            
+
             _logger.LogError(new EventId(), @event.Exception, @event.Exception.Message, @event);
             throw @event.Exception;
         }
@@ -492,7 +489,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                 { "x-dead-letter-exchange", exchangeName },
                 { "x-dead-letter-routing-key", routingKey },
                 { "x-message-ttl", secondsDelay * 1000 },
-                { "x-expires", secondsDelay * 1000 + 60 * 1000 }
+                { "x-expires", secondsDelay * 1000 + QueueExpirationTime }
             };
     }
 }

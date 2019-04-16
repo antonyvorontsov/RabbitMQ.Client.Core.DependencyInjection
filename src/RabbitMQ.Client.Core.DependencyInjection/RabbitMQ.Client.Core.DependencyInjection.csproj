@@ -3,9 +3,9 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
     <LangVersion>latest</LangVersion>
-    <Version>1.2.1</Version>
+    <Version>1.2.2</Version>
     <PackageTags>RabbitMQ</PackageTags>
-    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <PackageLicenseFile>../../LICENSE.txt</PackageLicenseFile>
     <RepositoryUrl>https://github.com/AntonyVorontsov/RabbitMQ.Client.Core.DependencyInjection</RepositoryUrl>
     <Company />
     <Description>.Net Core library-wrapper of RabbitMQ.Client for Dependency Injection.</Description>
@@ -14,7 +14,7 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <None Include="../LICENSE.txt" Pack="true" PackagePath="$(PackageLicenseFile)"/>
+    <None Include="../../LICENSE.txt" Pack="true" PackagePath="$(PackageLicenseFile)"/>
   </ItemGroup>
 
   <ItemGroup>

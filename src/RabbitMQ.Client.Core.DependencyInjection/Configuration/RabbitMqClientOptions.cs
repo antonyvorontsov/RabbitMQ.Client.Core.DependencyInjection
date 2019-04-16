@@ -29,5 +29,25 @@
         /// Virtual host.
         /// </summary>
         public string VirtualHost { get; set; } = "/";
+
+        /// <summary>
+        /// Automatic connection recovery option.
+        /// </summary>
+        public bool AutomaticRecoveryEnabled { get; set; } = true;
+
+        /// <summary>
+        /// Topology recovery option.
+        /// </summary>
+        public bool TopologyRecoveryEnabled { get; set; } = true;
+
+        /// <summary>
+        /// Timeout for connection attempts.
+        /// </summary>
+        public int RequestedConnectionTimeout { get; set; } = 60000;
+
+        /// <summary>
+        /// Heartbeat timeout.
+        /// </summary>
+        public ushort RequestedHeartbeat { get; set; } = 60;
     }
 }
