@@ -6,7 +6,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
     /// <summary>
     /// A service extension for registrating exchange singleton "services".
     /// </summary>
-    public class ExchangeServiceDescriptor : ServiceDescriptor
+    internal class ExchangeServiceDescriptor : ServiceDescriptor
     {
         public string ExchangeName { get; set; }
 

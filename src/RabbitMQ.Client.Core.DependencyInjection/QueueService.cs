@@ -15,7 +15,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
     /// <summary>
     /// Implementation of the custom RabbitMQ queue service.
     /// </summary>
-    public class QueueService : IQueueService
+    internal class QueueService : IQueueService
     {
         /// <summary>
         /// RabbitMQ connection.

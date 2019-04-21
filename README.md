@@ -152,8 +152,7 @@ public class CustomAsyncMessageHandler : IAsyncMessageHandler
 }
 ```
 
-
-*Example projects will be provided soon...*
+You can find example projects in the repository too.
 
 ### appsettings.json configuration
 

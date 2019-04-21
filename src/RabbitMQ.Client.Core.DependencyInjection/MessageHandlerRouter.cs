@@ -6,7 +6,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
     /// <summary>
     /// Message handler router model.
     /// </summary>
-    public class MessageHandlerRouter
+    internal class MessageHandlerRouter
     {
         /// <summary>
         /// Message Handler Type
