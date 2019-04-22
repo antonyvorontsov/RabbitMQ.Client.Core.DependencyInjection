@@ -152,6 +152,55 @@ public class CustomAsyncMessageHandler : IAsyncMessageHandler
 }
 ```
 
+But you can not use `IQueueService` inside those message handlers otherwise you will be faced with cycling dependency problem. But sometimes you may need to send something in other queue (e.g. queue with responses) from one message handler or another. For that purposes use non-cyclinc handlers.
+
+```csharp
+public class CustomMessageHandler : INonCyclicMessageHandler
+{
+	readonly ILogger<CustomMessageHandler> _logger;
+	public CustomMessageHandler(ILogger<CustomMessageHandler> logger)
+	{
+		_logger = logger;
+	}
+
+	public void Handle(string message, string routingKey, IQueueService queueService)
+	{
+		_logger.LogInformation("Got a message.");
+		var response = new { Message = message };
+		queueService.Send(response, "exchange.name", "routing.key");
+	}
+}
+```
+
+Or the same but async.
+
+```csharp
+public class CustomAsyncMessageHandler : IAsyncNonCyclicMessageHandler
+{
+	readonly ILogger<CustomAsyncMessageHandler> _logger;
+
+	public CustomAsyncMessageHandler(ILogger<CustomAsyncMessageHandler> logger)
+	{
+		_logger = logger;
+	}
+
+	public async Task Handle(string message, string routingKey, IQueueService queueService)
+	{
+		_logger.LogInformation("Doing something async.");
+		var response = new { Message = message };
+		await queueService.SendAsync(response, "exchange.name", "routing.key");
+	}
+}
+```
+
+And you have to register those classes the same way you did with simple handlers.
+```csharp
+services.AddRabbitMqClient(rabbitMqSection)
+	.AddExchange("exchange.name", exchangeSection)
+	.AddNonCyclicMessageHandlerSingleton<CustomMessageHandler>("routing.key")
+	.AddAsyncNonCyclicMessageHandlerSingleton<CustomAsyncMessageHandler>("other.routing.key");
+```
+
 You can find example projects in the repository too.
 
 ### appsettings.json configuration

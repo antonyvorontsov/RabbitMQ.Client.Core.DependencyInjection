@@ -142,8 +142,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             services.Add(new ServiceDescriptor(typeof(MessageHandlerRouter), router));
             return services;
         }
-
-
+        
         /// <summary>
         /// Add transient async message handler.
         /// </summary>
@@ -203,6 +202,134 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             where T : class, IAsyncMessageHandler
         {
             services.AddSingleton<IAsyncMessageHandler, T>();
+            var router = new MessageHandlerRouter { Type = typeof(T), RoutingKeys = routingKeys.ToList() };
+            services.Add(new ServiceDescriptor(typeof(MessageHandlerRouter), router));
+            return services;
+        }
+
+        /// <summary>
+        /// Add transient non-cyclic message handler.
+        /// </summary>
+        /// <typeparam name="T">Message handler type.</typeparam>
+        /// <param name="services">Service collection.</param>
+        /// <param name="routingKey">Routing key.</param>
+        /// <returns>Service collection.</returns>
+        public static IServiceCollection AddNonCyclicMessageHandlerTransient<T>(this IServiceCollection services, string routingKey)
+            where T : class, INonCyclicMessageHandler
+        {
+            services.AddTransient<INonCyclicMessageHandler, T>();
+            var router = new MessageHandlerRouter { Type = typeof(T), RoutingKeys = new[] { routingKey }.ToList() };
+            services.Add(new ServiceDescriptor(typeof(MessageHandlerRouter), router));
+            return services;
+        }
+
+        /// <summary>
+        /// Add transient non-cyclic message handler.
+        /// </summary>
+        /// <typeparam name="T">Message handler type.</typeparam>
+        /// <param name="services">Service collection.</param>
+        /// <param name="routingKeys">Routing keys.</param>
+        /// <returns>Service collection.</returns>
+        public static IServiceCollection AddNonCyclicMessageHandlerTransient<T>(this IServiceCollection services, IEnumerable<string> routingKeys)
+            where T : class, INonCyclicMessageHandler
+        {
+            services.AddTransient<INonCyclicMessageHandler, T>();
+            var router = new MessageHandlerRouter { Type = typeof(T), RoutingKeys = routingKeys.ToList() };
+            services.Add(new ServiceDescriptor(typeof(MessageHandlerRouter), router));
+            return services;
+        }
+
+        /// <summary>
+        /// Add singleton non-cyclic message handler.
+        /// </summary>
+        /// <typeparam name="T">Message handler type.</typeparam>
+        /// <param name="services">Service collection.</param>
+        /// <param name="routingKey">Routing key.</param>
+        /// <returns>Service collection.</returns>
+        public static IServiceCollection AddNonCyclicMessageHandlerSingleton<T>(this IServiceCollection services, string routingKey)
+            where T : class, INonCyclicMessageHandler
+        {
+            services.AddSingleton<INonCyclicMessageHandler, T>();
+            var router = new MessageHandlerRouter { Type = typeof(T), RoutingKeys = new[] { routingKey }.ToList() };
+            services.Add(new ServiceDescriptor(typeof(MessageHandlerRouter), router));
+            return services;
+        }
+
+        /// <summary>
+        /// Add singleton non-cyclic message handler.
+        /// </summary>
+        /// <typeparam name="T">Message handler type.</typeparam>
+        /// <param name="services">Service collection.</param>
+        /// <param name="routingKeys">Routing keys.</param>
+        /// <returns>Service collection.</returns>
+        public static IServiceCollection AddNonCyclicMessageHandlerSingleton<T>(this IServiceCollection services, IEnumerable<string> routingKeys)
+            where T : class, INonCyclicMessageHandler
+        {
+            services.AddSingleton<INonCyclicMessageHandler, T>();
+            var router = new MessageHandlerRouter { Type = typeof(T), RoutingKeys = routingKeys.ToList() };
+            services.Add(new ServiceDescriptor(typeof(MessageHandlerRouter), router));
+            return services;
+        }
+
+        /// <summary>
+        /// Add transient async non-cyclic message handler.
+        /// </summary>
+        /// <typeparam name="T">Message handler type.</typeparam>
+        /// <param name="services">Service collection.</param>
+        /// <param name="routingKey">Routing key.</param>
+        /// <returns>Service collection.</returns>
+        public static IServiceCollection AddAsyncNonCyclicMessageHandlerTransient<T>(this IServiceCollection services, string routingKey)
+            where T : class, IAsyncNonCyclicMessageHandler
+        {
+            services.AddTransient<IAsyncNonCyclicMessageHandler, T>();
+            var router = new MessageHandlerRouter { Type = typeof(T), RoutingKeys = new[] { routingKey }.ToList() };
+            services.Add(new ServiceDescriptor(typeof(MessageHandlerRouter), router));
+            return services;
+        }
+
+        /// <summary>
+        /// Add transient async non-cyclic message handler.
+        /// </summary>
+        /// <typeparam name="T">Message handler type.</typeparam>
+        /// <param name="services">Service collection.</param>
+        /// <param name="routingKeys">Routing keys.</param>
+        /// <returns>Service collection.</returns>
+        public static IServiceCollection AddAsyncNonCyclicMessageHandlerTransient<T>(this IServiceCollection services, IEnumerable<string> routingKeys)
+            where T : class, IAsyncNonCyclicMessageHandler
+        {
+            services.AddTransient<IAsyncNonCyclicMessageHandler, T>();
+            var router = new MessageHandlerRouter { Type = typeof(T), RoutingKeys = routingKeys.ToList() };
+            services.Add(new ServiceDescriptor(typeof(MessageHandlerRouter), router));
+            return services;
+        }
+
+        /// <summary>
+        /// Add singleton async non-cyclic message handler.
+        /// </summary>
+        /// <typeparam name="T">Message handler type.</typeparam>
+        /// <param name="services">Service collection.</param>
+        /// <param name="routingKey">Routing key.</param>
+        /// <returns>Service collection.</returns>
+        public static IServiceCollection AddAsyncNonCyclicMessageHandlerSingleton<T>(this IServiceCollection services, string routingKey)
+            where T : class, IAsyncNonCyclicMessageHandler
+        {
+            services.AddSingleton<IAsyncNonCyclicMessageHandler, T>();
+            var router = new MessageHandlerRouter { Type = typeof(T), RoutingKeys = new[] { routingKey }.ToList() };
+            services.Add(new ServiceDescriptor(typeof(MessageHandlerRouter), router));
+            return services;
+        }
+
+        /// <summary>
+        /// Add singleton async non-cyclic message handler.
+        /// </summary>
+        /// <typeparam name="T">Message handler type.</typeparam>
+        /// <param name="services">Service collection.</param>
+        /// <param name="routingKeys">Routing keys.</param>
+        /// <returns>Service collection.</returns>
+        public static IServiceCollection AddAsyncNonCyclicMessageHandlerSingleton<T>(this IServiceCollection services, IEnumerable<string> routingKeys)
+            where T : class, IAsyncNonCyclicMessageHandler
+        {
+            services.AddSingleton<IAsyncNonCyclicMessageHandler, T>();
             var router = new MessageHandlerRouter { Type = typeof(T), RoutingKeys = routingKeys.ToList() };
             services.Add(new ServiceDescriptor(typeof(MessageHandlerRouter), router));
             return services;

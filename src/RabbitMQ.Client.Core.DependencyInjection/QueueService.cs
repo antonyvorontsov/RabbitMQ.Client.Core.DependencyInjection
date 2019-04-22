@@ -32,6 +32,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection
 
         readonly IDictionary<string, IList<IMessageHandler>> _messageHandlers;
         readonly IDictionary<string, IList<IAsyncMessageHandler>> _asyncMessageHandlers;
+        readonly IDictionary<string, IList<INonCyclicMessageHandler>> _nonCyclicHandlers;
+        readonly IDictionary<string, IList<IAsyncNonCyclicMessageHandler>> _asyncNonCyclicHandlers;
         readonly IDictionary<Type, List<string>> _routingKeys;
         readonly IEnumerable<RabbitMqExchange> _exchanges;
         readonly ILogger<QueueService> _logger;
@@ -46,6 +48,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         public QueueService(
             IEnumerable<IMessageHandler> messageHandlers,
             IEnumerable<IAsyncMessageHandler> asyncMessageHandlers,
+            IEnumerable<INonCyclicMessageHandler> nonCyclicHandlers,
+            IEnumerable<IAsyncNonCyclicMessageHandler> asyncnonCyclicHandlers,
             IEnumerable<RabbitMqExchange> exchanges,
             IEnumerable<MessageHandlerRouter> routers,
             ILoggerFactory loggerFactory,
@@ -58,7 +62,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection
 
             _routingKeys = TransformMessageHandlerRouters(routers);
             _messageHandlers = TransformMessageHandlersCollection(messageHandlers);
-            _asyncMessageHandlers = TransformAsyncMessageHandlersCollection(asyncMessageHandlers);
+            _asyncMessageHandlers = TransformMessageHandlersCollection(asyncMessageHandlers);
+            _nonCyclicHandlers = TransformMessageHandlersCollection(nonCyclicHandlers);
+            _asyncNonCyclicHandlers = TransformMessageHandlersCollection(asyncnonCyclicHandlers);
 
             _logger = loggerFactory.CreateLogger<QueueService>();
 
@@ -278,9 +284,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             return dictionary;
         }
 
-        IDictionary<string, IList<IMessageHandler>> TransformMessageHandlersCollection(IEnumerable<IMessageHandler> messageHandlers)
+        IDictionary<string, IList<T>> TransformMessageHandlersCollection<T>(IEnumerable<T> messageHandlers)
         {
-            var dictionary = new Dictionary<string, IList<IMessageHandler>>();
+            var dictionary = new Dictionary<string, IList<T>>();
             foreach (var handler in messageHandlers)
             {
                 var type = handler.GetType();
@@ -292,27 +298,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                             dictionary[routingKey].Add(handler);
                     }
                     else
-                        dictionary.Add(routingKey, new List<IMessageHandler>() { handler });
-                }
-            }
-            return dictionary;
-        }
-
-        IDictionary<string, IList<IAsyncMessageHandler>> TransformAsyncMessageHandlersCollection(IEnumerable<IAsyncMessageHandler> messageHandlers)
-        {
-            var dictionary = new Dictionary<string, IList<IAsyncMessageHandler>>();
-            foreach (var handler in messageHandlers)
-            {
-                var type = handler.GetType();
-                foreach (var routingKey in _routingKeys[type])
-                {
-                    if (dictionary.ContainsKey(routingKey))
-                    {
-                        if (!dictionary[routingKey].Any(x => x.GetType() == handler.GetType()))
-                            dictionary[routingKey].Add(handler);
-                    }
-                    else
-                        dictionary.Add(routingKey, new List<IAsyncMessageHandler>() { handler });
+                        dictionary.Add(routingKey, new List<T>() { handler });
                 }
             }
             return dictionary;
@@ -343,6 +329,22 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                             _logger.LogDebug($"Starting processing the message by message handler {handler?.GetType().Name}.");
                             handler.Handle(message, @event.RoutingKey);
                             _logger.LogDebug($"The message has been processed by message handler {handler?.GetType().Name}.");
+                        }
+                    }
+                    if (_asyncNonCyclicHandlers.ContainsKey(@event.RoutingKey))
+                    {
+                        var tasks = new List<Task>();
+                        foreach (var handler in _asyncNonCyclicHandlers[@event.RoutingKey])
+                            tasks.Add(RunAsyncNonCyclicHandler(handler, message, @event.RoutingKey));
+                        Task.WaitAll(tasks.ToArray());
+                    }
+                    if (_nonCyclicHandlers.ContainsKey(@event.RoutingKey))
+                    {
+                        foreach (var handler in _nonCyclicHandlers[@event.RoutingKey])
+                        {
+                            _logger.LogDebug($"Starting processing the message by non-cyclic message handler {handler?.GetType().Name}.");
+                            handler.Handle(message, @event.RoutingKey, this);
+                            _logger.LogDebug($"The message has been processed by non-cyclic message handler {handler?.GetType().Name}.");
                         }
                     }
                     _logger.LogInformation($"Success message with deliveryTag {@event.DeliveryTag}.");
@@ -394,6 +396,13 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             _logger.LogDebug($"Starting processing the message by async message handler {handler?.GetType().Name}.");
             await handler.Handle(message, routingKey);
             _logger.LogDebug($"The message has been processed by async message handler {handler?.GetType().Name}.");
+        }
+
+        async Task RunAsyncNonCyclicHandler(IAsyncNonCyclicMessageHandler handler, string message, string routingKey)
+        {
+            _logger.LogDebug($"Starting processing the message by async non-cyclic message handler {handler?.GetType().Name}.");
+            await handler.Handle(message, routingKey, this);
+            _logger.LogDebug($"The message has been processed by async non-cyclic message handler {handler?.GetType().Name}.");
         }
 
         void StartDeadLetterExchange(string exchangeName) =>
