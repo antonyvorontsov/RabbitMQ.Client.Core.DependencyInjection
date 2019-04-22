@@ -152,7 +152,7 @@ public class CustomAsyncMessageHandler : IAsyncMessageHandler
 }
 ```
 
-But you can not use `IQueueService` inside those message handlers otherwise you will be faced with cycling dependency problem. But sometimes you may need to send something in other queue (e.g. queue with responses) from one message handler or another. For that purposes use non-cyclinc handlers.
+But you can not use `IQueueService` inside those message handlers otherwise you will be faced with cycling dependency problem. But sometimes you may need to send something in other queue (e.g. queue with responses) from one message handler or another. For that purpose use non-cyclinc handlers.
 
 ```csharp
 public class CustomMessageHandler : INonCyclicMessageHandler
