@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Examples.Producer
 {
-    public class Program
+    public static class Program
     {
         public static IConfiguration Configuration { get; set; }
 

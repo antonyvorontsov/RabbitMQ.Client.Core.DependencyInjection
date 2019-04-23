@@ -4,7 +4,7 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/f688764d2ba340099ec50b74726e25fd)](https://app.codacy.com/app/AntonyVorontsov/RabbitMQ.Client.Core.DependencyInjection?utm_source=github.com&utm_medium=referral&utm_content=AntonyVorontsov/RabbitMQ.Client.Core.DependencyInjection&utm_campaign=Badge_Grade_Dashboard)<br/>
 Wrapper-library of RabbitMQ.Client with Dependency Injection infrastructure under the .Net Core 2.2 platform.
 
-### Producer
+## Producer
 
 First of all you have to add all service dependencies in the `ConfigureServices` method. `AddRabbitMqClient` adds `IQueueService` that can send messages and `AddExchange` configures and adds an exchange. You can add multiple exchanges but the queue service will be single (and it will be added as singleton obviously).
 
@@ -75,7 +75,7 @@ queueService.Send(
 In order to make this possible, a default dead-letter-exchange with `"default.dlx.exchange"` name will be created. You can change it via main exchange configuration (example is down below).
 And also you have a default functionality of resending failed messages (if you get an error while processing recieved message).
 
-### Consumer
+## Consumer
 
 Lets imagine that you wanna make a consumer as a console application. Then code will look like this:
 
@@ -205,12 +205,12 @@ services.AddRabbitMqClient(rabbitMqSection)
 
 You can find example projects in the repository too.
 
-### appsettings.json configuration
+## appsettings.json configuration
 
  You have to add a couple configuration sections: (1) settings to connect to the RabbitMQ server and (2) a section that configures an exchange (one section per exchange frankly speaking).
  Exchange sections define how to bind queues and exchanges with each ohter and which routing keys to use for that.
  You can bind a queue to an exchange with more than one routing key, but if there are no routing keys in the queue section, then that queue will be bound to the exchange with its name.
-```
+```json
 {
   "RabbitMq": {
     "HostName": "127.0.0.1",
@@ -235,7 +235,7 @@ You can find example projects in the repository too.
 ```
 
 `Type`, `Durable`, `AutoDelete`, `DeadLetterExchange`, `RequeueFailedMessages` are set with default values in this example. So you can change it or leave it like this:
-```
+```json
 {
   "RabbitMq": {
     "HostName": "127.0.0.1",

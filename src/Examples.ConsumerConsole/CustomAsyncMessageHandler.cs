@@ -8,12 +8,14 @@ namespace Examples.ConsumerConsole
     {
         readonly ILogger<CustomAsyncMessageHandler> _logger;
 
-        public CustomAsyncMessageHandler(ILogger<CustomAsyncMessageHandler> logger) =>
+        public CustomAsyncMessageHandler(ILogger<CustomAsyncMessageHandler> logger)
+        {
             _logger = logger;
+        }
 
         public async Task Handle(string message, string routingKey)
         {
-            await Task.Run(() => _logger.LogInformation("A weird example of runnig something async."));
+            await Task.Run(() => _logger.LogInformation("A weird example of runnig something async.")).ConfigureAwait(false);
         }
     }
 }

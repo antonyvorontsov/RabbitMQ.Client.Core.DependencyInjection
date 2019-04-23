@@ -28,7 +28,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         public IModel Channel => _channel;
 
         EventHandler<BasicDeliverEventArgs> _receivedMessage;
-        bool _consumingStarted = false;
+        bool _consumingStarted;
 
         readonly IDictionary<string, IList<IMessageHandler>> _messageHandlers;
         readonly IDictionary<string, IList<IAsyncMessageHandler>> _asyncMessageHandlers;
@@ -128,8 +128,12 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             _consumingStarted = true;
 
             foreach (var exchange in _exchanges)
+            {
                 foreach (var queue in exchange.Options.Queues)
+                {
                     _channel.BasicConsume(queue: queue.Name, autoAck: false, consumer: _consumer);
+                }
+            }
         }
 
         public void Send<T>(T @object, string exchangeName, string routingKey) where T : class
@@ -201,28 +205,28 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         }
 
         public async Task SendAsync<T>(T @object, string exchangeName, string routingKey) where T : class =>
-            await Task.Run(() => Send(@object, exchangeName, routingKey));
+            await Task.Run(() => Send(@object, exchangeName, routingKey)).ConfigureAwait(false);
 
         public async Task SendAsync<T>(T @object, string exchangeName, string routingKey, int secondsDelay) where T : class =>
-            await Task.Run(() => Send(@object, exchangeName, routingKey, secondsDelay));
+            await Task.Run(() => Send(@object, exchangeName, routingKey, secondsDelay)).ConfigureAwait(false);
 
         public async Task SendJsonAsync(string json, string exchangeName, string routingKey) =>
-            await Task.Run(() => SendJson(json, exchangeName, routingKey));
+            await Task.Run(() => SendJson(json, exchangeName, routingKey)).ConfigureAwait(false);
 
         public async Task SendJsonAsync(string json, string exchangeName, string routingKey, int secondsDelay) =>
-            await Task.Run(() => SendJson(json, exchangeName, routingKey, secondsDelay));
+            await Task.Run(() => SendJson(json, exchangeName, routingKey, secondsDelay)).ConfigureAwait(false);
 
         public async Task SendStringAsync(string message, string exchangeName, string routingKey) =>
-            await Task.Run(() => SendString(message, exchangeName, routingKey));
+            await Task.Run(() => SendString(message, exchangeName, routingKey)).ConfigureAwait(false);
 
         public async Task SendStringAsync(string message, string exchangeName, string routingKey, int secondsDelay) =>
-            await Task.Run(() => SendString(message, exchangeName, routingKey, secondsDelay));
+            await Task.Run(() => SendString(message, exchangeName, routingKey, secondsDelay)).ConfigureAwait(false);
 
         public async Task SendAsync(byte[] bytes, IBasicProperties properties, string exchangeName, string routingKey) =>
-            await Task.Run(() => Send(bytes, properties, exchangeName, routingKey));
+            await Task.Run(() => Send(bytes, properties, exchangeName, routingKey)).ConfigureAwait(false);
 
         public async Task SendAsync(byte[] bytes, IBasicProperties properties, string exchangeName, string routingKey, int secondsDelay) =>
-            await Task.Run(() => Send(bytes, properties, exchangeName, routingKey, secondsDelay));
+            await Task.Run(() => Send(bytes, properties, exchangeName, routingKey, secondsDelay)).ConfigureAwait(false);
 
         IBasicProperties CreateProperties()
         {
@@ -261,6 +265,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         {
             if (@event is null)
                 return;
+
             _logger.LogInformation("Connection has been reestablished.");
         }
 
@@ -268,6 +273,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         {
             if (@event is null)
                 return;
+
             _logger.LogError(new EventId(), @event.Exception, @event.Exception.Message, @event);
         }
 
@@ -277,9 +283,13 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             foreach (var router in routers)
             {
                 if (dictionary.ContainsKey(router.Type))
+                {
                     dictionary[router.Type] = dictionary[router.Type].Union(router.RoutingKeys).ToList();
+                }
                 else
+                {
                     dictionary.Add(router.Type, router.RoutingKeys);
+                }
             }
             return dictionary;
         }
@@ -295,10 +305,14 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                     if (dictionary.ContainsKey(routingKey))
                     {
                         if (!dictionary[routingKey].Any(x => x.GetType() == handler.GetType()))
+                        {
                             dictionary[routingKey].Add(handler);
+                        }
                     }
                     else
+                    {
                         dictionary.Add(routingKey, new List<T>() { handler });
+                    }
                 }
             }
             return dictionary;
@@ -319,7 +333,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                     {
                         var tasks = new List<Task>();
                         foreach (var handler in _asyncMessageHandlers[@event.RoutingKey])
+                        {
                             tasks.Add(RunAsyncHandler(handler, message, @event.RoutingKey));
+                        }
                         Task.WaitAll(tasks.ToArray());
                     }
                     if (_messageHandlers.ContainsKey(@event.RoutingKey))
@@ -335,7 +351,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                     {
                         var tasks = new List<Task>();
                         foreach (var handler in _asyncNonCyclicHandlers[@event.RoutingKey])
+                        {
                             tasks.Add(RunAsyncNonCyclicHandler(handler, message, @event.RoutingKey));
+                        }
                         Task.WaitAll(tasks.ToArray());
                     }
                     if (_nonCyclicHandlers.ContainsKey(@event.RoutingKey))
@@ -385,10 +403,14 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                 .Distinct();
 
             foreach (var exchangeName in deadLetterExchanges)
+            {
                 StartDeadLetterExchange(exchangeName);
+            }
 
             foreach (var exchange in _exchanges)
+            {
                 StartExchange(exchange);
+            }
         }
 
         async Task RunAsyncHandler(IAsyncMessageHandler handler, string message, string routingKey)
@@ -423,7 +445,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                 arguments: exchange.Options.Arguments);
 
             foreach (var queue in exchange.Options.Queues)
+            {
                 StartQueue(queue, exchange.Name);
+            }
         }
 
         void StartQueue(RabbitMqQueueOptions queue, string exchangeName)
@@ -460,8 +484,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                 throw new ArgumentException($"Argument {nameof(routingKey)} is null or empty.", nameof(routingKey));
 
             var deadLetterExchanges = _exchanges.Select(x => x.Options.DeadLetterExchange).Distinct();
-            if (!_exchanges.Any(x => x.Name == exchangeName)
-                && !deadLetterExchanges.Any(x => x == exchangeName))
+            if (!_exchanges.Any(x => x.Name == exchangeName) && !deadLetterExchanges.Any(x => x == exchangeName))
                 throw new ArgumentException($"Exchange {nameof(exchangeName)} has not been deaclared yet.", nameof(exchangeName));
         }
 
@@ -470,6 +493,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             var exchange = _exchanges.FirstOrDefault(x => x.Name == exchangeName);
             if (string.IsNullOrEmpty(exchange.Options.DeadLetterExchange))
                 throw new ArgumentException($"Exchange {nameof(exchangeName)} has not been configured with a dead letter exchange.", nameof(exchangeName));
+
             return exchange.Options.DeadLetterExchange;
         }
 
@@ -492,7 +516,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             return delayedQueueName;
         }
 
-        Dictionary<string, object> CreateArguments(string exchangeName, string routingKey, int secondsDelay) =>
+        static Dictionary<string, object> CreateArguments(string exchangeName, string routingKey, int secondsDelay) =>
             new Dictionary<string, object>
             {
                 { "x-dead-letter-exchange", exchangeName },

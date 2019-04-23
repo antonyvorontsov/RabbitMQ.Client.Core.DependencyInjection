@@ -20,7 +20,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Configuration
         /// <summary>
         /// AutoDelete option.
         /// </summary>
-        public bool AutoDelete { get; set; } = false;
+        public bool AutoDelete { get; set; }
 
         /// <summary>
         /// Default dead-letter-exchange.
