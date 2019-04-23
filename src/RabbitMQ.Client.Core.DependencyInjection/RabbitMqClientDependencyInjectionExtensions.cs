@@ -37,11 +37,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// <returns>Service collection.</returns>
         public static IServiceCollection AddExchange(this IServiceCollection services, string exchangeName, IConfiguration configuration)
         {
-            var exchangeExists = services.Any(x => x.ServiceType == typeof(RabbitMqExchange)
-                              && x.Lifetime == ServiceLifetime.Singleton
-                              && string.Equals(((ExchangeServiceDescriptor)x).ExchangeName, exchangeName, StringComparison.OrdinalIgnoreCase));
-            if (exchangeExists)
-                throw new ArgumentException($"Exchange {exchangeName} has already been added!");
+            CheckExchangeExists(services, exchangeName);
 
             var options = new RabbitMqExchangeOptions();
             configuration.Bind(options);
@@ -57,11 +53,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// <returns>Service collection.</returns>
         public static IServiceCollection AddExchange(this IServiceCollection services, string exchangeName, RabbitMqExchangeOptions options)
         {
-            var exchangeExists = services.Any(x => x.ServiceType == typeof(RabbitMqExchange)
-                              && x.Lifetime == ServiceLifetime.Singleton
-                              && string.Equals(((ExchangeServiceDescriptor)x).ExchangeName, exchangeName, StringComparison.OrdinalIgnoreCase));
-            if (exchangeExists)
-                throw new ArgumentException($"Exchange {exchangeName} has already been added!");
+            CheckExchangeExists(services, exchangeName);
 
             var exchangeOptions = options ?? new RabbitMqExchangeOptions();
             var exchange = new RabbitMqExchange { Name = exchangeName, Options = exchangeOptions };
@@ -71,6 +63,15 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             };
             services.Add(service);
             return services;
+        }
+
+        static void CheckExchangeExists(IServiceCollection services, string exchangeName)
+        {
+            var exchangeExists = services.Any(x => x.ServiceType == typeof(RabbitMqExchange)
+                              && x.Lifetime == ServiceLifetime.Singleton
+                              && string.Equals(((ExchangeServiceDescriptor)x).ExchangeName, exchangeName, StringComparison.OrdinalIgnoreCase));
+            if (exchangeExists)
+                throw new ArgumentException($"Exchange {exchangeName} has already been added!");
         }
 
         /// <summary>
@@ -83,10 +84,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         public static IServiceCollection AddMessageHandlerTransient<T>(this IServiceCollection services, string routingKey)
             where T : class, IMessageHandler
         {
-            services.AddTransient<IMessageHandler, T>();
-            var router = new MessageHandlerRouter { Type = typeof(T), RoutingKeys = new[] { routingKey }.ToList() };
-            services.Add(new ServiceDescriptor(typeof(MessageHandlerRouter), router));
-            return services;
+            return services.AddInstanceTransient<IMessageHandler, T>(new[] { routingKey }.ToList());
         }
 
         /// <summary>
@@ -99,10 +97,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         public static IServiceCollection AddMessageHandlerTransient<T>(this IServiceCollection services, IEnumerable<string> routingKeys)
             where T : class, IMessageHandler
         {
-            services.AddTransient<IMessageHandler, T>();
-            var router = new MessageHandlerRouter { Type = typeof(T), RoutingKeys = routingKeys.ToList() };
-            services.Add(new ServiceDescriptor(typeof(MessageHandlerRouter), router));
-            return services;
+            return services.AddInstanceTransient<IMessageHandler, T>(routingKeys.ToList());
         }
 
         /// <summary>
@@ -115,10 +110,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         public static IServiceCollection AddMessageHandlerSingleton<T>(this IServiceCollection services, string routingKey)
             where T : class, IMessageHandler
         {
-            services.AddSingleton<IMessageHandler, T>();
-            var router = new MessageHandlerRouter { Type = typeof(T), RoutingKeys = new[] { routingKey }.ToList() };
-            services.Add(new ServiceDescriptor(typeof(MessageHandlerRouter), router));
-            return services;
+            return services.AddInstanceSingleton<IMessageHandler, T>(new[] { routingKey }.ToList());
         }
 
         /// <summary>
@@ -131,10 +123,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         public static IServiceCollection AddMessageHandlerSingleton<T>(this IServiceCollection services, IEnumerable<string> routingKeys)
             where T : class, IMessageHandler
         {
-            services.AddSingleton<IMessageHandler, T>();
-            var router = new MessageHandlerRouter { Type = typeof(T), RoutingKeys = routingKeys.ToList() };
-            services.Add(new ServiceDescriptor(typeof(MessageHandlerRouter), router));
-            return services;
+            return services.AddInstanceSingleton<IMessageHandler, T>(routingKeys.ToList());
         }
         
         /// <summary>
@@ -147,10 +136,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         public static IServiceCollection AddAsyncMessageHandlerTransient<T>(this IServiceCollection services, string routingKey)
             where T : class, IAsyncMessageHandler
         {
-            services.AddTransient<IAsyncMessageHandler, T>();
-            var router = new MessageHandlerRouter { Type = typeof(T), RoutingKeys = new[] { routingKey }.ToList() };
-            services.Add(new ServiceDescriptor(typeof(MessageHandlerRouter), router));
-            return services;
+            return services.AddInstanceTransient<IAsyncMessageHandler, T>(new[] { routingKey }.ToList());
         }
 
         /// <summary>
@@ -163,10 +149,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         public static IServiceCollection AddAsyncMessageHandlerTransient<T>(this IServiceCollection services, IEnumerable<string> routingKeys)
             where T : class, IAsyncMessageHandler
         {
-            services.AddTransient<IAsyncMessageHandler, T>();
-            var router = new MessageHandlerRouter { Type = typeof(T), RoutingKeys = routingKeys.ToList() };
-            services.Add(new ServiceDescriptor(typeof(MessageHandlerRouter), router));
-            return services;
+            return services.AddInstanceTransient<IAsyncMessageHandler, T>(routingKeys.ToList());
         }
 
         /// <summary>
@@ -179,10 +162,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         public static IServiceCollection AddAsyncMessageHandlerSingleton<T>(this IServiceCollection services, string routingKey)
             where T : class, IAsyncMessageHandler
         {
-            services.AddSingleton<IAsyncMessageHandler, T>();
-            var router = new MessageHandlerRouter { Type = typeof(T), RoutingKeys = new[] { routingKey }.ToList() };
-            services.Add(new ServiceDescriptor(typeof(MessageHandlerRouter), router));
-            return services;
+            return services.AddInstanceSingleton<IAsyncMessageHandler, T>(new[] { routingKey }.ToList());
         }
 
         /// <summary>
@@ -195,10 +175,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         public static IServiceCollection AddAsyncMessageHandlerSingleton<T>(this IServiceCollection services, IEnumerable<string> routingKeys)
             where T : class, IAsyncMessageHandler
         {
-            services.AddSingleton<IAsyncMessageHandler, T>();
-            var router = new MessageHandlerRouter { Type = typeof(T), RoutingKeys = routingKeys.ToList() };
-            services.Add(new ServiceDescriptor(typeof(MessageHandlerRouter), router));
-            return services;
+            return services.AddInstanceSingleton<IAsyncMessageHandler, T>(routingKeys.ToList());
         }
 
         /// <summary>
@@ -211,10 +188,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         public static IServiceCollection AddNonCyclicMessageHandlerTransient<T>(this IServiceCollection services, string routingKey)
             where T : class, INonCyclicMessageHandler
         {
-            services.AddTransient<INonCyclicMessageHandler, T>();
-            var router = new MessageHandlerRouter { Type = typeof(T), RoutingKeys = new[] { routingKey }.ToList() };
-            services.Add(new ServiceDescriptor(typeof(MessageHandlerRouter), router));
-            return services;
+            return services.AddInstanceTransient<INonCyclicMessageHandler, T>(new[] { routingKey }.ToList());
         }
 
         /// <summary>
@@ -227,10 +201,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         public static IServiceCollection AddNonCyclicMessageHandlerTransient<T>(this IServiceCollection services, IEnumerable<string> routingKeys)
             where T : class, INonCyclicMessageHandler
         {
-            services.AddTransient<INonCyclicMessageHandler, T>();
-            var router = new MessageHandlerRouter { Type = typeof(T), RoutingKeys = routingKeys.ToList() };
-            services.Add(new ServiceDescriptor(typeof(MessageHandlerRouter), router));
-            return services;
+            return services.AddInstanceTransient<INonCyclicMessageHandler, T>(routingKeys.ToList());
         }
 
         /// <summary>
@@ -243,10 +214,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         public static IServiceCollection AddNonCyclicMessageHandlerSingleton<T>(this IServiceCollection services, string routingKey)
             where T : class, INonCyclicMessageHandler
         {
-            services.AddSingleton<INonCyclicMessageHandler, T>();
-            var router = new MessageHandlerRouter { Type = typeof(T), RoutingKeys = new[] { routingKey }.ToList() };
-            services.Add(new ServiceDescriptor(typeof(MessageHandlerRouter), router));
-            return services;
+            return services.AddInstanceSingleton<INonCyclicMessageHandler, T>(new[] { routingKey }.ToList());
         }
 
         /// <summary>
@@ -259,10 +227,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         public static IServiceCollection AddNonCyclicMessageHandlerSingleton<T>(this IServiceCollection services, IEnumerable<string> routingKeys)
             where T : class, INonCyclicMessageHandler
         {
-            services.AddSingleton<INonCyclicMessageHandler, T>();
-            var router = new MessageHandlerRouter { Type = typeof(T), RoutingKeys = routingKeys.ToList() };
-            services.Add(new ServiceDescriptor(typeof(MessageHandlerRouter), router));
-            return services;
+            return services.AddInstanceSingleton<INonCyclicMessageHandler, T>(routingKeys.ToList());
         }
 
         /// <summary>
@@ -275,10 +240,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         public static IServiceCollection AddAsyncNonCyclicMessageHandlerTransient<T>(this IServiceCollection services, string routingKey)
             where T : class, IAsyncNonCyclicMessageHandler
         {
-            services.AddTransient<IAsyncNonCyclicMessageHandler, T>();
-            var router = new MessageHandlerRouter { Type = typeof(T), RoutingKeys = new[] { routingKey }.ToList() };
-            services.Add(new ServiceDescriptor(typeof(MessageHandlerRouter), router));
-            return services;
+            return services.AddInstanceTransient<IAsyncNonCyclicMessageHandler, T>(new[] { routingKey }.ToList());
         }
 
         /// <summary>
@@ -291,10 +253,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         public static IServiceCollection AddAsyncNonCyclicMessageHandlerTransient<T>(this IServiceCollection services, IEnumerable<string> routingKeys)
             where T : class, IAsyncNonCyclicMessageHandler
         {
-            services.AddTransient<IAsyncNonCyclicMessageHandler, T>();
-            var router = new MessageHandlerRouter { Type = typeof(T), RoutingKeys = routingKeys.ToList() };
-            services.Add(new ServiceDescriptor(typeof(MessageHandlerRouter), router));
-            return services;
+            return services.AddInstanceTransient<IAsyncNonCyclicMessageHandler, T>(routingKeys.ToList());
         }
 
         /// <summary>
@@ -307,10 +266,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         public static IServiceCollection AddAsyncNonCyclicMessageHandlerSingleton<T>(this IServiceCollection services, string routingKey)
             where T : class, IAsyncNonCyclicMessageHandler
         {
-            services.AddSingleton<IAsyncNonCyclicMessageHandler, T>();
-            var router = new MessageHandlerRouter { Type = typeof(T), RoutingKeys = new[] { routingKey }.ToList() };
-            services.Add(new ServiceDescriptor(typeof(MessageHandlerRouter), router));
-            return services;
+            return services.AddInstanceSingleton<IAsyncNonCyclicMessageHandler, T>(new[] { routingKey }.ToList());
         }
 
         /// <summary>
@@ -323,7 +279,24 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         public static IServiceCollection AddAsyncNonCyclicMessageHandlerSingleton<T>(this IServiceCollection services, IEnumerable<string> routingKeys)
             where T : class, IAsyncNonCyclicMessageHandler
         {
-            services.AddSingleton<IAsyncNonCyclicMessageHandler, T>();
+            return services.AddInstanceSingleton<IAsyncNonCyclicMessageHandler, T>(routingKeys.ToList());
+        }
+
+        static IServiceCollection AddInstanceTransient<U, T>(this IServiceCollection services, IEnumerable<string> routingKeys)
+            where U : class
+            where T : class, U 
+        {
+            services.AddTransient<U, T>();
+            var router = new MessageHandlerRouter { Type = typeof(T), RoutingKeys = routingKeys.ToList() };
+            services.Add(new ServiceDescriptor(typeof(MessageHandlerRouter), router));
+            return services;
+        }
+
+        static IServiceCollection AddInstanceSingleton<U, T>(this IServiceCollection services, IEnumerable<string> routingKeys)
+            where U : class
+            where T : class, U
+        {
+            services.AddSingleton<U, T>();
             var router = new MessageHandlerRouter { Type = typeof(T), RoutingKeys = routingKeys.ToList() };
             services.Add(new ServiceDescriptor(typeof(MessageHandlerRouter), router));
             return services;
