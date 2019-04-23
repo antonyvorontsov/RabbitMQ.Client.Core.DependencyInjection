@@ -8,7 +8,7 @@
         /// <summary>
         /// RabbitMQ server.
         /// </summary>
-        public string HostName { get; set; } = "127.0.0.1";
+        public string HostName { get; set; }
         
         /// <summary>
         /// Port.

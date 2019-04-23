@@ -20,12 +20,12 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Configuration
         /// <summary>
         /// Exclusive option.
         /// </summary>
-        public bool Exclusive { get; set; } = false;
+        public bool Exclusive { get; set; }
 
         /// <summary>
         /// AutoDelete option.
         /// </summary>
-        public bool AutoDelete { get; set; } = false;
+        public bool AutoDelete { get; set; }
 
         /// <summary>
         /// Routing keys collection that queue "listens".

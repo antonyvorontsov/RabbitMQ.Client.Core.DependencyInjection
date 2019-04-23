@@ -15,7 +15,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
     /// <summary>
     /// Implementation of the custom RabbitMQ queue service.
     /// </summary>
-    internal class QueueService : IQueueService
+    internal class QueueService : IQueueService, IDisposable
     {
         /// <summary>
         /// RabbitMQ connection.
@@ -56,7 +56,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             IOptions<RabbitMqClientOptions> options)
         {
             if (options is null)
+            {
                 throw new ArgumentException($"Argument {nameof(options)} is null.", nameof(options));
+            }
 
             _exchanges = exchanges;
 
@@ -103,6 +105,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                 _connection.CallbackException -= HandleConnectionCallbackException;
                 _connection.ConnectionRecoveryError -= HandleConnectionRecoveryError;
             }
+
             if (_channel != null)
             {
                 _channel.CallbackException -= HandleChannelCallbackException;
@@ -110,10 +113,14 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             }
 
             if (_channel?.IsOpen == true)
+            {
                 _channel.Close((int)HttpStatusCode.OK, "Channel closed");
+            }
 
             if (_connection?.IsOpen == true)
+            {
                 _connection.Close();
+            }
         }
 
         /// <summary>
@@ -122,7 +129,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         public void StartConsuming()
         {
             if (_consumingStarted)
+            {
                 return;
+            }
 
             _consumer.Received += _receivedMessage;
             _consumingStarted = true;
@@ -246,7 +255,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         void HandleConnectionCallbackException(object sender, CallbackExceptionEventArgs @event)
         {
             if (@event is null)
+            {
                 return;
+            }
 
             _logger.LogError(new EventId(), @event.Exception, @event.Exception.Message, @event);
             throw @event.Exception;
@@ -255,7 +266,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         void HandleConnectionRecoveryError(object sender, ConnectionRecoveryErrorEventArgs @event)
         {
             if (@event is null)
+            {
                 return;
+            }
 
             _logger.LogError(new EventId(), @event.Exception, @event.Exception.Message, @event);
             throw @event.Exception;
@@ -264,7 +277,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         void HandleChannelBasicRecoverOk(object sender, EventArgs @event)
         {
             if (@event is null)
+            {
                 return;
+            }
 
             _logger.LogInformation("Connection has been reestablished.");
         }
@@ -272,7 +287,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         void HandleChannelCallbackException(object sender, CallbackExceptionEventArgs @event)
         {
             if (@event is null)
+            {
                 return;
+            }
 
             _logger.LogError(new EventId(), @event.Exception, @event.Exception.Message, @event);
         }
@@ -311,7 +328,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                     }
                     else
                     {
-                        dictionary.Add(routingKey, new List<T>() { handler });
+                        dictionary.Add(routingKey, new List<T> { handler });
                     }
                 }
             }
@@ -375,7 +392,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                     Channel.BasicAck(@event.DeliveryTag, false);
 
                     if (@event.BasicProperties.Headers is null)
+                    {
                         @event.BasicProperties.Headers = new Dictionary<string, object>();
+                    }
 
                     var exchange = _exchanges.FirstOrDefault(x => x.Name == @event.Exchange);
                     if (exchange is null)
@@ -393,7 +412,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                         _logger.LogInformation("The failed message has been requeued.");
                     }
                     else
+                    {
                         _logger.LogInformation("The failed message would not be requeued.");
+                    }
                 }
             };
 
@@ -462,10 +483,12 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             {
                 // If there are not any routing keys then make a bind with a queue name.
                 foreach (var route in queue.RoutingKeys)
+                {
                     _channel.QueueBind(
                         queue: queue.Name,
                         exchange: exchangeName,
                         routingKey: route);
+                }
             }
             else
             {
@@ -479,20 +502,28 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         void ValidateArguments(string exchangeName, string routingKey)
         {
             if (string.IsNullOrEmpty(exchangeName))
+            {
                 throw new ArgumentException($"Argument {nameof(exchangeName)} is null or empty.", nameof(exchangeName));
+            }
             if (string.IsNullOrEmpty(routingKey))
+            {
                 throw new ArgumentException($"Argument {nameof(routingKey)} is null or empty.", nameof(routingKey));
+            }
 
             var deadLetterExchanges = _exchanges.Select(x => x.Options.DeadLetterExchange).Distinct();
             if (!_exchanges.Any(x => x.Name == exchangeName) && !deadLetterExchanges.Any(x => x == exchangeName))
+            {
                 throw new ArgumentException($"Exchange {nameof(exchangeName)} has not been deaclared yet.", nameof(exchangeName));
+            }
         }
 
         string GetDeadLetterExchange(string exchangeName)
         {
             var exchange = _exchanges.FirstOrDefault(x => x.Name == exchangeName);
             if (string.IsNullOrEmpty(exchange.Options.DeadLetterExchange))
+            {
                 throw new ArgumentException($"Exchange {nameof(exchangeName)} has not been configured with a dead letter exchange.", nameof(exchangeName));
+            }
 
             return exchange.Options.DeadLetterExchange;
         }
