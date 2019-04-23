@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Examples.ConsumerHost
 {
-    public class ConsumingService : IHostedService, IDisposable
+    public class ConsumingService : IHostedService
     {
         readonly IQueueService _queueService;
         readonly ILogger<ConsumingService> _logger;
@@ -32,7 +32,5 @@ namespace Examples.ConsumerHost
             _logger.LogInformation("Stopping consuming.");
             return Task.CompletedTask;
         }
-
-        public void Dispose() => _queueService?.Dispose();
     }
 }

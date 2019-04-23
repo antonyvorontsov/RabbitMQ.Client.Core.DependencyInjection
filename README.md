@@ -223,7 +223,7 @@ You can find example projects in the repository too.
     "Durable": true,
     "AutoDelete": false,
 	"DeadLetterExchange": "default.dlx.exchange",
-	"RequeueFailedMessages": true
+	"RequeueFailedMessages": true,
     "Queues": [
 	  {
         "Name": "myqueue",

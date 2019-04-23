@@ -45,13 +45,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
 
             var options = new RabbitMqExchangeOptions();
             configuration.Bind(options);
-            var exchange = new RabbitMqExchange { Name = exchangeName, Options = options };
-            var service = new ExchangeServiceDescriptor(typeof(RabbitMqExchange), exchange)
-            {
-                ExchangeName = exchangeName
-            };
-            services.Add(service);
-            return services;
+            return services.AddExchange(exchangeName, options);
         }
 
         /// <summary>
@@ -61,7 +55,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// <param name="exchangeName">Exchange name.</param>
         /// <param name="options">Exchange configuration <see cref="RabbitMqExchangeOptions"/>.</param>
         /// <returns>Service collection.</returns>
-        public static IServiceCollection AddExchange(this IServiceCollection services, string exchangeName, RabbitMqExchangeOptions options = null)
+        public static IServiceCollection AddExchange(this IServiceCollection services, string exchangeName, RabbitMqExchangeOptions options)
         {
             var exchangeExists = services.Any(x => x.ServiceType == typeof(RabbitMqExchange)
                               && x.Lifetime == ServiceLifetime.Singleton
