@@ -1,12 +1,11 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Core.DependencyInjection
 {
     /// <summary>
     /// Custom RabbitMQ queue service interface.
     /// </summary>
-    public interface IQueueService : IDisposable
+    public interface IQueueService
     {
         /// <summary>
         /// RabbitMQ connection.

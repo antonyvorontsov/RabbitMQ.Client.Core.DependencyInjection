@@ -81,11 +81,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// <param name="services">Service collection.</param>
         /// <param name="routingKey">Routing key.</param>
         /// <returns>Service collection.</returns>
-        public static IServiceCollection AddMessageHandlerTransient<T>(this IServiceCollection services, string routingKey)
-            where T : class, IMessageHandler
-        {
-            return services.AddInstanceTransient<IMessageHandler, T>(new[] { routingKey }.ToList());
-        }
+        public static IServiceCollection AddMessageHandlerTransient<T>(this IServiceCollection services, string routingKey) where T : class, IMessageHandler =>
+            services.AddInstanceTransient<IMessageHandler, T>(new[] { routingKey }.ToList());
 
         /// <summary>
         /// Add transient message handler.
@@ -94,11 +91,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// <param name="services">Service collection.</param>
         /// <param name="routingKeys">Routing keys.</param>
         /// <returns>Service collection.</returns>
-        public static IServiceCollection AddMessageHandlerTransient<T>(this IServiceCollection services, IEnumerable<string> routingKeys)
-            where T : class, IMessageHandler
-        {
-            return services.AddInstanceTransient<IMessageHandler, T>(routingKeys.ToList());
-        }
+        public static IServiceCollection AddMessageHandlerTransient<T>(this IServiceCollection services, IEnumerable<string> routingKeys) where T : class, IMessageHandler =>
+            services.AddInstanceTransient<IMessageHandler, T>(routingKeys.ToList());
 
         /// <summary>
         /// Add singleton message handler.
@@ -107,11 +101,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// <param name="services">Service collection.</param>
         /// <param name="routingKey">Routing key.</param>
         /// <returns>Service collection.</returns>
-        public static IServiceCollection AddMessageHandlerSingleton<T>(this IServiceCollection services, string routingKey)
-            where T : class, IMessageHandler
-        {
-            return services.AddInstanceSingleton<IMessageHandler, T>(new[] { routingKey }.ToList());
-        }
+        public static IServiceCollection AddMessageHandlerSingleton<T>(this IServiceCollection services, string routingKey) where T : class, IMessageHandler =>
+            services.AddInstanceSingleton<IMessageHandler, T>(new[] { routingKey }.ToList());
 
         /// <summary>
         /// Add singleton message handler.
@@ -120,12 +111,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// <param name="services">Service collection.</param>
         /// <param name="routingKeys">Routing keys.</param>
         /// <returns>Service collection.</returns>
-        public static IServiceCollection AddMessageHandlerSingleton<T>(this IServiceCollection services, IEnumerable<string> routingKeys)
-            where T : class, IMessageHandler
-        {
-            return services.AddInstanceSingleton<IMessageHandler, T>(routingKeys.ToList());
-        }
-        
+        public static IServiceCollection AddMessageHandlerSingleton<T>(this IServiceCollection services, IEnumerable<string> routingKeys) where T : class, IMessageHandler =>
+            services.AddInstanceSingleton<IMessageHandler, T>(routingKeys.ToList());
+
         /// <summary>
         /// Add transient async message handler.
         /// </summary>
@@ -133,11 +121,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// <param name="services">Service collection.</param>
         /// <param name="routingKey">Routing key.</param>
         /// <returns>Service collection.</returns>
-        public static IServiceCollection AddAsyncMessageHandlerTransient<T>(this IServiceCollection services, string routingKey)
-            where T : class, IAsyncMessageHandler
-        {
-            return services.AddInstanceTransient<IAsyncMessageHandler, T>(new[] { routingKey }.ToList());
-        }
+        public static IServiceCollection AddAsyncMessageHandlerTransient<T>(this IServiceCollection services, string routingKey) where T : class, IAsyncMessageHandler =>
+            services.AddInstanceTransient<IAsyncMessageHandler, T>(new[] { routingKey }.ToList());
 
         /// <summary>
         /// Add transient async message handler.
@@ -146,11 +131,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// <param name="services">Service collection.</param>
         /// <param name="routingKeys">Routing keys.</param>
         /// <returns>Service collection.</returns>
-        public static IServiceCollection AddAsyncMessageHandlerTransient<T>(this IServiceCollection services, IEnumerable<string> routingKeys)
-            where T : class, IAsyncMessageHandler
-        {
-            return services.AddInstanceTransient<IAsyncMessageHandler, T>(routingKeys.ToList());
-        }
+        public static IServiceCollection AddAsyncMessageHandlerTransient<T>(this IServiceCollection services, IEnumerable<string> routingKeys) where T : class, IAsyncMessageHandler =>
+            services.AddInstanceTransient<IAsyncMessageHandler, T>(routingKeys.ToList());
 
         /// <summary>
         /// Add singleton async message handler.
@@ -159,11 +141,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// <param name="services">Service collection.</param>
         /// <param name="routingKey">Routing key.</param>
         /// <returns>Service collection.</returns>
-        public static IServiceCollection AddAsyncMessageHandlerSingleton<T>(this IServiceCollection services, string routingKey)
-            where T : class, IAsyncMessageHandler
-        {
-            return services.AddInstanceSingleton<IAsyncMessageHandler, T>(new[] { routingKey }.ToList());
-        }
+        public static IServiceCollection AddAsyncMessageHandlerSingleton<T>(this IServiceCollection services, string routingKey) where T : class, IAsyncMessageHandler =>
+            services.AddInstanceSingleton<IAsyncMessageHandler, T>(new[] { routingKey }.ToList());
 
         /// <summary>
         /// Add singleton async message handler.
@@ -172,11 +151,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// <param name="services">Service collection.</param>
         /// <param name="routingKeys">Routing keys.</param>
         /// <returns>Service collection.</returns>
-        public static IServiceCollection AddAsyncMessageHandlerSingleton<T>(this IServiceCollection services, IEnumerable<string> routingKeys)
-            where T : class, IAsyncMessageHandler
-        {
-            return services.AddInstanceSingleton<IAsyncMessageHandler, T>(routingKeys.ToList());
-        }
+        public static IServiceCollection AddAsyncMessageHandlerSingleton<T>(this IServiceCollection services, IEnumerable<string> routingKeys)  where T : class, IAsyncMessageHandler =>
+            services.AddInstanceSingleton<IAsyncMessageHandler, T>(routingKeys.ToList());
 
         /// <summary>
         /// Add transient non-cyclic message handler.
@@ -185,11 +161,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// <param name="services">Service collection.</param>
         /// <param name="routingKey">Routing key.</param>
         /// <returns>Service collection.</returns>
-        public static IServiceCollection AddNonCyclicMessageHandlerTransient<T>(this IServiceCollection services, string routingKey)
-            where T : class, INonCyclicMessageHandler
-        {
-            return services.AddInstanceTransient<INonCyclicMessageHandler, T>(new[] { routingKey }.ToList());
-        }
+        public static IServiceCollection AddNonCyclicMessageHandlerTransient<T>(this IServiceCollection services, string routingKey) where T : class, INonCyclicMessageHandler =>
+            services.AddInstanceTransient<INonCyclicMessageHandler, T>(new[] { routingKey }.ToList());
 
         /// <summary>
         /// Add transient non-cyclic message handler.
@@ -198,11 +171,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// <param name="services">Service collection.</param>
         /// <param name="routingKeys">Routing keys.</param>
         /// <returns>Service collection.</returns>
-        public static IServiceCollection AddNonCyclicMessageHandlerTransient<T>(this IServiceCollection services, IEnumerable<string> routingKeys)
-            where T : class, INonCyclicMessageHandler
-        {
-            return services.AddInstanceTransient<INonCyclicMessageHandler, T>(routingKeys.ToList());
-        }
+        public static IServiceCollection AddNonCyclicMessageHandlerTransient<T>(this IServiceCollection services, IEnumerable<string> routingKeys) where T : class, INonCyclicMessageHandler =>
+            services.AddInstanceTransient<INonCyclicMessageHandler, T>(routingKeys.ToList());
 
         /// <summary>
         /// Add singleton non-cyclic message handler.
@@ -211,11 +181,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// <param name="services">Service collection.</param>
         /// <param name="routingKey">Routing key.</param>
         /// <returns>Service collection.</returns>
-        public static IServiceCollection AddNonCyclicMessageHandlerSingleton<T>(this IServiceCollection services, string routingKey)
-            where T : class, INonCyclicMessageHandler
-        {
-            return services.AddInstanceSingleton<INonCyclicMessageHandler, T>(new[] { routingKey }.ToList());
-        }
+        public static IServiceCollection AddNonCyclicMessageHandlerSingleton<T>(this IServiceCollection services, string routingKey) where T : class, INonCyclicMessageHandler =>
+            services.AddInstanceSingleton<INonCyclicMessageHandler, T>(new[] { routingKey }.ToList());
 
         /// <summary>
         /// Add singleton non-cyclic message handler.
@@ -224,11 +191,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// <param name="services">Service collection.</param>
         /// <param name="routingKeys">Routing keys.</param>
         /// <returns>Service collection.</returns>
-        public static IServiceCollection AddNonCyclicMessageHandlerSingleton<T>(this IServiceCollection services, IEnumerable<string> routingKeys)
-            where T : class, INonCyclicMessageHandler
-        {
-            return services.AddInstanceSingleton<INonCyclicMessageHandler, T>(routingKeys.ToList());
-        }
+        public static IServiceCollection AddNonCyclicMessageHandlerSingleton<T>(this IServiceCollection services, IEnumerable<string> routingKeys) where T : class, INonCyclicMessageHandler =>
+            services.AddInstanceSingleton<INonCyclicMessageHandler, T>(routingKeys.ToList());
 
         /// <summary>
         /// Add transient async non-cyclic message handler.
@@ -237,11 +201,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// <param name="services">Service collection.</param>
         /// <param name="routingKey">Routing key.</param>
         /// <returns>Service collection.</returns>
-        public static IServiceCollection AddAsyncNonCyclicMessageHandlerTransient<T>(this IServiceCollection services, string routingKey)
-            where T : class, IAsyncNonCyclicMessageHandler
-        {
-            return services.AddInstanceTransient<IAsyncNonCyclicMessageHandler, T>(new[] { routingKey }.ToList());
-        }
+        public static IServiceCollection AddAsyncNonCyclicMessageHandlerTransient<T>(this IServiceCollection services, string routingKey) where T : class, IAsyncNonCyclicMessageHandler =>
+            services.AddInstanceTransient<IAsyncNonCyclicMessageHandler, T>(new[] { routingKey }.ToList());
 
         /// <summary>
         /// Add transient async non-cyclic message handler.
@@ -250,11 +211,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// <param name="services">Service collection.</param>
         /// <param name="routingKeys">Routing keys.</param>
         /// <returns>Service collection.</returns>
-        public static IServiceCollection AddAsyncNonCyclicMessageHandlerTransient<T>(this IServiceCollection services, IEnumerable<string> routingKeys)
-            where T : class, IAsyncNonCyclicMessageHandler
-        {
-            return services.AddInstanceTransient<IAsyncNonCyclicMessageHandler, T>(routingKeys.ToList());
-        }
+        public static IServiceCollection AddAsyncNonCyclicMessageHandlerTransient<T>(this IServiceCollection services, IEnumerable<string> routingKeys) where T : class, IAsyncNonCyclicMessageHandler =>
+            services.AddInstanceTransient<IAsyncNonCyclicMessageHandler, T>(routingKeys.ToList());
 
         /// <summary>
         /// Add singleton async non-cyclic message handler.
@@ -263,11 +221,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// <param name="services">Service collection.</param>
         /// <param name="routingKey">Routing key.</param>
         /// <returns>Service collection.</returns>
-        public static IServiceCollection AddAsyncNonCyclicMessageHandlerSingleton<T>(this IServiceCollection services, string routingKey)
-            where T : class, IAsyncNonCyclicMessageHandler
-        {
-            return services.AddInstanceSingleton<IAsyncNonCyclicMessageHandler, T>(new[] { routingKey }.ToList());
-        }
+        public static IServiceCollection AddAsyncNonCyclicMessageHandlerSingleton<T>(this IServiceCollection services, string routingKey) where T : class, IAsyncNonCyclicMessageHandler =>
+            services.AddInstanceSingleton<IAsyncNonCyclicMessageHandler, T>(new[] { routingKey }.ToList());
 
         /// <summary>
         /// Add singleton async non-cyclic message handler.
@@ -276,11 +231,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// <param name="services">Service collection.</param>
         /// <param name="routingKeys">Routing keys.</param>
         /// <returns>Service collection.</returns>
-        public static IServiceCollection AddAsyncNonCyclicMessageHandlerSingleton<T>(this IServiceCollection services, IEnumerable<string> routingKeys)
-            where T : class, IAsyncNonCyclicMessageHandler
-        {
-            return services.AddInstanceSingleton<IAsyncNonCyclicMessageHandler, T>(routingKeys.ToList());
-        }
+        public static IServiceCollection AddAsyncNonCyclicMessageHandlerSingleton<T>(this IServiceCollection services, IEnumerable<string> routingKeys) where T : class, IAsyncNonCyclicMessageHandler =>
+            services.AddInstanceSingleton<IAsyncNonCyclicMessageHandler, T>(routingKeys.ToList());
 
         static IServiceCollection AddInstanceTransient<U, T>(this IServiceCollection services, IEnumerable<string> routingKeys)
             where U : class
