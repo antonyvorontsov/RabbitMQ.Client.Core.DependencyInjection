@@ -1,22 +1,15 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using RabbitMQ.Client.Core.DependencyInjection;
-using System.IO;
+using RabbitMQ.Client.Core.DependencyInjection.Configuration;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Examples.Producer
 {
     public static class Program
     {
-        public static IConfiguration Configuration { get; set; }
-
         public static async Task Main()
         {
-            var builder = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-            Configuration = builder.Build();
-
             var serviceCollection = new ServiceCollection();
             ConfigureServices(serviceCollection);
 
@@ -34,11 +27,26 @@ namespace Examples.Producer
 
         static void ConfigureServices(IServiceCollection services)
         {
-            var rabbitMqSection = Configuration.GetSection("RabbitMq");
-            var exchangeSection = Configuration.GetSection("RabbitMqExchange");
-
-            services.AddRabbitMqClient(rabbitMqSection)
-                .AddExchange("exchange.name", exchangeSection);
+            var rabbitMqConfiguration = new RabbitMqClientOptions
+            {
+                HostName = "127.0.0.1",
+                Port = 5672,
+                UserName = "guest",
+                Password = "guest"
+            };
+            var exchangeOptions = new RabbitMqExchangeOptions
+            {
+                Queues = new List<RabbitMqQueueOptions>
+                {
+                    new RabbitMqQueueOptions
+                    {
+                        Name = "myqueue",
+                        RoutingKeys = new HashSet<string> { "routing.key" }
+                    }
+                }
+            };
+            services.AddRabbitMqClient(rabbitMqConfiguration)
+                .AddExchange("exchange.name", exchangeOptions);
         }
     }
 }

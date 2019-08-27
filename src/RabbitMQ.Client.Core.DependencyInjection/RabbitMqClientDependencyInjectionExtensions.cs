@@ -29,6 +29,31 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         }
 
         /// <summary>
+        /// Add RabbitMQ client and required service infrastructure.
+        /// </summary>
+        /// <param name="services">Service collection.</param>
+        /// <param name="configuration">RabbitMq configuration <see cref="RabbitMqClientOptions"/>.</param>
+        /// <returns>Service collection.</returns>
+        public static IServiceCollection AddRabbitMqClient(this IServiceCollection services, RabbitMqClientOptions configuration)
+        {
+            services.AddLogging(options => options.AddConsole());
+            services.Configure<RabbitMqClientOptions>(opt => 
+            {
+                opt.HostName = configuration.HostName;
+                opt.Port = configuration.Port;
+                opt.UserName = configuration.UserName;
+                opt.Password = configuration.Password;
+                opt.VirtualHost = configuration.VirtualHost;
+                opt.AutomaticRecoveryEnabled = configuration.AutomaticRecoveryEnabled;
+                opt.TopologyRecoveryEnabled = configuration.TopologyRecoveryEnabled;
+                opt.RequestedConnectionTimeout = configuration.RequestedConnectionTimeout;
+                opt.RequestedHeartbeat = configuration.RequestedHeartbeat;
+            });
+            services.AddSingleton<IQueueService, QueueService>();
+            return services;
+        }
+
+        /// <summary>
         /// Add exchange as singleton.
         /// </summary>
         /// <param name="services">Service collection.</param>
