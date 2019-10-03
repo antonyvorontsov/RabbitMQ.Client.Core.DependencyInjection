@@ -2,7 +2,7 @@
 
 <a href="https://www.nuget.org/packages/RabbitMQ.Client.Core.DependencyInjection/" alt="NuGet package"><img src="https://img.shields.io/nuget/v/RabbitMQ.Client.Core.DependencyInjection.svg" /></a><br/>
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/f688764d2ba340099ec50b74726e25fd)](https://app.codacy.com/app/AntonyVorontsov/RabbitMQ.Client.Core.DependencyInjection?utm_source=github.com&utm_medium=referral&utm_content=AntonyVorontsov/RabbitMQ.Client.Core.DependencyInjection&utm_campaign=Badge_Grade_Dashboard)<br/>
-Wrapper-library of RabbitMQ.Client with Dependency Injection infrastructure under the .Net Core 2.2 platform.
+Wrapper-library of RabbitMQ.Client with Dependency Injection infrastructure under the .Net Core 3.0 platform.
 
 ## Producer
 
@@ -73,7 +73,7 @@ queueService.Send(
 ```
 
 In order to make this possible, a default dead-letter-exchange with `"default.dlx.exchange"` name will be created. You can change it via main exchange configuration (example is down below).
-And also you have a default functionality of resending failed messages (if you get an error while processing recieved message).
+And also you have a default functionality of resending failed messages (if you get an error while processing received message).
 
 ## Consumer
 
@@ -154,7 +154,7 @@ public class CustomAsyncMessageHandler : IAsyncMessageHandler
 }
 ```
 
-But you can not use `IQueueService` inside those message handlers otherwise you will be faced with cycling dependency problem. But sometimes you may need to send something in other queue (e.g. queue with responses) from one message handler or another. For that purpose use non-cyclinc handlers.
+But you can not use `IQueueService` inside those message handlers otherwise you will be faced with cycling dependency problem. But sometimes you may need to send something in other queue (e.g. queue with responses) from one message handler or another. For that purpose use non-cyclic handlers.
 
 ```csharp
 public class CustomMessageHandler : INonCyclicMessageHandler
@@ -208,7 +208,7 @@ You can find example projects in the repository too.
 ## appsettings.json configuration
 
  You have to add a couple configuration sections: (1) settings to connect to the RabbitMQ server and (2) a section that configures an exchange (one section per exchange frankly speaking).
- Exchange sections define how to bind queues and exchanges with each ohter and which routing keys to use for that.
+ Exchange sections define how to bind queues and exchanges with each other and which routing keys to use for that.
  You can bind a queue to an exchange with more than one routing key, but if there are no routing keys in the queue section, then that queue will be bound to the exchange with its name.
 ```json
 {
