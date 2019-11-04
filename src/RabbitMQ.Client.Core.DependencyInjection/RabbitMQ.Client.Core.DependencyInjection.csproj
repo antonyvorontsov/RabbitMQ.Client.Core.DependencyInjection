@@ -6,6 +6,7 @@
     <Version>3.0.2</Version>
     <PackageTags>RabbitMQ</PackageTags>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <PackageIcon>icon.png</PackageIcon>
     <RepositoryUrl>https://github.com/AntonyVorontsov/RabbitMQ.Client.Core.DependencyInjection</RepositoryUrl>
     <Company />
     <Description>.Net Core library-wrapper of RabbitMQ.Client for Dependency Injection.</Description>
@@ -15,6 +16,10 @@
 
   <ItemGroup>
     <None Include="../../LICENSE.txt" Pack="true" PackagePath="$(PackageLicenseFile)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="../../icon.png" Pack="true" PackagePath="/" />
   </ItemGroup>
 
   <ItemGroup>
