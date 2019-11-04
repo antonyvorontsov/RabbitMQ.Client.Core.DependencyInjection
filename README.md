@@ -6,8 +6,12 @@ Wrapper-library of RabbitMQ.Client with Dependency Injection infrastructure unde
 
 ## Producer
 
-First of all you have to add all service dependencies in the `ConfigureServices` method. `AddRabbitMqClient` adds `IQueueService` that can send messages and `AddExchange` configures and adds an exchange. You can add multiple exchanges but the queue service will be single (and it will be added as singleton obviously).
+There are some step that you have to get through inside the `ConfigureServices` method for basic RabbitMQ configuration. The first mandatory step is to add `IQueueService` that contains all the logic of producing and consuming messages by calling `AddRabbitMqClient` method.
+The second step is add and configure exchanges using `AddExchange`, `AddProductionExchange` and `AddConsumptionExchange` methods. Exchanges have an option (flag) are the made to consume messages or only produce them. This is an important case when you want to use multiple exchanges in your application and want to consume messages from queues binded to chosen exchanges.
+So if you want to add an exchange and only produce messages, then use `AddProductionExchange` method. If you want to use full functionality, then use `AddConsumptionExchange` method. Or you can do any of them using `AddExchange` method and passing `isConsuming` parameter. Examples are provided.
+You can add multiple exchanges but the queue service will be added as singleton.
 
+After those two steps you are good to go. Down below is an example of the basic RabbitMQ configuration.
 ```csharp
 
 public static IConfiguration Configuration { get; set; }
@@ -18,7 +22,11 @@ public void ConfigureServices(IServiceCollection services)
     var exchangeSection = Configuration.GetSection("RabbitMqExchange");
 
     services.AddRabbitMqClient(rabbitMqSection)
-        .AddExchange("exchange.name", exchangeSection);
+        .AddProductionExchange("exchange.name", exchangeSection);
+
+	// Or other way
+    // services.AddRabbitMqClient(rabbitMqSection)
+    //    .AddExchange("exchange.name", isConsuming: false, exchangeSection);
 }
 ```
 
@@ -85,7 +93,7 @@ class Program
 	const string ExchangeName = "exchange.name";
 	public static IConfiguration Configuration { get; set; }
 
-	static void Main(string[] args)
+	static void Main()
 	{
 		var builder = new ConfigurationBuilder()
 			.SetBasePath(Directory.GetCurrentDirectory())
@@ -106,7 +114,7 @@ class Program
 		var exchangeSection = Configuration.GetSection("RabbitMqExchange");
 
 		services.AddRabbitMqClient(rabbitMqSection)
-			.AddExchange("exchange.name", exchangeSection)
+			.AddConsumptionExchange("exchange.name", exchangeSection)
 			.AddMessageHandlerSingleton<CustomMessageHandler>("routing.key")
 			.AddAsyncMessageHandlerSingleton<CustomAsyncMessageHandler>("other.routing.key");
 	}
@@ -149,7 +157,7 @@ public class CustomAsyncMessageHandler : IAsyncMessageHandler
 	public async Task Handle(string message, string routingKey)
 	{
 		// Do whatever you want asynchronously!
-		_logger.LogInformation("Merry christmas!");
+		_logger.LogInformation("Merry Christmas!");
 	}
 }
 ```
@@ -198,7 +206,7 @@ public class CustomAsyncMessageHandler : IAsyncNonCyclicMessageHandler
 And you have to register those classes the same way you did with simple handlers.
 ```csharp
 services.AddRabbitMqClient(rabbitMqSection)
-	.AddExchange("exchange.name", exchangeSection)
+	.AddConsumptionExchange("exchange.name", exchangeSection)
 	.AddNonCyclicMessageHandlerSingleton<CustomMessageHandler>("routing.key")
 	.AddAsyncNonCyclicMessageHandlerSingleton<CustomAsyncMessageHandler>("other.routing.key");
 ```

@@ -3,7 +3,7 @@
 namespace RabbitMQ.Client.Core.DependencyInjection.Configuration
 {
     /// <summary>
-    /// Echange options.
+    /// Exchange options.
     /// </summary>
     public class RabbitMqExchangeOptions
     {
@@ -28,7 +28,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Configuration
         public string DeadLetterExchange { get; set; } = "default.dlx.exchange";
 
         /// <summary>
-        /// Option to requeue failed messages (once).
+        /// Option to re-queue failed messages (once).
         /// </summary>
         public bool RequeueFailedMessages { get; set; } = true;
 

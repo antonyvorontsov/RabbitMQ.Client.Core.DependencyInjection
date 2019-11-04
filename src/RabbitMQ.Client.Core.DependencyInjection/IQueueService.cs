@@ -16,9 +16,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// RabbitMQ channel.
         /// </summary>
         IModel Channel { get; }
-        
+
         /// <summary>
-        /// Start comsuming (getting messages).
+        /// Start consuming (getting messages).
         /// </summary>
         void StartConsuming();
 
@@ -93,7 +93,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// <param name="routingKey">Routing key.</param>
         /// <param name="secondsDelay">Delay time.</param>
         void Send(byte[] bytes, IBasicProperties properties, string exchangeName, string routingKey, int secondsDelay);
-        
+
         /// <summary>
         /// Send a message asynchronously.
         /// </summary>

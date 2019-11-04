@@ -26,7 +26,7 @@ namespace Examples.ConsumerHost
                   var exchangeSection = hostContext.Configuration.GetSection("RabbitMqExchange");
 
                   services.AddRabbitMqClient(rabbitMqSection)
-                      .AddExchange("exchange.name", exchangeSection)
+                      .AddConsumptionExchange("exchange.name", exchangeSection)
                       .AddMessageHandlerTransient<CustomMessageHandler>("routing.key")
                       .AddNonCyclicMessageHandlerSingleton<CustomNonCyclicMessageHandler>("routing.key");
 

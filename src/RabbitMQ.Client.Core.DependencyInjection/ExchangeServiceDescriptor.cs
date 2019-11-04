@@ -4,7 +4,7 @@ using System;
 namespace RabbitMQ.Client.Core.DependencyInjection
 {
     /// <summary>
-    /// A service extension for registrating exchange singleton "services".
+    /// A service extension for registration exchange singleton "services".
     /// </summary>
     internal class ExchangeServiceDescriptor : ServiceDescriptor
     {

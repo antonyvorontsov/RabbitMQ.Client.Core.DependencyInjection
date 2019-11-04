@@ -124,7 +124,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         }
 
         /// <summary>
-        /// Start comsuming (getting messages).
+        /// Start consuming (getting messages).
         /// </summary>
         public void StartConsuming()
         {
@@ -136,7 +136,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             _consumer.Received += _receivedMessage;
             _consumingStarted = true;
 
-            foreach (var exchange in _exchanges)
+            var consumptionExchanges = _exchanges.Where(x => x.IsConsuming);
+            foreach (var exchange in consumptionExchanges)
             {
                 foreach (var queue in exchange.Options.Queues)
                 {
@@ -387,7 +388,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                 }
                 catch (Exception exception)
                 {
-                    _logger.LogError(new EventId(), exception, $"An error occured while processing recieved message with delivery tag {@event.DeliveryTag}.");
+                    _logger.LogError(new EventId(), exception, $"An error occurred while processing received message with delivery tag {@event.DeliveryTag}.");
 
                     Channel.BasicAck(@event.DeliveryTag, false);
 
@@ -513,7 +514,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             var deadLetterExchanges = _exchanges.Select(x => x.Options.DeadLetterExchange).Distinct();
             if (!_exchanges.Any(x => x.Name == exchangeName) && !deadLetterExchanges.Any(x => x == exchangeName))
             {
-                throw new ArgumentException($"Exchange {nameof(exchangeName)} has not been deaclared yet.", nameof(exchangeName));
+                throw new ArgumentException($"Exchange {nameof(exchangeName)} has not been declared yet.", nameof(exchangeName));
             }
         }
 

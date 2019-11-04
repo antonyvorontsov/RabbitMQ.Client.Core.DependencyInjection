@@ -46,7 +46,7 @@ namespace Examples.Producer
                 }
             };
             services.AddRabbitMqClient(rabbitMqConfiguration)
-                .AddExchange("exchange.name", exchangeOptions);
+                .AddProductionExchange("exchange.name", exchangeOptions);
         }
     }
 }
