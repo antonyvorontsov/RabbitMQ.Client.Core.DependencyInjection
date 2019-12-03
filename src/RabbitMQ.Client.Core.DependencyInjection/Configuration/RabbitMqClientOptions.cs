@@ -20,7 +20,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Configuration
         /// If HostNames collection is null or empty then HostName will be used to create connection.
         /// Otherwise HostNames collection will be used and HostName property value will be ignored.
         /// </remarks>
-        public IEnumerable<string> HostNames { get; set; } = null;
+        public IEnumerable<string> HostNames { get; set; }
 
         /// <summary>
         /// Port.

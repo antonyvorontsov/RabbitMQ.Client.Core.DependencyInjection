@@ -542,7 +542,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                 { "x-expires", secondsDelay * 1000 + QueueExpirationTime }
             };
 
-        IConnection CreateRabbitMqConnection(RabbitMqClientOptions options)
+        static IConnection CreateRabbitMqConnection(RabbitMqClientOptions options)
         {
             var factory = new ConnectionFactory
             {
@@ -562,7 +562,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             return CreateConnection(options, factory);
         }
 
-        IConnection CreateNamedConnection(RabbitMqClientOptions options, ConnectionFactory factory)
+        static IConnection CreateNamedConnection(RabbitMqClientOptions options, ConnectionFactory factory)
         {
             if (options.HostNames?.Any() == true)
             {
@@ -573,7 +573,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             return factory.CreateConnection(options.ClientProvidedName);
         }
 
-        IConnection CreateConnection(RabbitMqClientOptions options, ConnectionFactory factory)
+        static IConnection CreateConnection(RabbitMqClientOptions options, ConnectionFactory factory)
         {
             if (options.HostNames?.Any() == true)
             {
