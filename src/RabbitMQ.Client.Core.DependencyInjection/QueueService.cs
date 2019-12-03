@@ -69,22 +69,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             _asyncNonCyclicHandlers = TransformMessageHandlersCollection(asyncnonCyclicHandlers);
 
             _logger = loggerFactory.CreateLogger<QueueService>();
-
-            var optionsValue = options.Value;
-            var factory = new ConnectionFactory
-            {
-                HostName = optionsValue.HostName,
-                Port = optionsValue.Port,
-                UserName = optionsValue.UserName,
-                Password = optionsValue.Password,
-                VirtualHost = optionsValue.VirtualHost,
-                AutomaticRecoveryEnabled = optionsValue.AutomaticRecoveryEnabled,
-                TopologyRecoveryEnabled = optionsValue.TopologyRecoveryEnabled,
-                RequestedConnectionTimeout = optionsValue.RequestedConnectionTimeout,
-                RequestedHeartbeat = optionsValue.RequestedHeartbeat
-            };
-
-            _connection = factory.CreateConnection();
+            _connection = CreateRabbitMqConnection(options.Value);
             // Event handling.
             _connection.CallbackException += HandleConnectionCallbackException;
             _connection.ConnectionRecoveryError += HandleConnectionRecoveryError;
@@ -556,5 +541,47 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                 { "x-message-ttl", secondsDelay * 1000 },
                 { "x-expires", secondsDelay * 1000 + QueueExpirationTime }
             };
+
+        IConnection CreateRabbitMqConnection(RabbitMqClientOptions options)
+        {
+            var factory = new ConnectionFactory
+            {
+                Port = options.Port,
+                UserName = options.UserName,
+                Password = options.Password,
+                VirtualHost = options.VirtualHost,
+                AutomaticRecoveryEnabled = options.AutomaticRecoveryEnabled,
+                TopologyRecoveryEnabled = options.TopologyRecoveryEnabled,
+                RequestedConnectionTimeout = options.RequestedConnectionTimeout,
+                RequestedHeartbeat = options.RequestedHeartbeat
+            };
+            if (!string.IsNullOrEmpty(options.ClientProvidedName))
+            {
+                return CreateNamedConnection(options, factory);
+            }
+            return CreateConnection(options, factory);
+        }
+
+        IConnection CreateNamedConnection(RabbitMqClientOptions options, ConnectionFactory factory)
+        {
+            if (options.HostNames?.Any() == true)
+            {
+                return factory.CreateConnection(options.HostNames.ToList(), options.ClientProvidedName);
+            }
+
+            factory.HostName = options.HostName;
+            return factory.CreateConnection(options.ClientProvidedName);
+        }
+
+        IConnection CreateConnection(RabbitMqClientOptions options, ConnectionFactory factory)
+        {
+            if (options.HostNames?.Any() == true)
+            {
+                return factory.CreateConnection(options.HostNames.ToList());
+            }
+
+            factory.HostName = options.HostName;
+            return factory.CreateConnection();
+        }
     }
 }

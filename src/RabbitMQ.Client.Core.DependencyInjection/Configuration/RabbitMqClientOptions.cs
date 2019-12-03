@@ -1,4 +1,6 @@
-﻿namespace RabbitMQ.Client.Core.DependencyInjection.Configuration
+﻿using System.Collections.Generic;
+
+namespace RabbitMQ.Client.Core.DependencyInjection.Configuration
 {
     /// <summary>
     /// RabbitMQ configuration model.
@@ -9,6 +11,16 @@
         /// RabbitMQ server.
         /// </summary>
         public string HostName { get; set; } = "127.0.0.1";
+
+        /// <summary>
+        /// Collection of RabbitMQ server host names.
+        /// </summary>
+        /// <remarks>
+        /// It can be used when RabbitMQ HA cluster is set up and you have to connect multiple hosts.
+        /// If HostNames collection is null or empty then HostName will be used to create connection.
+        /// Otherwise HostNames collection will be used and HostName property value will be ignored.
+        /// </remarks>
+        public IEnumerable<string> HostNames { get; set; } = null;
 
         /// <summary>
         /// Port.
@@ -49,5 +61,10 @@
         /// Heartbeat timeout.
         /// </summary>
         public ushort RequestedHeartbeat { get; set; } = 60;
+
+        /// <summary>
+        /// Application-specific connection name, will be displayed in the management UI if RabbitMQ server supports it.
+        /// </summary>
+        public string ClientProvidedName { get; set; }
     }
 }

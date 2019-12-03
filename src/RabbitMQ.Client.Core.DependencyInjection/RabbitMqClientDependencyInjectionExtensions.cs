@@ -37,9 +37,11 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         public static IServiceCollection AddRabbitMqClient(this IServiceCollection services, RabbitMqClientOptions configuration)
         {
             services.AddLogging(options => options.AddConsole());
+            // TODO: Think about this part.
             services.Configure<RabbitMqClientOptions>(opt =>
             {
                 opt.HostName = configuration.HostName;
+                opt.HostNames = configuration.HostNames;
                 opt.Port = configuration.Port;
                 opt.UserName = configuration.UserName;
                 opt.Password = configuration.Password;
@@ -48,6 +50,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                 opt.TopologyRecoveryEnabled = configuration.TopologyRecoveryEnabled;
                 opt.RequestedConnectionTimeout = configuration.RequestedConnectionTimeout;
                 opt.RequestedHeartbeat = configuration.RequestedHeartbeat;
+                opt.ClientProvidedName = configuration.ClientProvidedName;
             });
             services.AddSingleton<IQueueService, QueueService>();
             return services;
