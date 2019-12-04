@@ -555,11 +555,16 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                 RequestedConnectionTimeout = options.RequestedConnectionTimeout,
                 RequestedHeartbeat = options.RequestedHeartbeat
             };
-            if (!string.IsNullOrEmpty(options.ClientProvidedName))
+            
+            if (options.TcpEndpoints?.Any() == true)
             {
-                return CreateNamedConnection(options, factory);
+                var clientEndpoints = options.TcpEndpoints.Select(x => new AmqpTcpEndpoint(x.HostName, x.Port)).ToList();
+                return factory.CreateConnection(clientEndpoints);
             }
-            return CreateConnection(options, factory);
+            
+            return string.IsNullOrEmpty(options.ClientProvidedName) 
+                ? CreateConnection(options, factory) 
+                : CreateNamedConnection(options, factory);
         }
 
         static IConnection CreateNamedConnection(RabbitMqClientOptions options, ConnectionFactory factory)

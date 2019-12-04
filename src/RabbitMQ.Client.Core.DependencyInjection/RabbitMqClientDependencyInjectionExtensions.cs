@@ -37,11 +37,12 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         public static IServiceCollection AddRabbitMqClient(this IServiceCollection services, RabbitMqClientOptions configuration)
         {
             services.AddLogging(options => options.AddConsole());
-            // TODO: Think about this part.
             services.Configure<RabbitMqClientOptions>(opt =>
-            {
+            { 
+                opt = configuration;
                 opt.HostName = configuration.HostName;
                 opt.HostNames = configuration.HostNames;
+                opt.TcpEndpoints = configuration.TcpEndpoints;
                 opt.Port = configuration.Port;
                 opt.UserName = configuration.UserName;
                 opt.Password = configuration.Password;

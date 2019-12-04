@@ -3,10 +3,8 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.0</TargetFramework>
     <LangVersion>latest</LangVersion>
-    <Version>3.0.2</Version>
+    <Version>3.0.3</Version>
     <PackageTags>RabbitMQ</PackageTags>
-    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
-    <PackageIcon>icon.png</PackageIcon>
     <RepositoryUrl>https://github.com/AntonyVorontsov/RabbitMQ.Client.Core.DependencyInjection</RepositoryUrl>
     <Company />
     <Description>.Net Core library-wrapper of RabbitMQ.Client for Dependency Injection.</Description>
@@ -15,11 +13,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="../../LICENSE.txt" Pack="true" PackagePath="$(PackageLicenseFile)" />
+    <None Include="../../LICENSE.txt">
+      <Pack>True</Pack>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="../../icon.png" Pack="true" PackagePath="/" />
+    <None Include="../../icon.png">
+      <Pack>True</Pack>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
@@ -28,6 +30,42 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="3.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
     <PackageReference Include="RabbitMQ.Client" Version="5.1.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <_UnmanagedRegistrationCache Remove="obj\RabbitMQ.Client.Core.DependencyInjection.csproj.UnmanagedRegistration.cache" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <_ResolveComReferenceCache Remove="obj\Debug\netcoreapp3.0\RabbitMQ.Client.Core.DependencyInjection.csproj.ResolveComReference.cache" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <IntermediateAssembly Remove="obj\Debug\netcoreapp3.0\RabbitMQ.Client.Core.DependencyInjection.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <_DebugSymbolsIntermediatePath Remove="obj\Debug\netcoreapp3.0\RabbitMQ.Client.Core.DependencyInjection.pdb" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <_DeploymentManifestEntryPoint Remove="obj\Debug\netcoreapp3.0\RabbitMQ.Client.Core.DependencyInjection.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ApplicationManifest Remove="obj\Debug\netcoreapp3.0\Native.RabbitMQ.Client.Core.DependencyInjection.manifest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <DeployManifest Remove="obj\Debug\netcoreapp3.0\RabbitMQ.Client.Core.DependencyInjection.application" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ClsidMap Remove="obj\Debug\netcoreapp3.0\RabbitMQ.Client.Core.DependencyInjection.clsidmap" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <RegFreeComManifest Remove="obj\Debug\netcoreapp3.0\RabbitMQ.Client.Core.DependencyInjection.X.manifest" />
   </ItemGroup>
 
 </Project>

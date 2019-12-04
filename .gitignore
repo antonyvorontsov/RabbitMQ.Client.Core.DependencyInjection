@@ -1,7 +1,8 @@
 **/.project
-**/.vs/
 **/bin/
 **/obj/
+**/.vs/
 **/.vscode/
+**/.idea/
 **/*.xproj.user
 **/*.csproj.user

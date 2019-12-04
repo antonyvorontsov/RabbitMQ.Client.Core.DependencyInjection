@@ -21,6 +21,14 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Configuration
         /// Otherwise HostNames collection will be used and HostName property value will be ignored.
         /// </remarks>
         public IEnumerable<string> HostNames { get; set; }
+        
+        /// <summary>
+        /// Collection of AMPQ TCP endpoints.
+        /// </summary>
+        /// <remarks>
+        /// Usage is the same as collection of HostNames but 
+        /// </remarks>
+        public IEnumerable<RabbitMqTcpEndpoint> TcpEndpoints { get; set; }
 
         /// <summary>
         /// Port.
