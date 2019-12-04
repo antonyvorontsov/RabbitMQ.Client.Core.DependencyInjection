@@ -39,7 +39,6 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             services.AddLogging(options => options.AddConsole());
             services.Configure<RabbitMqClientOptions>(opt =>
             { 
-                opt = configuration;
                 opt.HostName = configuration.HostName;
                 opt.HostNames = configuration.HostNames;
                 opt.TcpEndpoints = configuration.TcpEndpoints;
