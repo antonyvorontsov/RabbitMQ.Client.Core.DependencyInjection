@@ -9,19 +9,13 @@
     <Company />
     <Description>.Net Core library-wrapper of RabbitMQ.Client for Dependency Injection.</Description>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageIconUrl>https://i.imgur.com/S4wyRA4.png</PackageIconUrl>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="../../LICENSE.txt">
-      <Pack>True</Pack>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="../../icon.png">
-      <Pack>True</Pack>
-    </None>
+    <None Include="..\..\icon.png" Pack="true" PackagePath="\" />
+    <None Include="..\..\LICENSE.txt" Pack="true" PackagePath="$(PackageLicenseFile)" />
   </ItemGroup>
 
   <ItemGroup>
