@@ -106,6 +106,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             {
                 _connection.Close();
             }
+
+            _channel?.Dispose();
+            _connection?.Dispose();
         }
 
         /// <summary>
