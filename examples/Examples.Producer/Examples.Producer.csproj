@@ -10,7 +10,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\RabbitMQ.Client.Core.DependencyInjection\RabbitMQ.Client.Core.DependencyInjection.csproj" />
+    <ProjectReference Include="..\..\src\RabbitMQ.Client.Core.DependencyInjection\RabbitMQ.Client.Core.DependencyInjection.csproj" />
   </ItemGroup>
 
 </Project>
