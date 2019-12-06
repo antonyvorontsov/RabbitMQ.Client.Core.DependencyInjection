@@ -9,7 +9,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Configuration
         /// RabbitMQ server.
         /// </summary>
         public string HostName { get; set; }
-        
+
         /// <summary>
         /// Tcp connection port.
         /// </summary>

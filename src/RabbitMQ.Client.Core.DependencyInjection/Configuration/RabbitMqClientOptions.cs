@@ -8,27 +8,35 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Configuration
     public class RabbitMqClientOptions
     {
         /// <summary>
-        /// RabbitMQ server.
+        /// Collection of AMPQ TCP endpoints.
+        /// It can be used when RabbitMQ HA cluster is set up and you have to connect multiple hosts with different ports.
         /// </summary>
-        public string HostName { get; set; } = "127.0.0.1";
+        /// <remarks>
+        /// Has the first priority between properties TcpEndpoints, HostNames and HostName.
+        /// If all properties are set, TcpEndpoints will be used.
+        /// </remarks>
+        public IEnumerable<RabbitMqTcpEndpoint> TcpEndpoints { get; set; }
 
         /// <summary>
         /// Collection of RabbitMQ server host names.
-        /// </summary>
-        /// <remarks>
         /// It can be used when RabbitMQ HA cluster is set up and you have to connect multiple hosts.
         /// If HostNames collection is null or empty then HostName will be used to create connection.
         /// Otherwise HostNames collection will be used and HostName property value will be ignored.
-        /// </remarks>
-        public IEnumerable<string> HostNames { get; set; }
-        
-        /// <summary>
-        /// Collection of AMPQ TCP endpoints.
         /// </summary>
         /// <remarks>
-        /// Usage is the same as collection of HostNames but 
+        /// Has the second priority between properties TcpEndpoints, HostNames and HostName.
+        /// If HostNames collection property and HostName property both set then HostNames will be used.
         /// </remarks>
-        public IEnumerable<RabbitMqTcpEndpoint> TcpEndpoints { get; set; }
+        public IEnumerable<string> HostNames { get; set; }
+
+        /// <summary>
+        /// RabbitMQ server.
+        /// </summary>
+        /// <remarks>
+        /// Has the third priority between properties TcpEndpoints, HostNames and HostName.
+        /// HostName will be used if only TcpEndpoints and HostNames properties are not set.
+        /// </remarks>
+        public string HostName { get; set; } = "127.0.0.1";
 
         /// <summary>
         /// Port.
