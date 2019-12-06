@@ -15,11 +15,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{19ADB6D2-AC61-476A-9FF4-F827574658C7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.ConsumerHost", "src\Examples.ConsumerHost\Examples.ConsumerHost.csproj", "{10C10C9D-F2ED-43C8-B235-780DD75EF8E6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.ConsumerHost", "examples\Examples.ConsumerHost\Examples.ConsumerHost.csproj", "{10C10C9D-F2ED-43C8-B235-780DD75EF8E6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.ConsumerConsole", "src\Examples.ConsumerConsole\Examples.ConsumerConsole.csproj", "{6E75E157-373A-4056-898B-3713CDD5C06C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.ConsumerConsole", "examples\Examples.ConsumerConsole\Examples.ConsumerConsole.csproj", "{6E75E157-373A-4056-898B-3713CDD5C06C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.Producer", "src\Examples.Producer\Examples.Producer.csproj", "{1F81E848-7781-448F-BBBB-6A1E509B76CC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.Producer", "examples\Examples.Producer\Examples.Producer.csproj", "{1F81E848-7781-448F-BBBB-6A1E509B76CC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{04EFD8F7-5120-4072-9728-64203F6F4873}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -49,9 +51,9 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{0C8EA737-64AC-4C41-8F80-11BFFEE23CE2} = {19ADB6D2-AC61-476A-9FF4-F827574658C7}
-		{10C10C9D-F2ED-43C8-B235-780DD75EF8E6} = {19ADB6D2-AC61-476A-9FF4-F827574658C7}
-		{6E75E157-373A-4056-898B-3713CDD5C06C} = {19ADB6D2-AC61-476A-9FF4-F827574658C7}
-		{1F81E848-7781-448F-BBBB-6A1E509B76CC} = {19ADB6D2-AC61-476A-9FF4-F827574658C7}
+		{6E75E157-373A-4056-898B-3713CDD5C06C} = {04EFD8F7-5120-4072-9728-64203F6F4873}
+		{10C10C9D-F2ED-43C8-B235-780DD75EF8E6} = {04EFD8F7-5120-4072-9728-64203F6F4873}
+		{1F81E848-7781-448F-BBBB-6A1E509B76CC} = {04EFD8F7-5120-4072-9728-64203F6F4873}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0EBBD182-65B2-47F9-ABBE-64B5B8C9652F}

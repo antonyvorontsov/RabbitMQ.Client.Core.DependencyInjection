@@ -32,8 +32,8 @@ namespace Examples.ConsumerConsole
 
             services.AddRabbitMqClient(rabbitMqSection)
                 .AddConsumptionExchange("exchange.name", exchangeSection)
-                .AddAsyncMessageHandlerSingleton<CustomAsyncMessageHandler>("routing.key")
-                .AddAsyncNonCyclicMessageHandlerSingleton<CustomAsyncNonCyclicMessageHandler>("routing.key");
+                .AddAsyncMessageHandlerSingleton<CustomAsyncMessageHandler>("routing.key");
+                //.AddAsyncNonCyclicMessageHandlerSingleton<CustomAsyncNonCyclicMessageHandler>("routing.key");
         }
     }
 }

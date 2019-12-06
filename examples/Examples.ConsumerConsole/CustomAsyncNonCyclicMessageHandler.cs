@@ -15,7 +15,7 @@ namespace Examples.ConsumerConsole
 
         public async Task Handle(string message, string routingKey, IQueueService queueService)
         {
-            _logger.LogInformation("A weird example of runnig something async.");
+            _logger.LogInformation("A weird example of running something async.");
             var response = new { message, routingKey };
             await queueService.SendAsync(response, "exchange.name", "routing.key");
         }
