@@ -2,11 +2,9 @@
 
 <a href="https://www.nuget.org/packages/RabbitMQ.Client.Core.DependencyInjection/" alt="NuGet package"><img src="https://img.shields.io/nuget/v/RabbitMQ.Client.Core.DependencyInjection.svg" /></a><br/>
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/f688764d2ba340099ec50b74726e25fd)](https://app.codacy.com/app/AntonyVorontsov/RabbitMQ.Client.Core.DependencyInjection?utm_source=github.com&utm_medium=referral&utm_content=AntonyVorontsov/RabbitMQ.Client.Core.DependencyInjection&utm_campaign=Badge_Grade_Dashboard)<br/>
-This repository contains the library that provides functionality to wrap [RabbitMQ.Client](https://github.com/rabbitmq/rabbitmq-dotnet-client) code and register it via dependency injection mechanism.
+Wrapper-library of RabbitMQ.Client with Dependency Injection infrastructure under the .Net Core 3.0 platform.
 
-## Usage
-TODO: link to detailed documentation.
-### Producer
+## Producer
 
 There are some step that you have to get through inside the `ConfigureServices` method for basic RabbitMQ configuration. The first mandatory step is to add `IQueueService` that contains all the logic of producing and consuming messages by calling `AddRabbitMqClient` method.
 The second step is add and configure exchanges using `AddExchange`, `AddProductionExchange` and `AddConsumptionExchange` methods. Exchanges have an option (flag) are the made to consume messages or only produce them. This is an important case when you want to use multiple exchanges in your application and want to consume messages from queues binded to chosen exchanges.
@@ -85,7 +83,7 @@ queueService.Send(
 In order to make this possible, a default dead-letter-exchange with `"default.dlx.exchange"` name will be created. You can change it via main exchange configuration (example is down below).
 And also you have a default functionality of resending failed messages (if you get an error while processing received message).
 
-### Consumer
+## Consumer
 
 Lets imagine that you wanna make a consumer as a console application. Then code will look like this:
 
@@ -145,11 +143,79 @@ public class CustomMessageHandler : IMessageHandler
 }
 ```
 
+Or you can add another message handler that will run asynchronously:
+```csharp
+public class CustomAsyncMessageHandler : IAsyncMessageHandler
+{
+	readonly ILogger<CustomAsyncMessageHandler> _logger;
+
+	public CustomAsyncMessageHandler(ILogger<CustomAsyncMessageHandler> logger)
+	{
+		_logger = logger;
+	}
+
+	public async Task Handle(string message, string routingKey)
+	{
+		// Do whatever you want asynchronously!
+		_logger.LogInformation("Merry Christmas!");
+	}
+}
+```
+
+But you can not use `IQueueService` inside those message handlers otherwise you will be faced with cycling dependency problem. But sometimes you may need to send something in other queue (e.g. queue with responses) from one message handler or another. For that purpose use non-cyclic handlers.
+
+```csharp
+public class CustomMessageHandler : INonCyclicMessageHandler
+{
+	readonly ILogger<CustomMessageHandler> _logger;
+	public CustomMessageHandler(ILogger<CustomMessageHandler> logger)
+	{
+		_logger = logger;
+	}
+
+	public void Handle(string message, string routingKey, IQueueService queueService)
+	{
+		_logger.LogInformation("Got a message.");
+		var response = new { Message = message };
+		queueService.Send(response, "exchange.name", "routing.key");
+	}
+}
+```
+
+Or the same but async.
+
+```csharp
+public class CustomAsyncMessageHandler : IAsyncNonCyclicMessageHandler
+{
+	readonly ILogger<CustomAsyncMessageHandler> _logger;
+
+	public CustomAsyncMessageHandler(ILogger<CustomAsyncMessageHandler> logger)
+	{
+		_logger = logger;
+	}
+
+	public async Task Handle(string message, string routingKey, IQueueService queueService)
+	{
+		_logger.LogInformation("Doing something async.");
+		var response = new { Message = message };
+		await queueService.SendAsync(response, "exchange.name", "routing.key");
+	}
+}
+```
+
+And you have to register those classes the same way you did with simple handlers.
+```csharp
+services.AddRabbitMqClient(rabbitMqSection)
+	.AddConsumptionExchange("exchange.name", exchangeSection)
+	.AddNonCyclicMessageHandlerSingleton<CustomMessageHandler>("routing.key")
+	.AddAsyncNonCyclicMessageHandlerSingleton<CustomAsyncMessageHandler>("other.routing.key");
+```
+
 You can find example projects in the repository too.
 
-### Configuration
+## appsettings.json configuration
 
- You have to add  configuration sections: (1) settings to connect to the RabbitMQ server and (2) sections that configure exchanges.
+ You have to add a couple configuration sections: (1) settings to connect to the RabbitMQ server and (2) a section that configures an exchange (one section per exchange frankly speaking).
  Exchange sections define how to bind queues and exchanges with each other and which routing keys to use for that.
  You can bind a queue to an exchange with more than one routing key, but if there are no routing keys in the queue section, then that queue will be bound to the exchange with its name.
 ```json
@@ -176,11 +242,22 @@ You can find example projects in the repository too.
 }
 ```
 
-## Versioning
-Say something about semantic versioning.
-
-## Changelog
-TODO: add changelog
-
-## License
-TODO: provide license information
+`Type`, `Durable`, `AutoDelete`, `DeadLetterExchange`, `RequeueFailedMessages` are set with default values in this example. So you can change it or leave it like this:
+```json
+{
+  "RabbitMq": {
+    "HostName": "127.0.0.1",
+    "Port": "5672",
+    "UserName": "guest",
+    "Password": "guest"
+  },
+  "RabbitMqExchange": {
+    "Queues": [
+	  {
+        "Name": "myqueue",
+        "RoutingKeys": [ "routing.key" ]
+      }
+    ]
+  }
+}
+```
