@@ -10,7 +10,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.gitignore = .gitignore
 		icon.png = icon.png
 		LICENSE.txt = LICENSE.txt
-		README.md = README.md
+		readme.md = readme.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{19ADB6D2-AC61-476A-9FF4-F827574658C7}"
@@ -24,6 +24,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{04EFD8F7-5120-4072-9728-64203F6F4873}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{BC4CDBDE-4AEE-44B3-B00B-380EB1AC5E62}"
+ProjectSection(SolutionItems) = preProject
+	docs\changelog.md = docs\changelog.md
+EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

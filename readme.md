@@ -25,10 +25,6 @@ public void ConfigureServices(IServiceCollection services)
 
     services.AddRabbitMqClient(rabbitMqSection)
         .AddProductionExchange("exchange.name", exchangeSection);
-
-	// Or other way
-    // services.AddRabbitMqClient(rabbitMqSection)
-    //    .AddExchange("exchange.name", isConsuming: false, exchangeSection);
 }
 ```
 
@@ -180,7 +176,9 @@ You can find example projects in the repository too.
 Say something about semantic versioning.
 
 ## Changelog
-TODO: add changelog
+
+All notable changes being tracked in the [changelog](./docs/changelog.md) file.
 
 ## License
-TODO: provide license information
+This library is licenced under GNU General Public License v3 that means you are free to use it anywhere you want but you have to provide to the community all modifying changes of the library.
+Also feel free to contribute!
