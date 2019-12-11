@@ -18,7 +18,7 @@ public void ConfigureServices(IServiceCollection services)
 {
     var rabbitMqSection = Configuration.GetSection("RabbitMq");
     var exchangeSection = Configuration.GetSection("RabbitMqExchange");
-
+    
     services.AddRabbitMqClient(rabbitMqSection)
         .AddProductionExchange("exchange.name", exchangeSection);
 }
@@ -45,23 +45,23 @@ Now you can send messages using `Send` or `SendAsync` methods.
 ```csharp
 var messageObject = new
 {
-	Id = 1,
-	Name = "RandomName"
+    Id = 1,
+    Name = "RandomName"
 };
 
 queueService.Send(
-       @object: messageObject,
-       exchangeName: "exchange.name",
-       routingKey: "routing.key");
+    @object: messageObject,
+    exchangeName: "exchange.name",
+    routingKey: "routing.key");
 ```
 
 You can also send messages with delay.
 ```csharp
 queueService.Send(
-	@object: messageObject,
-	exchangeName: "exchange.name",
-	routingKey: "routing.key",
-	secondsDelay: 10);
+    @object: messageObject,
+    exchangeName: "exchange.name",
+    routingKey: "routing.key",
+    secondsDelay: 10);
 ```
  The mechanism of sending delayed messages also described in the documentation. Dive into it for more information.
  
@@ -72,33 +72,33 @@ After making message production possible let's make the consumption possible too
 ```csharp
 class Program
 {
-	const string ExchangeName = "exchange.name";
-	public static IConfiguration Configuration { get; set; }
-
-	static void Main()
-	{
-		var builder = new ConfigurationBuilder()
-			.SetBasePath(Directory.GetCurrentDirectory())
-			.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-		Configuration = builder.Build();
-
-		var serviceCollection = new ServiceCollection();
-		ConfigureServices(serviceCollection);
-
-		var serviceProvider = serviceCollection.BuildServiceProvider();
-		var queueService = serviceProvider.GetRequiredService<IQueueService>();
-		queueService.StartConsuming();
-	}
-
-	static void ConfigureServices(IServiceCollection services)
-	{
-		var rabbitMqSection = Configuration.GetSection("RabbitMq");
-		var exchangeSection = Configuration.GetSection("RabbitMqExchange");
-
-		services.AddRabbitMqClient(rabbitMqSection)
-			.AddConsumptionExchange("exchange.name", exchangeSection)
-			.AddMessageHandlerSingleton<CustomMessageHandler>("routing.key");
-	}
+    const string ExchangeName = "exchange.name";
+    public static IConfiguration Configuration { get; set; }
+    
+    static void Main()
+    {
+        var builder = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+        Configuration = builder.Build();
+    
+        var serviceCollection = new ServiceCollection();
+        ConfigureServices(serviceCollection);
+    
+        var serviceProvider = serviceCollection.BuildServiceProvider();
+        var queueService = serviceProvider.GetRequiredService<IQueueService>();
+        queueService.StartConsuming();
+    }
+    
+    static void ConfigureServices(IServiceCollection services)
+    {
+        var rabbitMqSection = Configuration.GetSection("RabbitMq");
+        var exchangeSection = Configuration.GetSection("RabbitMqExchange");
+    
+        services.AddRabbitMqClient(rabbitMqSection)
+            .AddConsumptionExchange("exchange.name", exchangeSection)
+            .AddMessageHandlerSingleton<CustomMessageHandler>("routing.key");
+    }
 }
 ```
 
@@ -110,17 +110,17 @@ Message handler example.
 ```csharp
 public class CustomMessageHandler : IMessageHandler
 {
-	readonly ILogger<CustomMessageHandler> _logger;
-	public CustomMessageHandler(ILogger<CustomMessageHandler> logger)
-	{
-		_logger = logger;
-	}
-
-	public void Handle(string message, string routingKey)
-	{
-		// Do whatever you want!
-		_logger.LogInformation("Hello world");
-	}
+    readonly ILogger<CustomMessageHandler> _logger;
+    public CustomMessageHandler(ILogger<CustomMessageHandler> logger)
+    {
+        _logger = logger;
+    }
+    
+    public void Handle(string message, string routingKey)
+    {
+        // Do whatever you want!
+        _logger.LogInformation("Hello world");
+    }
 }
 ```
 There are async and non-cyclic message handler types, which allow you to do additional stuff. For more information see the documentation.
