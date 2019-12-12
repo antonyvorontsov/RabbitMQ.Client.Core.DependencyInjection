@@ -3,14 +3,16 @@
 <a href="https://www.nuget.org/packages/RabbitMQ.Client.Core.DependencyInjection/" alt="NuGet package"><img src="https://img.shields.io/nuget/v/RabbitMQ.Client.Core.DependencyInjection.svg" /></a><br/>
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/f688764d2ba340099ec50b74726e25fd)](https://app.codacy.com/app/AntonyVorontsov/RabbitMQ.Client.Core.DependencyInjection?utm_source=github.com&utm_medium=referral&utm_content=AntonyVorontsov/RabbitMQ.Client.Core.DependencyInjection&utm_campaign=Badge_Grade_Dashboard)<br/>
 
-This repository contains the library that provides functionality to wrap [RabbitMQ.Client](https://github.com/rabbitmq/rabbitmq-dotnet-client) code and register it via dependency injection mechanism.
+This repository contains the library that provides functionality for wrapping [RabbitMQ.Client](https://github.com/rabbitmq/rabbitmq-dotnet-client) code and adding it in your application via dependency injection mechanism.
 
 ## Usage
 
-This section contains only example of basic usage of the library. You can find the [detailed documentation](./docs/changelog.md) files in the docs directory, all functionality covered here.
+This section contains only example of basic usage of the library. You can find the [detailed documentation](./docs/changelog.md) in the docs directory where all functionality fully covered.
+
 ### Producer
 
-To produce messages in the RabbitMQ queue you have to go through the routine of configuring RabbitMQ connection and exchanges. In your `Startup` file you can do it simply calling couple methods in fluent Api way.
+To produce messages in the RabbitMQ queue you have to go through the routine of configuring RabbitMQ connection and exchanges. In your `Startup` file you can do it simply calling couple methods in a fluent-Api way.
+
 ```csharp
 public static IConfiguration Configuration { get; set; }
 
@@ -23,6 +25,7 @@ public void ConfigureServices(IServiceCollection services)
         .AddProductionExchange("exchange.name", exchangeSection);
 }
 ```
+
 By calling `AddRabbitMqClient` you add a singleton `IQueueService` that provides functionality of sending messages to queues. `AddProductionExchange` configures exchange to queues bindings (presented as json configuration) that allow messages routing properly. 
 Example of `appsettings.json` is two sections below. You can also configure everything manually. For more information see the [docs](./docs/changelog.md).
 
@@ -55,7 +58,8 @@ queueService.Send(
     routingKey: "routing.key");
 ```
 
-You can also send messages with delay.
+You can also send delayed messages.
+
 ```csharp
 queueService.Send(
     @object: messageObject,
@@ -63,11 +67,12 @@ queueService.Send(
     routingKey: "routing.key",
     secondsDelay: 10);
 ```
- The mechanism of sending delayed messages also described in the documentation. Dive into it for more information.
+
+ The mechanism of sending delayed messages described in the documentation. Dive into it for more detailed information.
  
 ### Consumer
 
-After making message production possible let's make the consumption possible too! Imagine that consumer will be a simple console application.
+After making message production possible let's make the consumption possible too! Imagine that a consumer will be a simple console application.
 
 ```csharp
 class Program
@@ -103,10 +108,12 @@ class Program
 ```
 
 You have to configure everything almost the same way as you have already done with producer. The main differences are that you need to declare (configure) consumption exchange calling `AddConsumptionExchange` instead of production exchange. For detailed information about difference in exchange declarations you may want to see the documentation.
-And the most important part is adding custom message handlers by implementing `IMessageHandler` interface and calling `AddMessageHandlerSingleton<T>` or `AddMessageHandlerTransient<T>` methods. `IMessageHandler` is a simple subscriber, which receives messages from a queue by selected routing key.
-The very last step is to start "listening" (subscribing) by simply calling `StartConsuming` method of `IQueueService`. After that you will start getting messages, and you can handle them in any way you want.
+The other important part is adding custom message handlers by implementing `IMessageHandler` interface and calling `AddMessageHandlerSingleton<T>` or `AddMessageHandlerTransient<T>` methods. `IMessageHandler` is a simple subscriber, which receives messages from a queue by selected routing key. You are allowed to set multiple message handlers for one routing key (e.g. one is writing it in a database, and the other does the business logic).
+
+The very last step is to start "listening" (consuming) by simply calling `StartConsuming` method of `IQueueService`. After that you will start getting messages, and you can handle them in any way you want.
 
 Message handler example.
+
 ```csharp
 public class CustomMessageHandler : IMessageHandler
 {
@@ -118,7 +125,7 @@ public class CustomMessageHandler : IMessageHandler
     
     public void Handle(string message, string routingKey)
     {
-        // Do whatever you want!
+        // Do whatever you want with the message.
         _logger.LogInformation("Hello world");
     }
 }
@@ -129,8 +136,9 @@ You can also find example projects in the repository inside the [examples](./exa
 
 ### Configuration
  
- In both cases for producing and consuming messages configuration file is the same. `appsettings.json` consists of those sections: (1) settings to connect to the RabbitMQ server and (2) sections that configure exchanges and queue bindings. You can have multiple exchanges and one configuration section per exchange.
+ In both cases for producing and consuming messages configuration file is the same. `appsettings.json` consists of those sections: (1) settings to connect to the RabbitMQ server and (2) sections that configure exchanges and queue bindings. You can have multiple exchanges and one configuration section per each exchange.
 Exchange sections define how to bind queues and exchanges with each other using specified routing keys. You allowed to bind a queue to an exchange with more than one routing key, but if there are no routing keys in the queue section, then that queue will be bound to the exchange with its name.
+
 ```json
 {
   "RabbitMq": {
@@ -154,15 +162,19 @@ Exchange sections define how to bind queues and exchanges with each other using 
   }
 }
 ```
+
 For more information about `appsettings.json` file format and manual configuration see the documentation file.
 
 ## Versioning
-For now this project uses semantic versioning that follows .Net Core versioning. That means that major and minor versions are equal .Net Core major and minor version but patch version will be used independently.
+
+For now this project uses semantic versioning that follows .Net Core versioning. That means that major and minor versions are equal to .Net Core major and minor versions but patch versions will be used independently.
 
 ## Changelog
 
 All notable changes being tracked in the [changelog](./docs/changelog.md) file.
 
 ## License
-This library is licenced under GNU General Public License v3 that means you are free to use it anywhere you want but you have to provide to the community all modifying changes of the library. </br>
-Also feel free to contribute!
+
+This library licenced under GNU General Public License v3. That means you are free to use it anywhere you want, but if you modify library by yourself you have to provide all notable changes to the community.
+
+Feel free to contribute!
