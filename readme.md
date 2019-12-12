@@ -7,7 +7,7 @@ This repository contains the library that provides functionality for wrapping [R
 
 ## Usage
 
-This section contains only example of basic usage of the library. You can find the [detailed documentation](./docs/changelog.md) in the docs directory where all functionality fully covered.
+This section contains only example of basic usage of the library. You can find the [detailed documentation](./docs/documentation.md) in the docs directory where all functionality fully covered.
 
 ### Producer
 
@@ -27,7 +27,7 @@ public void ConfigureServices(IServiceCollection services)
 ```
 
 By calling `AddRabbitMqClient` you add a singleton `IQueueService` that provides functionality of sending messages to queues. `AddProductionExchange` configures exchange to queues bindings (presented as json configuration) that allow messages routing properly. 
-Example of `appsettings.json` is two sections below. You can also configure everything manually. For more information see the [docs](./docs/changelog.md).
+Example of `appsettings.json` is two sections below. You can also configure everything manually. For more information, see [rabbit-configuration](./docs/rabbit-configuration.md) and [exchange-configuration](./docs/exchange-configuration.md) documentation files.
 
 Now you can inject an instance implementing `IQueueService` inside anything you want.
 
@@ -68,7 +68,7 @@ _queueService.Send(
     secondsDelay: 10);
 ```
 
- The mechanism of sending delayed messages described in the documentation. Dive into it for more detailed information.
+ The mechanism of sending delayed messages described in the [documentation](./docs/message-production.md). Dive into it for more detailed information.
  
 ### Consumer
 
@@ -107,7 +107,7 @@ class Program
 }
 ```
 
-You have to configure everything almost the same way as you have already done with producer. The main differences are that you need to declare (configure) consumption exchange calling `AddConsumptionExchange` instead of production exchange. For detailed information about difference in exchange declarations you may want to see the documentation.
+You have to configure everything almost the same way as you have already done with producer. The main differences are that you need to declare (configure) consumption exchange calling `AddConsumptionExchange` instead of production exchange. For detailed information about difference in exchange declarations you may want to see the [documentation](./docs/exchange-configuration.md).
 The other important part is adding custom message handlers by implementing `IMessageHandler` interface and calling `AddMessageHandlerSingleton<T>` or `AddMessageHandlerTransient<T>` methods. `IMessageHandler` is a simple subscriber, which receives messages from a queue by selected routing key. You are allowed to set multiple message handlers for one routing key (e.g. one is writing it in a database, and the other does the business logic).
 
 The very last step is to start "listening" (consuming) by simply calling `StartConsuming` method of `IQueueService`. After that you will start getting messages, and you can handle them in any way you want.
@@ -130,7 +130,7 @@ public class CustomMessageHandler : IMessageHandler
     }
 }
 ```
-There are async and non-cyclic message handler types, which allow you to do additional stuff. For more information see the documentation.
+There are async and non-cyclic message handler types, which allow you to do additional stuff. For more information, see the [message-consuming](./docs/message-consuming.md) documentation file.
 
 You can also find example projects in the repository inside the [examples](./examples) directory.
 
@@ -163,7 +163,7 @@ Exchange sections define how to bind queues and exchanges with each other using 
 }
 ```
 
-For more information about `appsettings.json` file format and manual configuration see the documentation file.
+For more information about `appsettings.json` file format and manual configuration, see [rabbit-configuration](./docs/rabbit-configuration.md) and [exchange-configuration](./docs/exchange-configuration.md) documentation files.
 
 ## Versioning
 
