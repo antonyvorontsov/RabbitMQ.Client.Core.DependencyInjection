@@ -27,6 +27,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{BC4CDBDE-4
 ProjectSection(SolutionItems) = preProject
 	docs\changelog.md = docs\changelog.md
 	docs\documentation.md = docs\documentation.md
+	docs\rabbit-configuration.md = docs\rabbit-configuration.md
+	docs\exchange-configuration.md = docs\exchange-configuration.md
+	docs\message-production.md = docs\message-production.md
+	docs\message-consuming.md = docs\message-consuming.md
 EndProjectSection
 EndProject
 Global

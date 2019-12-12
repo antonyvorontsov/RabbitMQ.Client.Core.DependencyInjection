@@ -52,7 +52,7 @@ var messageObject = new
     Name = "RandomName"
 };
 
-queueService.Send(
+_queueService.Send(
     @object: messageObject,
     exchangeName: "exchange.name",
     routingKey: "routing.key");
@@ -61,7 +61,7 @@ queueService.Send(
 You can also send delayed messages.
 
 ```csharp
-queueService.Send(
+_queueService.Send(
     @object: messageObject,
     exchangeName: "exchange.name",
     routingKey: "routing.key",
