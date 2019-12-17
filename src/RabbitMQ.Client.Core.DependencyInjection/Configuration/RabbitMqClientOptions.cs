@@ -54,6 +54,11 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Configuration
         public string Password { get; set; } = "guest";
 
         /// <summary>
+        /// Application-specific connection name, will be displayed in the management UI if RabbitMQ server supports it.
+        /// </summary>
+        public string ClientProvidedName { get; set; }
+
+        /// <summary>
         /// Virtual host.
         /// </summary>
         public string VirtualHost { get; set; } = "/";
@@ -77,10 +82,5 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Configuration
         /// Heartbeat timeout.
         /// </summary>
         public ushort RequestedHeartbeat { get; set; } = 60;
-
-        /// <summary>
-        /// Application-specific connection name, will be displayed in the management UI if RabbitMQ server supports it.
-        /// </summary>
-        public string ClientProvidedName { get; set; }
     }
 }
