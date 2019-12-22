@@ -64,7 +64,7 @@ Exchanges can be configured with properties:
 - `Durable` - durability option. Default value is `true`.
 - `AutoDelete` - option for exchange auto deleting. Default value is `false`.
 - `Arguments` - dictionary of additional arguments. Default value is `null`.
-- `RequeueFailedMessages` - option that specifies behaviour of re-queueing failed messages with delay through dead-letter-exchange. Default value is `true`. Mechanism of sending delayed messages covered in the [documentation](message-consumption.md).
+- `RequeueFailedMessages` - option that specifies behaviour of re-queueing failed messages with delay through dead-letter-exchange. Default value is `true`. Mechanism of sending delayed messages covered in the [documentation](message-production.md).
 - `DeadLetterExchange` - default value for dead-letter-exchange. Default value for dead-letter-exchange name is `"default.dlx.exchange"`.
 - `Queues` - collection of queues bound to the exchange.
 
@@ -183,3 +183,6 @@ services.AddRabbitMqClient(clientConfiguration)
 services.AddRabbitMqClient(clientConfiguration)
     .AddConsumptionExchange("ConsumptionExchange", exchangeConfiguration);
 ```
+
+For the RabbitMQ client configuration see the [Previous page](rabbit-configuration.md) <br>
+For message production features see the [Next page](message-production.md)

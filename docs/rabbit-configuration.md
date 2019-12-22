@@ -140,3 +140,5 @@ public class Startup
     }
 }
 ```
+
+For the exchange configuration see the [Next page](exchange-configuration.md)
