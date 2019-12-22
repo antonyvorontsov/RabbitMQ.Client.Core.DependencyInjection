@@ -10,4 +10,4 @@ Documentation consists of four sections. **RabbitMQ configuration section** cove
 - [RabbitMQ configuration](rabbit-configuration.md)
 - [Exchange configuration](exchange-configuration.md)
 - [Message production](message-production.md)
-- [Message consuming](message-consuming.md)
+- [Message consumption](message-consumption.md)

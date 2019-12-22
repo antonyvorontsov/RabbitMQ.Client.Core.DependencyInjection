@@ -30,7 +30,7 @@ ProjectSection(SolutionItems) = preProject
 	docs\rabbit-configuration.md = docs\rabbit-configuration.md
 	docs\exchange-configuration.md = docs\exchange-configuration.md
 	docs\message-production.md = docs\message-production.md
-	docs\message-consuming.md = docs\message-consuming.md
+	docs\message-consumption.md = docs\message-consumption.md
 EndProjectSection
 EndProject
 Global

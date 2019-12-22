@@ -130,7 +130,7 @@ public class CustomMessageHandler : IMessageHandler
     }
 }
 ```
-There are async and non-cyclic message handler types, which allow you to do additional stuff. For more information, see the [message-consuming](./docs/message-consuming.md) documentation file.
+There are async and non-cyclic message handler types, which allow you to do additional stuff. For more information, see the [message-consuming](./docs/message-consumption.md) documentation file.
 
 You can also find example projects in the repository inside the [examples](./examples) directory.
 

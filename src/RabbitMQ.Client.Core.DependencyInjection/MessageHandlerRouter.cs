@@ -14,7 +14,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         public Type Type { get; set; }
 
         /// <summary>
-        /// Collection of routing keys which that handler will be "listening".
+        /// Collection of routing keys that handler will be "listening".
         /// </summary>
         public List<string> RoutingKeys { get; set; } = new List<string>();
     }

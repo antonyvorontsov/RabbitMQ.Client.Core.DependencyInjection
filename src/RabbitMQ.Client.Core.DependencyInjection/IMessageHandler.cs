@@ -1,7 +1,7 @@
 ﻿namespace RabbitMQ.Client.Core.DependencyInjection
 {
     /// <summary>
-    /// Interface of a service that handle messages.
+    /// Interface of message handler.
     /// </summary>
     public interface IMessageHandler
     {

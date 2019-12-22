@@ -3,7 +3,7 @@
 namespace RabbitMQ.Client.Core.DependencyInjection
 {
     /// <summary>
-    /// Interface of a service that handle messages asynchronously.
+    /// Interface of asynchronous message handler.
     /// </summary>
     public interface IAsyncMessageHandler
     {
