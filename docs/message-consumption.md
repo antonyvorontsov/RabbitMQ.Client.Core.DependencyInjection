@@ -1,8 +1,113 @@
 # Message consumption
 
+### Starting a consumer
+
+The first step that needs to be done to retrieve messages from queues is to start a consumer. This can be achieved by calling `StartConsuming` method of `IQueueService`.
+Without calling `StartConsuming` consumption exchanges will work only in production mode.
+
+Let's say that your configuration look like this.
+
+```c#
+public class Startup
+{
+    public static IConfiguration Configuration;
+
+    public Startup(IConfiguration configuration)
+    {
+        Configuration = configuration;
+    }
+
+    public void ConfigureServices(IServiceCollection services)
+    {
+        var clientConfiguration = Configuration.GetSection("RabbitMq");
+        var exchangeConfiguration = Configuration.GetSection("RabbitMqExchange");
+        services.AddRabbitMqClient(clientConfiguration)
+            .AddExchange("ExchangeName", isConsuming: true, exchangeConfiguration);
+    }
+}
+```
+
+You can register an `IHostedService` and inject the instance of `IQueueService` into it.
+
+```c#
+services.AddSingleton<IHostedService, ConsumingService>();
+```
+
+And then simply call `StartConsuming` so consumer can work in a background.
+
+```c#
+public class ConsumingService : IHostedService
+{
+    readonly IQueueService _queueService;
+    readonly ILogger<ConsumingService> _logger;
+    
+    public ConsumingService(
+        IQueueService queueService,
+        ILogger<ConsumingService> logger)
+    {
+        _queueService = queueService;
+        _logger = logger;
+    }
+    
+    public Task StartAsync(CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Starting consuming.");
+        _queueService.StartConsuming();
+        return Task.CompletedTask;
+    }
+    
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Stopping consuming.");
+        return Task.CompletedTask;
+    }
+}
+```
+
+Otherwise you can implement a worker service template from .Net Core 3 like this.
+
+```c#
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        CreateHostBuilder(args).Build().Run();
+    }
+
+    public static IHostBuilder CreateHostBuilder(string[] args) =>
+        Host.CreateDefaultBuilder(args)
+            .ConfigureServices((hostContext, services) =>
+            {
+                var clientConfiguration = hostContext.Configuration.GetSection("RabbitMq");
+                var exchangeConfiguration = hostContext.Configuration.GetSection("RabbitMqExchange");
+                services.AddRabbitMqClient(clientConfiguration)
+                    .AddExchange("ExchangeName", isConsuming: true, exchangeConfiguration);
+                
+                // And add the background service.
+                services.AddHostedService<Worker>();;
+            });
+}
+
+public class Worker : BackgroundService
+{
+    private readonly IQueueService _queueService;
+
+    public Worker(IQueueService queueService)
+    {
+        _queueService = queueService;
+    }
+
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        _queueService.StartConsuming();
+    }
+}
+```
+
 ### Synchronous message handlers
 
-To retrieve messages from queues you have to configure services that will handle received messages.
+The second step without which receiving messages does not make sense - configuration of message handling services. If there are no message handlers then received messages will not be processed.
+
 Message handlers are classes that implement `IMessageHandler` interface (or a few others) and contain functionality including error handling for processing messages.
 You can register `IMessageHandler` in your `Startup` like this.
 
@@ -24,12 +129,9 @@ public class Startup
             .AddExchange("ExchangeName", isConsuming: true, exchangeConfiguration)
             .AddMessageHandlerSingleton<CustomMessageHandler>("routing.key");
     }
-    
-    public void Configure(IApplicationBuilder app, IHostingEnvironment env)
-    {
-    }
 }
 ```
+
 The RabbitMQ client configuration and exchange configuration sections not specified in this example, but covered [here](rabbit-configuration.md) and [here](exchange-configuration.md).
 
 `IMessageHandler` implementation will "listen" for messages by specified routing key, or a collection of routing keys.
