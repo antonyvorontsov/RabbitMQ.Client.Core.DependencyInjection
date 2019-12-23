@@ -106,7 +106,9 @@ queueService.Send(bytes, properties, exchangeName: "exchange.name", routingKey: 
 await queueService.SendAsync(bytes, properties, exchangeName: "exchange.name", routingKey: "routing.key", secondsDelay: 10);
 ```
 
-### Delayed message mechanism
+### Mechanism of sending delayed messages
+
+![Model of sending delayed messages](./images/delayed-message-model.png)
 
 For the exchange configuration see the [Previous page](exchange-configuration.md) <br>
 For message consumption features see the [Next page](message-consumption.md)

@@ -13,7 +13,7 @@ This section contains only example of basic usage of the library. You can find t
 
 To produce messages in the RabbitMQ queue you have to go through the routine of configuring RabbitMQ connection and exchanges. In your `Startup` file you can do it simply calling couple methods in a fluent-Api way.
 
-```csharp
+```c#
 public static IConfiguration Configuration { get; set; }
 
 public void ConfigureServices(IServiceCollection services)
@@ -31,7 +31,7 @@ Example of `appsettings.json` is two sections below. You can also configure ever
 
 Now you can inject an instance implementing `IQueueService` inside anything you want.
 
-```csharp
+```c#
 [Route("api/[controller]")]
 public class HomeController : Controller
 {
@@ -45,7 +45,7 @@ public class HomeController : Controller
 
 Now you can send messages using `Send` or `SendAsync` methods.
 
-```csharp
+```c#
 var messageObject = new
 {
     Id = 1,
@@ -60,7 +60,7 @@ _queueService.Send(
 
 You can also send delayed messages.
 
-```csharp
+```c#
 _queueService.Send(
     @object: messageObject,
     exchangeName: "exchange.name",
@@ -74,7 +74,7 @@ _queueService.Send(
 
 After making message production possible let's make the consumption possible too! Imagine that a consumer will be a simple console application.
 
-```csharp
+```c#
 class Program
 {
     const string ExchangeName = "exchange.name";
@@ -114,7 +114,7 @@ The very last step is to start "listening" (consuming) by simply calling `StartC
 
 Message handler example.
 
-```csharp
+```c#
 public class CustomMessageHandler : IMessageHandler
 {
     readonly ILogger<CustomMessageHandler> _logger;
