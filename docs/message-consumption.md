@@ -2,8 +2,8 @@
 
 ### Synchronous message handlers
 
-To retrieve messages from the queues you have to configure services that will handle received messages.
-Message handlers are classes that implement `IMessageHandler` interface (or a few others) and implement functionality including error handling for processing messages.
+To retrieve messages from queues you have to configure services that will handle received messages.
+Message handlers are classes that implement `IMessageHandler` interface (or a few others) and contain functionality including error handling for processing messages.
 You can register `IMessageHandler` in your `Startup` like this.
 
 ```c#
@@ -22,7 +22,7 @@ public class Startup
         var exchangeConfiguration = Configuration.GetSection("RabbitMqExchange");
         services.AddRabbitMqClient(clientConfiguration)
             .AddExchange("ExchangeName", isConsuming: true, exchangeConfiguration)
-			.AddMessageHandlerSingleton<CustomMessageHandler>("routing.key");
+            .AddMessageHandlerSingleton<CustomMessageHandler>("routing.key");
     }
     
     public void Configure(IApplicationBuilder app, IHostingEnvironment env)
@@ -30,6 +30,7 @@ public class Startup
     }
 }
 ```
+The RabbitMQ client configuration and exchange configuration sections not specified in this example, but covered [here](rabbit-configuration.md) and [here](exchange-configuration.md).
 
 `IMessageHandler` implementation will "listen" for messages by specified routing key, or a collection of routing keys.
 ```c#
@@ -38,7 +39,7 @@ services.AddRabbitMqClient(clientConfiguration)
     .AddMessageHandlerSingleton<CustomMessageHandler>(new[] { "first.routing.key", "second.routing.key", "third.routing.key" });
 ```
 
-You can register it in two modes - singleton or transient.
+You can register it in two modes - **singleton** or **transient** using `AddMessageHandlerSingleton` or `AddMessageHandlerTransient` methods respectively.
 
 ```c#
 services.AddRabbitMqClient(clientConfiguration)
@@ -65,7 +66,7 @@ services.AddRabbitMqClient(clientConfiguration)
     .AddMessageHandlerSingleton<OneMoreCustomMessageHandler>("first.routing.key");
 ```
 
-`IMessageHandler` consists of one method `Handle` that gets a message in string format. You can deserialize (if it is a json message) it or handle a raw value.
+`IMessageHandler` consists of one method `Handle` that gets a message in string format. You can deserialize it (if it is a json message) or handle a raw value.
 Thus, message handler will look like this.
 
 ```c#
@@ -73,13 +74,13 @@ public class CustomMessageHandler : IMessageHandler
 {
     public void Handle(string message, string routingKey)
     {
-        var messageObject = JsonConvert.DeserializeObject<YourClass>(message);
         // Do whatever you want.
+        var messageObject = JsonConvert.DeserializeObject<YourClass>(message);
     }
 }
 ```
 
-You can also inject services inside `IMessageHandler` implementation.
+You can also inject services inside `IMessageHandler` constructor.
 
 ```c#
 public class CustomMessageHandler : IMessageHandler
@@ -98,7 +99,8 @@ public class CustomMessageHandler : IMessageHandler
 ```
 
 The only exception is `IQueueService`, you can't inject it because of the appearance of cyclic dependencies. If you want to use an instance of `IQueueService` (e.g. handle one message and send another) use `INonCyclicMessageHandler`.
-`INonCyclicMessageHandler` can be registered the same way as `IMessageHandler`, there are similar semantic methods for adding it in singleton or transient mode. 
+`INonCyclicMessageHandler` can be registered the same way as `IMessageHandler`. There are similar semantic methods for adding it in **singleton** or **transient** mode. 
+
 ```c#
 services.AddRabbitMqClient(clientConfiguration)
     .AddExchange("ExchangeName", isConsuming: true, exchangeConfiguration)
@@ -107,6 +109,7 @@ services.AddRabbitMqClient(clientConfiguration)
 ```
 
 And the code of `INonCyclicMessageHandler` will look like this.
+
 ```c#
 public class CustomNonCyclicMessageHandler : INonCyclicMessageHandler
 {
@@ -126,8 +129,9 @@ public class CustomNonCyclicMessageHandler : INonCyclicMessageHandler
 ```
 
 ### Asynchronous message handlers
-`IMessageHandler` and `INonCyclicMessageHandler` are synchronous message handlers, but if you want async versions then use `IAsyncMessageHandler` and `IAsyncNonCyclicMessageHandler`.
-There are extension methods that allows you to register it the same way as synchronous ones in singleton or transient modes.
+
+`IMessageHandler` and `INonCyclicMessageHandler` work synchronously, but if you want an async version then use `IAsyncMessageHandler` and `IAsyncNonCyclicMessageHandler`.
+There are extension methods that allows you to register it the same way as synchronous ones in **singleton** or **transient** modes.
 
 ```c#
 services.AddRabbitMqClient(clientConfiguration)
