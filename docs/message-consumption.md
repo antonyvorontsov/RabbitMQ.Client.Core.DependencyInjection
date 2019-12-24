@@ -286,7 +286,13 @@ So you can use async/await power inside your message handler.
 
 ### Workflow of message handling
 
+The message handling process is organized as follows:
 
-
+- `IQueueMessage` receives a message as a byte array and decodes it in UTF8 string.
+- `IQueueMessage` checks if there are any message handlers in collections of `IMessageHandler`, `IAsyncMessageHandler`, `INonCyclicMessageHandler` and `IAsyncNonCyclicMessageHandler` instances and forwards a message to them.
+- All subscribed message handlers (`IMessageHandler`, `IAsyncMessageHandler`, `INonCyclicMessageHandler`, `IAsyncNonCyclicMessageHandler`) process the message.
+- `IQueueMessage` acknowledges the message by its `DeliveryTag`.
+- If any exception occurs `IQueueMessage` acknowledges the message anyway and checks if the message has to be re-send. If exchange option `RequeueFailedMessages` is set `true` then `IQueueMessage` adds a header `"requeued"` to the message and sends it again with delay in 60 seconds. Mechanism of sending delayed messages covered in the message production [documentation](message-production.md).
+- If any exception occurs within handling the message that has been already re-sent that message will not be re-send again (re-send happens only once).
 
 For message production features see the [Previous page](message-production.md)
