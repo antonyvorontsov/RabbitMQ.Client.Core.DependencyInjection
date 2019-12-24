@@ -26,11 +26,11 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{BC4CDBDE-4AEE-44B3-B00B-380EB1AC5E62}"
 ProjectSection(SolutionItems) = preProject
 	docs\changelog.md = docs\changelog.md
-	docs\documentation.md = docs\documentation.md
 	docs\rabbit-configuration.md = docs\rabbit-configuration.md
 	docs\exchange-configuration.md = docs\exchange-configuration.md
 	docs\message-production.md = docs\message-production.md
 	docs\message-consumption.md = docs\message-consumption.md
+	docs\readme.md = docs\readme.md
 EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "images", "images", "{93D59B0E-856C-4260-B50E-57FE5C0F5073}"

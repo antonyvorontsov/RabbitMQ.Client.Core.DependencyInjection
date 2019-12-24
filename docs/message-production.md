@@ -107,8 +107,24 @@ await queueService.SendAsync(bytes, properties, exchangeName: "exchange.name", r
 ```
 
 ### Mechanism of sending delayed messages
-
+The implementation of sending deferred (delayed) messages in this project is quite tricky.
+The image below shows a model of the whole process of passing the message from the producer to the consumer.
 ![Model of sending delayed messages](./images/delayed-message-model.png)
+
+**Prerequisites.** Let's say that producer want to send a message to the exchange **"Exchange B"** with a routing key **"routing.key"** and delay in **30 seconds**.
+ -  Message goes to the exchange **"Exchange A"** whose responsibility is to manage delaying (storing) the message.
+ - After that a queue with a compound name and special arguments is being created. Name consists of three parts: routing key of sent message, word "delayed" and number of seconds delay.
+Queue arguments are as follows.
+```
+x-dead-letter-exchange : Exchange В
+x-dead-letter-routing-key : routing.key
+x-message-ttl : secondsDelay * 1000
+x-expires : secondsDelay * 1000 + 60000
+```
+ - A message, which gets in that queue, will have a specified ttl (time to live) and an exchange to which the message will be sent after expiration.
+ - That new queue bounds to the **Exchange A**. That queue will be automatically deleted if there are no more messages in it within a minute.
+ - Message goes to that queue, waits until expiration and goes in the **"Exchange B"**, which routes it as it should be.
+ - Message gets in the destination queue and consumer can retrieve that message.
 
 For the exchange configuration see the [Previous page](exchange-configuration.md) <br>
 For message consumption features see the [Next page](message-consumption.md)

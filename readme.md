@@ -7,7 +7,7 @@ This repository contains the library that provides functionality for wrapping [R
 
 ## Usage
 
-This section contains only example of basic usage of the library. You can find the [detailed documentation](./docs/documentation.md) in the docs directory where all functionality fully covered.
+This section contains only example of basic usage of the library. You can find the [detailed documentation](./docs/index.md) in the docs directory where all functionality fully covered.
 
 ### Producer
 
