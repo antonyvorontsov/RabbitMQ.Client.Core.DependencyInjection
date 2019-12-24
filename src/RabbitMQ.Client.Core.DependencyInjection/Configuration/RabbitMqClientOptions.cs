@@ -9,17 +9,17 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Configuration
     {
         /// <summary>
         /// Collection of AMPQ TCP endpoints.
-        /// It can be used when RabbitMQ HA cluster is set up and you have to connect multiple hosts with different ports.
+        /// It can be used when RabbitMQ HA cluster is running, and you want to connect multiple hosts with different ports.
         /// </summary>
         /// <remarks>
         /// Has the first priority between properties TcpEndpoints, HostNames and HostName.
-        /// If all properties are set, TcpEndpoints will be used.
+        /// If all properties set, TcpEndpoints will be used.
         /// </remarks>
         public IEnumerable<RabbitMqTcpEndpoint> TcpEndpoints { get; set; }
 
         /// <summary>
         /// Collection of RabbitMQ server host names.
-        /// It can be used when RabbitMQ HA cluster is set up and you have to connect multiple hosts.
+        /// It can be used when RabbitMQ HA cluster is running, and you want to connect multiple hosts.
         /// If HostNames collection is null or empty then HostName will be used to create connection.
         /// Otherwise HostNames collection will be used and HostName property value will be ignored.
         /// </summary>
@@ -54,6 +54,11 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Configuration
         public string Password { get; set; } = "guest";
 
         /// <summary>
+        /// Application-specific connection name, will be displayed in the management UI if RabbitMQ server supports it.
+        /// </summary>
+        public string ClientProvidedName { get; set; }
+
+        /// <summary>
         /// Virtual host.
         /// </summary>
         public string VirtualHost { get; set; } = "/";
@@ -77,10 +82,5 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Configuration
         /// Heartbeat timeout.
         /// </summary>
         public ushort RequestedHeartbeat { get; set; } = 60;
-
-        /// <summary>
-        /// Application-specific connection name, will be displayed in the management UI if RabbitMQ server supports it.
-        /// </summary>
-        public string ClientProvidedName { get; set; }
     }
 }

@@ -38,7 +38,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Configuration
         public IDictionary<string, object> Arguments { get; set; } = new Dictionary<string, object>();
 
         /// <summary>
-        /// Collection of queues connected to the exchange.
+        /// Collection of queues bound to the exchange.
         /// </summary>
         public IList<RabbitMqQueueOptions> Queues { get; set; } = new List<RabbitMqQueueOptions>();
     }
