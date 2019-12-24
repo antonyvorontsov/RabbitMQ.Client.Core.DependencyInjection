@@ -34,7 +34,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         readonly IDictionary<string, IList<IAsyncMessageHandler>> _asyncMessageHandlers;
         readonly IDictionary<string, IList<INonCyclicMessageHandler>> _nonCyclicHandlers;
         readonly IDictionary<string, IList<IAsyncNonCyclicMessageHandler>> _asyncNonCyclicHandlers;
-        readonly IDictionary<Type, List<string>> _routingKeys;
+        readonly IDictionary<Type, List<string>> _messageHandlerRouters;
         readonly IEnumerable<RabbitMqExchange> _exchanges;
         readonly ILogger<QueueService> _logger;
         readonly IConnection _connection;
@@ -49,7 +49,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             IEnumerable<IMessageHandler> messageHandlers,
             IEnumerable<IAsyncMessageHandler> asyncMessageHandlers,
             IEnumerable<INonCyclicMessageHandler> nonCyclicHandlers,
-            IEnumerable<IAsyncNonCyclicMessageHandler> asyncnonCyclicHandlers,
+            IEnumerable<IAsyncNonCyclicMessageHandler> asyncNonCyclicHandlers,
             IEnumerable<RabbitMqExchange> exchanges,
             IEnumerable<MessageHandlerRouter> routers,
             ILoggerFactory loggerFactory,
@@ -62,11 +62,11 @@ namespace RabbitMQ.Client.Core.DependencyInjection
 
             _exchanges = exchanges;
 
-            _routingKeys = TransformMessageHandlerRouters(routers);
+            _messageHandlerRouters = TransformMessageHandlerRouters(routers);
             _messageHandlers = TransformMessageHandlersCollection(messageHandlers);
             _asyncMessageHandlers = TransformMessageHandlersCollection(asyncMessageHandlers);
             _nonCyclicHandlers = TransformMessageHandlersCollection(nonCyclicHandlers);
-            _asyncNonCyclicHandlers = TransformMessageHandlersCollection(asyncnonCyclicHandlers);
+            _asyncNonCyclicHandlers = TransformMessageHandlersCollection(asyncNonCyclicHandlers);
 
             _logger = loggerFactory.CreateLogger<QueueService>();
             _connection = CreateRabbitMqConnection(options.Value);
@@ -306,7 +306,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             foreach (var handler in messageHandlers)
             {
                 var type = handler.GetType();
-                foreach (var routingKey in _routingKeys[type])
+                foreach (var routingKey in _messageHandlerRouters[type])
                 {
                     if (dictionary.ContainsKey(routingKey))
                     {
@@ -470,7 +470,6 @@ namespace RabbitMQ.Client.Core.DependencyInjection
 
             if (queue.RoutingKeys.Count > 0)
             {
-                // If there are not any routing keys then make a bind with a queue name.
                 foreach (var route in queue.RoutingKeys)
                 {
                     _channel.QueueBind(
@@ -481,6 +480,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             }
             else
             {
+                // If there are not any routing keys then make a bind with a queue name.
                 _channel.QueueBind(
                     queue: queue.Name,
                     exchange: exchangeName,
