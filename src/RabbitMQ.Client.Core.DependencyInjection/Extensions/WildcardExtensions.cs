@@ -1,19 +1,35 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace RabbitMQ.Client.Core.DependencyInjection
+namespace RabbitMQ.Client.Core.DependencyInjection.Extensions
 {
+    /// <summary>
+    /// An extension class that contains functionality of pattern (wildcard) matching.
+    /// </summary>
+    /// <remarks>
+    /// Methods of that class allows finding route patterns by which message handlers are "listening" for messages.
+    /// </remarks>
     public static class WildcardExtensions
     {
-        private const string Separator = ".";
-        private const string SingleWordPattern = "*";
-        private const string MultipleWordsPattern = "#";
+        const string Separator = ".";
+        const string SingleWordPattern = "*";
+        const string MultipleWordsPattern = "#";
         
-        public static IEnumerable<TreeNode> ConstructTree(IEnumerable<string> routingKeyBindings)
+        /// <summary>
+        /// Construct tree (trie) structure of message handler route patterns.
+        /// </summary>
+        /// <param name="routePatterns">
+        /// Collection of message handler route patterns, which are used by them for a message "listening".
+        /// </param>
+        /// <returns>
+        /// Collection of tree nodes <see cref="TreeNode"/>.
+        /// Depending on routing key bindings that collection can be flat or treelike.
+        /// </returns>
+        public static IEnumerable<TreeNode> ConstructTree(IEnumerable<string> routePatterns)
         {
             var tree = new List<TreeNode>();
 
-            foreach (var binding in routingKeyBindings)
+            foreach (var binding in routePatterns)
             {
                 var keyParts = binding.Split(Separator);
                 TreeNode parentTreeNode = null;
@@ -49,9 +65,16 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             return tree;
         }
 
-        public static IEnumerable<string> GetMatchingRoutePatterns(IEnumerable<TreeNode> bindingsTree, string[] routingKeyParts, int depth = 0)
+        /// <summary>
+        /// Get route patterns that match the given routing key.
+        /// </summary>
+        /// <param name="tree">Collection (tree, trie) of nodes.</param>
+        /// <param name="routingKeyParts">Array of routing key parts split by dots.</param>
+        /// <param name="depth">Nesting level of the tree.</param>
+        /// <returns>Collection of route patterns that correspond to the given routing key.</returns>
+        public static IEnumerable<string> GetMatchingRoutePatterns(IEnumerable<TreeNode> tree, string[] routingKeyParts, int depth = 0)
         {
-            foreach (var node in bindingsTree)
+            foreach (var node in tree)
             {
                 var matchingPart = routingKeyParts[depth];
                 if (node.KeyPartition == MultipleWordsPattern)
@@ -91,7 +114,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             }
         }
         
-        private static IEnumerable<string[]> CollectRoutingKeyTails(IReadOnlyCollection<string> routingKeyParts, int depthStart)
+        static IEnumerable<string[]> CollectRoutingKeyTails(IReadOnlyCollection<string> routingKeyParts, int depthStart)
         {
             for (var index = depthStart; index < routingKeyParts.Count; index++)
             {
@@ -99,7 +122,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             }
         }
         
-        private static string CollectRoutingKeyInReverseOrder(TreeNode node, string routingKey = "")
+        static string CollectRoutingKeyInReverseOrder(TreeNode node, string routingKey = "")
         {
             routingKey = string.IsNullOrEmpty(routingKey) ? node.KeyPartition : $"{node.KeyPartition}.{routingKey}";
             return node.Parent != null ? CollectRoutingKeyInReverseOrder(node.Parent, routingKey) : routingKey;
