@@ -3,13 +3,13 @@ using System.Linq;
 
 namespace RabbitMQ.Client.Core.DependencyInjection
 {
-    internal static class WildcardExtensions
+    public static class WildcardExtensions
     {
         private const string Separator = ".";
         private const string SingleWordPattern = "*";
         private const string MultipleWordsPattern = "#";
         
-        internal static IEnumerable<TreeNode> ConstructTree(IEnumerable<string> routingKeyBindings)
+        public static IEnumerable<TreeNode> ConstructTree(IEnumerable<string> routingKeyBindings)
         {
             var tree = new List<TreeNode>();
 
@@ -49,7 +49,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             return tree;
         }
 
-        internal static IEnumerable<string> GetMatchingRoutingKeys(IEnumerable<TreeNode> bindingsTree, string[] routingKeyParts, int depth = 0)
+        public static IEnumerable<string> GetMatchingRoutePatterns(IEnumerable<TreeNode> bindingsTree, string[] routingKeyParts, int depth = 0)
         {
             foreach (var node in bindingsTree)
             {
@@ -65,7 +65,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                         var tails = CollectRoutingKeyTails(routingKeyParts, depth);
                         foreach (var tail in tails)
                         {
-                            var routes = GetMatchingRoutingKeys(node.Nodes, tail, depth: 0);
+                            var routes = GetMatchingRoutePatterns(node.Nodes, tail, depth: 0);
                             foreach (var route in routes)
                             {
                                 yield return route;
@@ -81,7 +81,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                     }
                     else if (routingKeyParts.Length != depth + 1 && node.Nodes.Any())
                     {
-                        var routes = GetMatchingRoutingKeys(node.Nodes, routingKeyParts, depth + 1).ToList();
+                        var routes = GetMatchingRoutePatterns(node.Nodes, routingKeyParts, depth + 1).ToList();
                         foreach (var route in routes)
                         {
                             yield return route;

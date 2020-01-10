@@ -175,6 +175,6 @@ All notable changes being tracked in the [changelog](./docs/changelog.md) file.
 
 ## License
 
-This library licenced under GNU General Public License v3. That means you are free to use it anywhere you want, but if you modify library by yourself you have to provide all notable changes to the community.
+This library licenced under MIT license.
 
 Feel free to contribute!
