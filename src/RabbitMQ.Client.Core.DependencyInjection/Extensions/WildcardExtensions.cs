@@ -25,7 +25,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Extensions
         /// Collection of tree nodes <see cref="TreeNode"/>.
         /// Depending on routing key bindings that collection can be flat or treelike.
         /// </returns>
-        public static IEnumerable<TreeNode> ConstructTree(IEnumerable<string> routePatterns)
+        public static IEnumerable<TreeNode> ConstructRoutesTree(IEnumerable<string> routePatterns)
         {
             var tree = new List<TreeNode>();
 

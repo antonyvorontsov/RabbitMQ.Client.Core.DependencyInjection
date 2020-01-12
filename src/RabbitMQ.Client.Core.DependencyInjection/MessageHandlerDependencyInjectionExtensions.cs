@@ -174,7 +174,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             where T : class, U
         {
             services.AddTransient<U, T>();
-            var router = new MessageHandlerRouter { Type = typeof(T), RoutingKeys = routingKeys.ToList() };
+            var router = new MessageHandlerRouter { Type = typeof(T), RoutePatterns = routingKeys.ToList() };
             services.Add(new ServiceDescriptor(typeof(MessageHandlerRouter), router));
             return services;
         }
@@ -184,7 +184,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             where T : class, U
         {
             services.AddSingleton<U, T>();
-            var router = new MessageHandlerRouter { Type = typeof(T), RoutingKeys = routingKeys.ToList() };
+            var router = new MessageHandlerRouter { Type = typeof(T), RoutePatterns = routingKeys.ToList() };
             services.Add(new ServiceDescriptor(typeof(MessageHandlerRouter), router));
             return services;
         }

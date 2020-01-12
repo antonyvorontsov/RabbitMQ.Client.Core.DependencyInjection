@@ -54,6 +54,81 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                     AsyncNonCyclicMessageHandlerShouldTrigger = false
                 }
             };
+            yield return new object[]
+            {
+                new HandleMessageReceivingEventTestDataModel
+                {
+                    MessageRoutingKey = "file.update",
+                    MessageHandlerPatterns = new List<string> { "#" },
+                    MessageHandlerShouldTrigger = true,
+                    AsyncMessageHandlerPatterns = new List<string> { "*.*.*", "file.delete" },
+                    AsyncMessageHandlerShouldTrigger = false,
+                    NonCyclicMessageHandlerPatterns = new List<string> { "*.*", "file.update" },
+                    NonCyclicMessageHandlerShouldTrigger = true,
+                    AsyncNonCyclicMessageHandlerPatterns = new List<string> { "file.#" },
+                    AsyncNonCyclicMessageHandlerShouldTrigger = true
+                }
+            };
+            yield return new object[]
+            {
+                new HandleMessageReceivingEventTestDataModel
+                {
+                    MessageRoutingKey = "connection.create.stable",
+                    MessageHandlerPatterns = new List<string> { "*.*.*" },
+                    MessageHandlerShouldTrigger = true,
+                    AsyncMessageHandlerPatterns = new List<string> { "#.create.#" },
+                    AsyncMessageHandlerShouldTrigger = true,
+                    NonCyclicMessageHandlerPatterns = new List<string> { "*.*", "*.*.*.*", "create.#", "#.create" },
+                    NonCyclicMessageHandlerShouldTrigger = false,
+                    AsyncNonCyclicMessageHandlerPatterns = new List<string> { "*.create.*" },
+                    AsyncNonCyclicMessageHandlerShouldTrigger = true
+                }
+            };
+            yield return new object[]
+            {
+                new HandleMessageReceivingEventTestDataModel
+                {
+                    MessageRoutingKey = "file.update",
+                    MessageHandlerPatterns = new List<string> { "*.*.*" },
+                    MessageHandlerShouldTrigger = false,
+                    AsyncMessageHandlerPatterns = new List<string> { "#.update" },
+                    AsyncMessageHandlerShouldTrigger = true,
+                    NonCyclicMessageHandlerPatterns = new List<string> { "*.update" },
+                    NonCyclicMessageHandlerShouldTrigger = true,
+                    AsyncNonCyclicMessageHandlerPatterns = new List<string> { "file.*.*" },
+                    AsyncNonCyclicMessageHandlerShouldTrigger = false
+                }
+            };
+            yield return new object[]
+            {
+                new HandleMessageReceivingEventTestDataModel
+                {
+                    MessageRoutingKey = "final.report.create",
+                    MessageHandlerPatterns = new List<string> { "#", "*.*.*" },
+                    MessageHandlerShouldTrigger = true,
+                    AsyncMessageHandlerPatterns = new List<string> { "*.*" },
+                    AsyncMessageHandlerShouldTrigger = false,
+                    NonCyclicMessageHandlerPatterns = new List<string> { "*.update" },
+                    NonCyclicMessageHandlerShouldTrigger = false,
+                    AsyncNonCyclicMessageHandlerPatterns = new List<string> { "*.*.create" },
+                    AsyncNonCyclicMessageHandlerShouldTrigger = true
+                }
+            };
+            yield return new object[]
+            {
+                new HandleMessageReceivingEventTestDataModel
+                {
+                    MessageRoutingKey = "file.update.author.credentials",
+                    MessageHandlerPatterns = new List<string> { "*.*", "*.*.*" },
+                    MessageHandlerShouldTrigger = false,
+                    AsyncMessageHandlerPatterns = new List<string> { "#" },
+                    AsyncMessageHandlerShouldTrigger = true,
+                    NonCyclicMessageHandlerPatterns = new List<string> { "file.update.author.credentials" },
+                    NonCyclicMessageHandlerShouldTrigger = true,
+                    AsyncNonCyclicMessageHandlerPatterns = new List<string> { "file.update.credentials" },
+                    AsyncNonCyclicMessageHandlerShouldTrigger = false
+                }
+            };
         }
     }
 }

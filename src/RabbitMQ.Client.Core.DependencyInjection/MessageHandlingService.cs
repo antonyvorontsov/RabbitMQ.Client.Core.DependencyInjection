@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using RabbitMQ.Client.Core.DependencyInjection.Extensions;
 using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Core.DependencyInjection
@@ -20,6 +21,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         readonly IDictionary<string, IList<IAsyncMessageHandler>> _asyncMessageHandlers;
         readonly IDictionary<string, IList<INonCyclicMessageHandler>> _nonCyclicHandlers;
         readonly IDictionary<string, IList<IAsyncNonCyclicMessageHandler>> _asyncNonCyclicHandlers;
+        readonly IEnumerable<TreeNode> _routeTree;
         readonly ILogger<MessageHandlingService> _logger;
         
         public MessageHandlingService(
@@ -32,11 +34,12 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             ILogger<MessageHandlingService> logger)
         {
             _exchanges = exchanges;
-            var messageHandlerRouters = TransformMessageHandlerRouters(routers);
-            _messageHandlers = TransformMessageHandlersCollection(messageHandlers, messageHandlerRouters);
-            _asyncMessageHandlers = TransformMessageHandlersCollection(asyncMessageHandlers, messageHandlerRouters);
-            _nonCyclicHandlers = TransformMessageHandlersCollection(nonCyclicHandlers, messageHandlerRouters);
-            _asyncNonCyclicHandlers = TransformMessageHandlersCollection(asyncNonCyclicHandlers, messageHandlerRouters);
+            var routersDictionary = TransformMessageHandlerRoutersToDictionary(routers);
+            _messageHandlers = TransformMessageHandlersCollectionToDictionary(messageHandlers, routersDictionary);
+            _asyncMessageHandlers = TransformMessageHandlersCollectionToDictionary(asyncMessageHandlers, routersDictionary);
+            _nonCyclicHandlers = TransformMessageHandlersCollectionToDictionary(nonCyclicHandlers, routersDictionary);
+            _asyncNonCyclicHandlers = TransformMessageHandlersCollectionToDictionary(asyncNonCyclicHandlers, routersDictionary);
+            _routeTree = ConstructRoutesTree(routers);
             _logger = logger;
         }
         
@@ -54,38 +57,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection
 
             try
             {
-                if (_asyncMessageHandlers.ContainsKey(eventArgs.RoutingKey))
-                {
-                    var tasks = new List<Task>();
-                    foreach (var handler in _asyncMessageHandlers[eventArgs.RoutingKey])
-                    {
-                        tasks.Add(RunAsyncMessageHandler(handler, message, eventArgs.RoutingKey));
-                    }
-                    Task.WaitAll(tasks.ToArray());
-                }
-                if (_messageHandlers.ContainsKey(eventArgs.RoutingKey))
-                {
-                    foreach (var handler in _messageHandlers[eventArgs.RoutingKey])
-                    {
-                        RunMessageHandler(handler, message, eventArgs.RoutingKey);
-                    }
-                }
-                if (_asyncNonCyclicHandlers.ContainsKey(eventArgs.RoutingKey))
-                {
-                    var tasks = new List<Task>();
-                    foreach (var handler in _asyncNonCyclicHandlers[eventArgs.RoutingKey])
-                    {
-                        tasks.Add(RunAsyncNonCyclicMessageHandler(handler, message, eventArgs.RoutingKey, queueService));
-                    }
-                    Task.WaitAll(tasks.ToArray());
-                }
-                if (_nonCyclicHandlers.ContainsKey(eventArgs.RoutingKey))
-                {
-                    foreach (var handler in _nonCyclicHandlers[eventArgs.RoutingKey])
-                    {
-                        RunNonCyclicMessageHandler(handler, message, eventArgs.RoutingKey, queueService);
-                    }
-                }
+                var matchingRoutes = GetMatchingRoutePatterns(eventArgs.RoutingKey);
+                ProcessMessage(message, queueService, matchingRoutes);
                 queueService.Channel.BasicAck(eventArgs.DeliveryTag, false);
                 _logger.LogInformation($"Message processing finished successfully. Acknowledge has been sent with deliveryTag {eventArgs.DeliveryTag}.");
             }
@@ -119,6 +92,80 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                 {
                     _logger.LogInformation("The failed message would not be requeued.");
                 }
+            }
+        }
+
+        IEnumerable<string> GetMatchingRoutePatterns(string routingKey)
+        {
+            var routingKeyParts = routingKey.Split(".");
+            return WildcardExtensions.GetMatchingRoutePatterns(_routeTree, routingKeyParts).ToList();
+        }
+
+        void ProcessMessage(string message, IQueueService queueService, IEnumerable<string> matchingRoutes)
+        {
+            var executedHandlers = new List<Type>();
+            foreach (var matchingRoute in matchingRoutes)
+            {
+                if (_asyncMessageHandlers.ContainsKey(matchingRoute))
+                {
+                    var tasks = new List<Task>();
+                    foreach (var handler in _asyncMessageHandlers[matchingRoute])
+                    {
+                        var handlerType = handler.GetType();
+                        if (executedHandlers.Contains(handlerType))
+                        {
+                            continue;
+                        }
+
+                        executedHandlers.Add(handlerType);
+                        tasks.Add(RunAsyncMessageHandler(handler, message, matchingRoute));
+                    }
+                    Task.WaitAll(tasks.ToArray());
+                }
+                if (_messageHandlers.ContainsKey(matchingRoute))
+                {
+                    foreach (var handler in _messageHandlers[matchingRoute])
+                    {
+                        var handlerType = handler.GetType();
+                        if (executedHandlers.Contains(handlerType))
+                        {
+                            continue;
+                        }
+
+                        executedHandlers.Add(handlerType);
+                        RunMessageHandler(handler, message, matchingRoute);
+                    }
+                }
+                if (_asyncNonCyclicHandlers.ContainsKey(matchingRoute))
+                {
+                    var tasks = new List<Task>();
+                    foreach (var handler in _asyncNonCyclicHandlers[matchingRoute])
+                    {
+                        var handlerType = handler.GetType();
+                        if (executedHandlers.Contains(handlerType))
+                        {
+                            continue;
+                        }
+
+                        executedHandlers.Add(handlerType);
+                        tasks.Add(RunAsyncNonCyclicMessageHandler(handler, message, matchingRoute, queueService));
+                    }
+                    Task.WaitAll(tasks.ToArray());
+                }
+                if (_nonCyclicHandlers.ContainsKey(matchingRoute))
+                {
+                    foreach (var handler in _nonCyclicHandlers[matchingRoute])
+                    {
+                        var handlerType = handler.GetType();
+                        if (executedHandlers.Contains(handlerType))
+                        {
+                            continue;
+                        }
+
+                        executedHandlers.Add(handlerType);
+                        RunNonCyclicMessageHandler(handler, message, matchingRoute, queueService);
+                    }
+                } 
             }
         }
 
@@ -162,30 +209,38 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             }
         }
 
-        static IDictionary<Type, List<string>> TransformMessageHandlerRouters(IEnumerable<MessageHandlerRouter> routers)
+        static IEnumerable<TreeNode> ConstructRoutesTree(IEnumerable<MessageHandlerRouter> routers)
+        {
+            var routePatterns = routers.SelectMany(x => x.RoutePatterns).Distinct();
+            return WildcardExtensions.ConstructRoutesTree(routePatterns);
+        }
+
+        static IDictionary<Type, List<string>> TransformMessageHandlerRoutersToDictionary(IEnumerable<MessageHandlerRouter> routers)
         {
             var dictionary = new Dictionary<Type, List<string>>();
             foreach (var router in routers)
             {
                 if (dictionary.ContainsKey(router.Type))
                 {
-                    dictionary[router.Type] = dictionary[router.Type].Union(router.RoutingKeys).ToList();
+                    dictionary[router.Type] = dictionary[router.Type].Union(router.RoutePatterns).ToList();
                 }
                 else
                 {
-                    dictionary.Add(router.Type, router.RoutingKeys);
+                    dictionary.Add(router.Type, router.RoutePatterns);
                 }
             }
             return dictionary;
         }
 
-        static IDictionary<string, IList<T>> TransformMessageHandlersCollection<T>(IEnumerable<T> messageHandlers, IDictionary<Type, List<string>> messageHandlerRouters)
+        static IDictionary<string, IList<T>> TransformMessageHandlersCollectionToDictionary<T>(
+            IEnumerable<T> messageHandlers,
+            IDictionary<Type, List<string>> routersDictionary)
         {
             var dictionary = new Dictionary<string, IList<T>>();
             foreach (var handler in messageHandlers)
             {
                 var type = handler.GetType();
-                foreach (var routingKey in messageHandlerRouters[type])
+                foreach (var routingKey in routersDictionary[type])
                 {
                     if (dictionary.ContainsKey(routingKey))
                     {

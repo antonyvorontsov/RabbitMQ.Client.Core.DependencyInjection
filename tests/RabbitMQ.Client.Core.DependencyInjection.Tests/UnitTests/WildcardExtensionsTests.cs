@@ -28,7 +28,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
         [Fact]
         public void ShouldProperlyConstructTree()
         {
-            var tree = WildcardExtensions.ConstructTree(_routes);
+            var tree = WildcardExtensions.ConstructRoutesTree(_routes);
             
             var countNodes = CountNodes(tree);
             Assert.Equal(15, countNodes);
@@ -79,7 +79,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
         [InlineData("final.report.create", new[] { "#", "#.create", "*.*.*", "*.*.create" })]
         public void ShouldProperlyGetMatchingRoutes(string routingKey, IEnumerable<string> routes)
         {
-            var tree = WildcardExtensions.ConstructTree(_routes);
+            var tree = WildcardExtensions.ConstructRoutesTree(_routes);
 
             var routingKeyParts = routingKey.Split(".");
             var matchingRoutes = WildcardExtensions.GetMatchingRoutePatterns(tree, routingKeyParts).ToList();

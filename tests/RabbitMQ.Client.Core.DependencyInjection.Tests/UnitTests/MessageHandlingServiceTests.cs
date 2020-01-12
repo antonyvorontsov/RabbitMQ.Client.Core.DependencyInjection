@@ -33,10 +33,10 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             
             var routers = new List<MessageHandlerRouter>
             {
-                new MessageHandlerRouter { Type = messageHandlerMock.Object.GetType(), RoutingKeys = testDataModel.MessageHandlerPatterns },
-                new MessageHandlerRouter { Type = asyncMessageHandlerMock.Object.GetType(), RoutingKeys = testDataModel.AsyncMessageHandlerPatterns },
-                new MessageHandlerRouter { Type = nonCyclicMessageHandlerMock.Object.GetType(), RoutingKeys = testDataModel.NonCyclicMessageHandlerPatterns },
-                new MessageHandlerRouter { Type = asyncNonCyclicMessageHandlerMock.Object.GetType(), RoutingKeys = testDataModel.AsyncNonCyclicMessageHandlerPatterns }
+                new MessageHandlerRouter { Type = messageHandlerMock.Object.GetType(), RoutePatterns = testDataModel.MessageHandlerPatterns },
+                new MessageHandlerRouter { Type = asyncMessageHandlerMock.Object.GetType(), RoutePatterns = testDataModel.AsyncMessageHandlerPatterns },
+                new MessageHandlerRouter { Type = nonCyclicMessageHandlerMock.Object.GetType(), RoutePatterns = testDataModel.NonCyclicMessageHandlerPatterns },
+                new MessageHandlerRouter { Type = asyncNonCyclicMessageHandlerMock.Object.GetType(), RoutePatterns = testDataModel.AsyncNonCyclicMessageHandlerPatterns }
             };
             
             var service = CreateService(
