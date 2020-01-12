@@ -70,9 +70,13 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Extensions
         /// </summary>
         /// <param name="tree">Collection (tree, trie) of nodes.</param>
         /// <param name="routingKeyParts">Array of routing key parts split by dots.</param>
-        /// <param name="depth">Nesting level of the tree.</param>
         /// <returns>Collection of route patterns that correspond to the given routing key.</returns>
-        public static IEnumerable<string> GetMatchingRoutePatterns(IEnumerable<TreeNode> tree, string[] routingKeyParts, int depth = 0)
+        public static IEnumerable<string> GetMatchingRoutePatterns(IEnumerable<TreeNode> tree, string[] routingKeyParts)
+        {
+            return GetMatchingRoutePatterns(tree, routingKeyParts, depth: 0);
+        }
+        
+        static IEnumerable<string> GetMatchingRoutePatterns(IEnumerable<TreeNode> tree, string[] routingKeyParts, int depth)
         {
             foreach (var node in tree)
             {

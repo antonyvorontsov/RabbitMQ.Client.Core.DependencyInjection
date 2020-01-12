@@ -9,14 +9,13 @@ using RabbitMQ.Client.Events;
 namespace RabbitMQ.Client.Core.DependencyInjection
 {
     /// <summary>
-    /// An implementation of the service that handles message consumption events.
+    /// An implementation of the service that handles message receiving (consumption) events.
     /// </summary>
     public class MessageHandlingService : IMessageHandlingService
     {
         const int ResendTimeout = 60;
         
         readonly IEnumerable<RabbitMqExchange> _exchanges;
-        readonly IDictionary<Type, List<string>> _messageHandlerRouters;
         readonly IDictionary<string, IList<IMessageHandler>> _messageHandlers;
         readonly IDictionary<string, IList<IAsyncMessageHandler>> _asyncMessageHandlers;
         readonly IDictionary<string, IList<INonCyclicMessageHandler>> _nonCyclicHandlers;
@@ -33,115 +32,137 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             ILogger<MessageHandlingService> logger)
         {
             _exchanges = exchanges;
-            _messageHandlerRouters = TransformMessageHandlerRouters(routers);
-            _messageHandlers = TransformMessageHandlersCollection(messageHandlers);
-            _asyncMessageHandlers = TransformMessageHandlersCollection(asyncMessageHandlers);
-            _nonCyclicHandlers = TransformMessageHandlersCollection(nonCyclicHandlers);
-            _asyncNonCyclicHandlers = TransformMessageHandlersCollection(asyncNonCyclicHandlers);
+            var messageHandlerRouters = TransformMessageHandlerRouters(routers);
+            _messageHandlers = TransformMessageHandlersCollection(messageHandlers, messageHandlerRouters);
+            _asyncMessageHandlers = TransformMessageHandlersCollection(asyncMessageHandlers, messageHandlerRouters);
+            _nonCyclicHandlers = TransformMessageHandlersCollection(nonCyclicHandlers, messageHandlerRouters);
+            _asyncNonCyclicHandlers = TransformMessageHandlersCollection(asyncNonCyclicHandlers, messageHandlerRouters);
             _logger = logger;
         }
         
         /// <summary>
-        /// Handle message consumption event.
+        /// Handle message receiving event.
         /// </summary>
-        /// <param name="eventArgs">Arguments of message consumption event.</param>
+        /// <param name="eventArgs">Arguments of message receiving event.</param>
         /// <param name="queueService">An instance of the queue service <see cref="IQueueService"/>.</param>
-        public void HandleMessage(BasicDeliverEventArgs eventArgs, IQueueService queueService)
+        public void HandleMessageReceivingEvent(BasicDeliverEventArgs eventArgs, IQueueService queueService)
         {
             var message = Encoding.UTF8.GetString(eventArgs.Body);
 
-                _logger.LogInformation($"New message was received with deliveryTag {eventArgs.DeliveryTag}.");
-                _logger.LogInformation(message);
+            _logger.LogInformation($"A new message was received with deliveryTag {eventArgs.DeliveryTag}.");
+            _logger.LogInformation(message);
 
-                try
+            try
+            {
+                if (_asyncMessageHandlers.ContainsKey(eventArgs.RoutingKey))
                 {
-                    if (_asyncMessageHandlers.ContainsKey(eventArgs.RoutingKey))
+                    var tasks = new List<Task>();
+                    foreach (var handler in _asyncMessageHandlers[eventArgs.RoutingKey])
                     {
-                        var tasks = new List<Task>();
-                        foreach (var handler in _asyncMessageHandlers[eventArgs.RoutingKey])
-                        {
-                            tasks.Add(RunAsyncHandler(handler, message, eventArgs.RoutingKey));
-                        }
-                        Task.WaitAll(tasks.ToArray());
+                        tasks.Add(RunAsyncMessageHandler(handler, message, eventArgs.RoutingKey));
                     }
-                    if (_messageHandlers.ContainsKey(eventArgs.RoutingKey))
-                    {
-                        foreach (var handler in _messageHandlers[eventArgs.RoutingKey])
-                        {
-                            _logger.LogDebug($"Starting processing the message by message handler {handler?.GetType().Name}.");
-                            handler.Handle(message, eventArgs.RoutingKey);
-                            _logger.LogDebug($"The message has been processed by message handler {handler?.GetType().Name}.");
-                        }
-                    }
-                    if (_asyncNonCyclicHandlers.ContainsKey(eventArgs.RoutingKey))
-                    {
-                        var tasks = new List<Task>();
-                        foreach (var handler in _asyncNonCyclicHandlers[eventArgs.RoutingKey])
-                        {
-                            tasks.Add(RunAsyncNonCyclicHandler(handler, message, eventArgs.RoutingKey, queueService));
-                        }
-                        Task.WaitAll(tasks.ToArray());
-                    }
-                    if (_nonCyclicHandlers.ContainsKey(eventArgs.RoutingKey))
-                    {
-                        foreach (var handler in _nonCyclicHandlers[eventArgs.RoutingKey])
-                        {
-                            _logger.LogDebug($"Starting processing the message by non-cyclic message handler {handler?.GetType().Name}.");
-                            handler.Handle(message, eventArgs.RoutingKey, queueService);
-                            _logger.LogDebug($"The message has been processed by non-cyclic message handler {handler?.GetType().Name}.");
-                        }
-                    }
-                    _logger.LogInformation($"Success message with deliveryTag {eventArgs.DeliveryTag}.");
-                    queueService.Channel.BasicAck(eventArgs.DeliveryTag, false);
+                    Task.WaitAll(tasks.ToArray());
                 }
-                catch (Exception exception)
+                if (_messageHandlers.ContainsKey(eventArgs.RoutingKey))
                 {
-                    _logger.LogError(new EventId(), exception, $"An error occurred while processing received message with delivery tag {eventArgs.DeliveryTag}.");
-
-                    queueService.Channel.BasicAck(eventArgs.DeliveryTag, false);
-
-                    if (eventArgs.BasicProperties.Headers is null)
+                    foreach (var handler in _messageHandlers[eventArgs.RoutingKey])
                     {
-                        eventArgs.BasicProperties.Headers = new Dictionary<string, object>();
-                    }
-
-                    var exchange = _exchanges.FirstOrDefault(x => x.Name == eventArgs.Exchange);
-                    if (exchange is null)
-                    {
-                        _logger.LogError($"Could not detect exchange {eventArgs.Exchange} to detect the necessity of resending the failed message.");
-                        return;
-                    }
-
-                    if (exchange.Options.RequeueFailedMessages
-                        && !string.IsNullOrEmpty(exchange.Options.DeadLetterExchange)
-                        && !eventArgs.BasicProperties.Headers.ContainsKey("requeued"))
-                    {
-                        eventArgs.BasicProperties.Headers.Add("requeued", true);
-                        queueService.Send(eventArgs.Body, eventArgs.BasicProperties, eventArgs.Exchange, eventArgs.RoutingKey, ResendTimeout);
-                        _logger.LogInformation("The failed message has been requeued.");
-                    }
-                    else
-                    {
-                        _logger.LogInformation("The failed message would not be requeued.");
+                        RunMessageHandler(handler, message, eventArgs.RoutingKey);
                     }
                 }
+                if (_asyncNonCyclicHandlers.ContainsKey(eventArgs.RoutingKey))
+                {
+                    var tasks = new List<Task>();
+                    foreach (var handler in _asyncNonCyclicHandlers[eventArgs.RoutingKey])
+                    {
+                        tasks.Add(RunAsyncNonCyclicMessageHandler(handler, message, eventArgs.RoutingKey, queueService));
+                    }
+                    Task.WaitAll(tasks.ToArray());
+                }
+                if (_nonCyclicHandlers.ContainsKey(eventArgs.RoutingKey))
+                {
+                    foreach (var handler in _nonCyclicHandlers[eventArgs.RoutingKey])
+                    {
+                        RunNonCyclicMessageHandler(handler, message, eventArgs.RoutingKey, queueService);
+                    }
+                }
+                queueService.Channel.BasicAck(eventArgs.DeliveryTag, false);
+                _logger.LogInformation($"Message processing finished successfully. Acknowledge has been sent with deliveryTag {eventArgs.DeliveryTag}.");
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(new EventId(), exception, $"An error occurred while processing received message with the delivery tag {eventArgs.DeliveryTag}.");
+
+                queueService.Channel.BasicAck(eventArgs.DeliveryTag, false);
+
+                if (eventArgs.BasicProperties.Headers is null)
+                {
+                    eventArgs.BasicProperties.Headers = new Dictionary<string, object>();
+                }
+
+                var exchange = _exchanges.FirstOrDefault(x => x.Name == eventArgs.Exchange);
+                if (exchange is null)
+                {
+                    _logger.LogError($"Could not detect an exchange \"{eventArgs.Exchange}\" to determine the necessity of resending the failed message.");
+                    return;
+                }
+
+                if (exchange.Options.RequeueFailedMessages
+                    && !string.IsNullOrEmpty(exchange.Options.DeadLetterExchange)
+                    && !eventArgs.BasicProperties.Headers.ContainsKey("requeued"))
+                {
+                    eventArgs.BasicProperties.Headers.Add("requeued", true);
+                    queueService.Send(eventArgs.Body, eventArgs.BasicProperties, eventArgs.Exchange, eventArgs.RoutingKey, ResendTimeout);
+                    _logger.LogInformation("The failed message has been requeued.");
+                }
+                else
+                {
+                    _logger.LogInformation("The failed message would not be requeued.");
+                }
+            }
         }
 
-        async Task RunAsyncHandler(IAsyncMessageHandler handler, string message, string routingKey)
+        void RunMessageHandler(IMessageHandler handler, string message, string routingKey)
         {
-            _logger.LogDebug($"Starting processing the message by async message handler {handler?.GetType().Name}.");
+            ValidateHandler(handler);
+            _logger.LogDebug($"Starting processing the message by message handler {handler.GetType().Name}.");
+            handler.Handle(message, routingKey);
+            _logger.LogDebug($"The message has been processed by message handler {handler.GetType().Name}.");
+        }
+
+        void RunNonCyclicMessageHandler(INonCyclicMessageHandler handler, string message, string routingKey, IQueueService queueService)
+        {
+            ValidateHandler(handler);
+            _logger.LogDebug($"Starting processing the message by non-cyclic message handler {handler.GetType().Name}.");
+            handler?.Handle(message, routingKey, queueService);
+            _logger.LogDebug($"The message has been processed by non-cyclic message handler {handler.GetType().Name}.");
+        }
+
+        async Task RunAsyncMessageHandler(IAsyncMessageHandler handler, string message, string routingKey)
+        {
+            ValidateHandler(handler);
+            _logger.LogDebug($"Starting processing the message by async message handler {handler.GetType().Name}.");
             await handler.Handle(message, routingKey);
-            _logger.LogDebug($"The message has been processed by async message handler {handler?.GetType().Name}.");
+            _logger.LogDebug($"The message has been processed by async message handler {handler.GetType().Name}.");
         }
 
-        async Task RunAsyncNonCyclicHandler(IAsyncNonCyclicMessageHandler handler, string message, string routingKey, IQueueService queueService)
+        async Task RunAsyncNonCyclicMessageHandler(IAsyncNonCyclicMessageHandler handler, string message, string routingKey, IQueueService queueService)
         {
-            _logger.LogDebug($"Starting processing the message by async non-cyclic message handler {handler?.GetType().Name}.");
+            ValidateHandler(handler);
+            _logger.LogDebug($"Starting processing the message by async non-cyclic message handler {handler.GetType().Name}.");
             await handler.Handle(message, routingKey, queueService);
-            _logger.LogDebug($"The message has been processed by async non-cyclic message handler {handler?.GetType().Name}.");
+            _logger.LogDebug($"The message has been processed by async non-cyclic message handler {handler.GetType().Name}.");
         }
 
-        IDictionary<Type, List<string>> TransformMessageHandlerRouters(IEnumerable<MessageHandlerRouter> routers)
+        void ValidateHandler<T>(T messageHandler)
+        {
+            if (messageHandler is null)
+            {
+                throw new ArgumentNullException(nameof(messageHandler), "Message handler is null.");
+            }
+        }
+
+        static IDictionary<Type, List<string>> TransformMessageHandlerRouters(IEnumerable<MessageHandlerRouter> routers)
         {
             var dictionary = new Dictionary<Type, List<string>>();
             foreach (var router in routers)
@@ -157,14 +178,14 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             }
             return dictionary;
         }
-        
-        IDictionary<string, IList<T>> TransformMessageHandlersCollection<T>(IEnumerable<T> messageHandlers)
+
+        static IDictionary<string, IList<T>> TransformMessageHandlersCollection<T>(IEnumerable<T> messageHandlers, IDictionary<Type, List<string>> messageHandlerRouters)
         {
             var dictionary = new Dictionary<string, IList<T>>();
             foreach (var handler in messageHandlers)
             {
                 var type = handler.GetType();
-                foreach (var routingKey in _messageHandlerRouters[type])
+                foreach (var routingKey in messageHandlerRouters[type])
                 {
                     if (dictionary.ContainsKey(routingKey))
                     {

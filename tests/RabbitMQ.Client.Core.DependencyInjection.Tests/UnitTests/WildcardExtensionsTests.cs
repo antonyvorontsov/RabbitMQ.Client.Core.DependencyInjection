@@ -91,7 +91,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             }
         }
 
-        int CountNodes(IEnumerable<TreeNode> nodes)
+        static int CountNodes(IEnumerable<TreeNode> nodes)
         {
             var count = nodes.Count();
             foreach (var node in nodes)

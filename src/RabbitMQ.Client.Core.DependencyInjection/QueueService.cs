@@ -263,7 +263,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
 
         void StartClient()
         {
-            _receivedMessage = (sender, eventArgs) => _messageHandlingService.HandleMessage(eventArgs, this);
+            _receivedMessage = (sender, eventArgs) => _messageHandlingService.HandleMessageReceivingEvent(eventArgs, this);
 
             var deadLetterExchanges = _exchanges
                 .Where(x => !string.IsNullOrEmpty(x.Options.DeadLetterExchange))

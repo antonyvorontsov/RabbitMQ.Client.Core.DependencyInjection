@@ -168,7 +168,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// <returns>Service collection.</returns>
         public static IServiceCollection AddAsyncNonCyclicMessageHandlerSingleton<T>(this IServiceCollection services, IEnumerable<string> routingKeys) where T : class, IAsyncNonCyclicMessageHandler =>
             services.AddInstanceSingleton<IAsyncNonCyclicMessageHandler, T>(routingKeys.ToList());
-
+        
         static IServiceCollection AddInstanceTransient<U, T>(this IServiceCollection services, IEnumerable<string> routingKeys)
             where U : class
             where T : class, U
