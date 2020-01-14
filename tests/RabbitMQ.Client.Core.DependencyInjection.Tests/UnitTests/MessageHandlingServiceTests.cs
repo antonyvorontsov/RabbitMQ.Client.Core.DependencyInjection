@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using Moq;
+using RabbitMQ.Client.Core.DependencyInjection.Models;
 using RabbitMQ.Client.Events;
 using Xunit;
 
@@ -13,10 +14,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
         [ClassData(typeof(HandleMessageReceivingEventTestData))]
         public void ShouldProperlyHandleMessageReceivingEvent(HandleMessageReceivingEventTestDataModel testDataModel)
         {
-            const string exchangeName = "default-exchange";
             var exchanges = new List<RabbitMqExchange>
             {
-                new RabbitMqExchange { Name = exchangeName }
+                new RabbitMqExchange { Name = testDataModel.MessageExchange }
             };
 
             var messageHandlerMock = new Mock<IMessageHandler>();
@@ -33,10 +33,30 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             
             var routers = new List<MessageHandlerRouter>
             {
-                new MessageHandlerRouter { Type = messageHandlerMock.Object.GetType(), RoutePatterns = testDataModel.MessageHandlerPatterns },
-                new MessageHandlerRouter { Type = asyncMessageHandlerMock.Object.GetType(), RoutePatterns = testDataModel.AsyncMessageHandlerPatterns },
-                new MessageHandlerRouter { Type = nonCyclicMessageHandlerMock.Object.GetType(), RoutePatterns = testDataModel.NonCyclicMessageHandlerPatterns },
-                new MessageHandlerRouter { Type = asyncNonCyclicMessageHandlerMock.Object.GetType(), RoutePatterns = testDataModel.AsyncNonCyclicMessageHandlerPatterns }
+                new MessageHandlerRouter
+                {
+                    Type = messageHandlerMock.Object.GetType(),
+                    Exchange = testDataModel.MessageHandlerExchange,
+                    RoutePatterns = testDataModel.MessageHandlerPatterns
+                },
+                new MessageHandlerRouter
+                {
+                    Type = asyncMessageHandlerMock.Object.GetType(),
+                    Exchange = testDataModel.AsyncMessageHandlerExchange,
+                    RoutePatterns = testDataModel.AsyncMessageHandlerPatterns
+                },
+                new MessageHandlerRouter
+                {
+                    Type = nonCyclicMessageHandlerMock.Object.GetType(),
+                    Exchange = testDataModel.NonCyclicMessageHandlerExchange,
+                    RoutePatterns = testDataModel.NonCyclicMessageHandlerPatterns
+                },
+                new MessageHandlerRouter
+                {
+                    Type = asyncNonCyclicMessageHandlerMock.Object.GetType(),
+                    Exchange = testDataModel.AsyncNonCyclicMessageHandlerExchange,
+                    RoutePatterns = testDataModel.AsyncNonCyclicMessageHandlerPatterns
+                }
             };
             
             var service = CreateService(
@@ -50,7 +70,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             
             var eventArgs = new BasicDeliverEventArgs
             {
-                Exchange = exchangeName,
+                Exchange = testDataModel.MessageExchange,
                 RoutingKey = testDataModel.MessageRoutingKey,
                 Body = Array.Empty<byte>()
             };
@@ -69,7 +89,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             asyncNonCyclicMessageHandlerMock.Verify(x => x.Handle(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IQueueService>()), asyncNonCyclicMessageHandlerTimes);
         }
 
-        IQueueService CreateQueueService()
+        static IQueueService CreateQueueService()
         {
             var channelMock = new Mock<IModel>();
             var queueServiceMock = new Mock<IQueueService>();
@@ -78,7 +98,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             return queueServiceMock.Object;
         }
 
-        IMessageHandlingService CreateService(
+        static IMessageHandlingService CreateService(
             IEnumerable<RabbitMqExchange> exchanges,
             IEnumerable<MessageHandlerRouter> routers,
             IEnumerable<IMessageHandler> messageHandlers,

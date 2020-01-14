@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client.Core.DependencyInjection.Extensions;
+using RabbitMQ.Client.Core.DependencyInjection.Models;
 using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Core.DependencyInjection
@@ -17,11 +18,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         const int ResendTimeout = 60;
         
         readonly IEnumerable<RabbitMqExchange> _exchanges;
-        readonly IDictionary<string, IList<IMessageHandler>> _messageHandlers;
-        readonly IDictionary<string, IList<IAsyncMessageHandler>> _asyncMessageHandlers;
-        readonly IDictionary<string, IList<INonCyclicMessageHandler>> _nonCyclicHandlers;
-        readonly IDictionary<string, IList<IAsyncNonCyclicMessageHandler>> _asyncNonCyclicHandlers;
-        readonly IEnumerable<TreeNode> _routeTree;
+        readonly IEnumerable<MessageHandlerContainer> _messageHandlerContainers;
         readonly ILogger<MessageHandlingService> _logger;
         
         public MessageHandlingService(
@@ -34,12 +31,12 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             ILogger<MessageHandlingService> logger)
         {
             _exchanges = exchanges;
-            var routersDictionary = TransformMessageHandlerRoutersToDictionary(routers);
-            _messageHandlers = TransformMessageHandlersCollectionToDictionary(messageHandlers, routersDictionary);
-            _asyncMessageHandlers = TransformMessageHandlersCollectionToDictionary(asyncMessageHandlers, routersDictionary);
-            _nonCyclicHandlers = TransformMessageHandlersCollectionToDictionary(nonCyclicHandlers, routersDictionary);
-            _asyncNonCyclicHandlers = TransformMessageHandlersCollectionToDictionary(asyncNonCyclicHandlers, routersDictionary);
-            _routeTree = ConstructRoutesTree(routers);
+            _messageHandlerContainers = ConstructMessageHandlerContainers(
+                routers,
+                messageHandlers,
+                asyncMessageHandlers,
+                nonCyclicHandlers,
+                asyncNonCyclicHandlers);
             _logger = logger;
         }
         
@@ -57,8 +54,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection
 
             try
             {
-                var matchingRoutes = GetMatchingRoutePatterns(eventArgs.RoutingKey);
-                ProcessMessage(message, queueService, matchingRoutes);
+                var matchingRoutes = GetMatchingRoutePatterns(eventArgs.Exchange, eventArgs.RoutingKey);
+                ProcessMessage(eventArgs.Exchange, message, queueService, matchingRoutes);
                 queueService.Channel.BasicAck(eventArgs.DeliveryTag, false);
                 _logger.LogInformation($"Message processing finished successfully. Acknowledge has been sent with deliveryTag {eventArgs.DeliveryTag}.");
             }
@@ -95,21 +92,34 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             }
         }
 
-        IEnumerable<string> GetMatchingRoutePatterns(string routingKey)
+        IEnumerable<string> GetMatchingRoutePatterns(string exchange, string routingKey)
         {
+            var tree = _messageHandlerContainers.FirstOrDefault(x => x.Exchange == exchange)?.Tree 
+                ?? _messageHandlerContainers.FirstOrDefault(x => x.IsGeneral)?.Tree;
+            if (tree is null)
+            {
+                return Enumerable.Empty<string>();
+            }
+
             var routingKeyParts = routingKey.Split(".");
-            return WildcardExtensions.GetMatchingRoutePatterns(_routeTree, routingKeyParts).ToList();
+            return WildcardExtensions.GetMatchingRoutePatterns(tree, routingKeyParts).ToList();
         }
 
-        void ProcessMessage(string message, IQueueService queueService, IEnumerable<string> matchingRoutes)
+        void ProcessMessage(string exchange, string message, IQueueService queueService, IEnumerable<string> matchingRoutes)
         {
+            var container = _messageHandlerContainers.FirstOrDefault(x => x.Exchange == exchange) ?? _messageHandlerContainers.FirstOrDefault(x => x.IsGeneral);
+            if (container is null)
+            {
+                return;
+            }
+
             var executedHandlers = new List<Type>();
             foreach (var matchingRoute in matchingRoutes)
             {
-                if (_asyncMessageHandlers.ContainsKey(matchingRoute))
+                if (container.AsyncMessageHandlers.ContainsKey(matchingRoute))
                 {
                     var tasks = new List<Task>();
-                    foreach (var handler in _asyncMessageHandlers[matchingRoute])
+                    foreach (var handler in container.AsyncMessageHandlers[matchingRoute])
                     {
                         var handlerType = handler.GetType();
                         if (executedHandlers.Contains(handlerType))
@@ -122,9 +132,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                     }
                     Task.WaitAll(tasks.ToArray());
                 }
-                if (_messageHandlers.ContainsKey(matchingRoute))
+                if (container.MessageHandlers.ContainsKey(matchingRoute))
                 {
-                    foreach (var handler in _messageHandlers[matchingRoute])
+                    foreach (var handler in container.MessageHandlers[matchingRoute])
                     {
                         var handlerType = handler.GetType();
                         if (executedHandlers.Contains(handlerType))
@@ -136,10 +146,10 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                         RunMessageHandler(handler, message, matchingRoute);
                     }
                 }
-                if (_asyncNonCyclicHandlers.ContainsKey(matchingRoute))
+                if (container.AsyncNonCyclicHandlers.ContainsKey(matchingRoute))
                 {
                     var tasks = new List<Task>();
-                    foreach (var handler in _asyncNonCyclicHandlers[matchingRoute])
+                    foreach (var handler in container.AsyncNonCyclicHandlers[matchingRoute])
                     {
                         var handlerType = handler.GetType();
                         if (executedHandlers.Contains(handlerType))
@@ -152,9 +162,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                     }
                     Task.WaitAll(tasks.ToArray());
                 }
-                if (_nonCyclicHandlers.ContainsKey(matchingRoute))
+                if (container.NonCyclicHandlers.ContainsKey(matchingRoute))
                 {
-                    foreach (var handler in _nonCyclicHandlers[matchingRoute])
+                    foreach (var handler in container.NonCyclicHandlers[matchingRoute])
                     {
                         var handlerType = handler.GetType();
                         if (executedHandlers.Contains(handlerType))
@@ -201,7 +211,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             _logger.LogDebug($"The message has been processed by async non-cyclic message handler {handler.GetType().Name}.");
         }
 
-        void ValidateHandler<T>(T messageHandler)
+        static void ValidateHandler<T>(T messageHandler)
         {
             if (messageHandler is null)
             {
@@ -209,10 +219,66 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             }
         }
 
-        static IEnumerable<TreeNode> ConstructRoutesTree(IEnumerable<MessageHandlerRouter> routers)
+        static IEnumerable<MessageHandlerContainer> ConstructMessageHandlerContainers(
+            IEnumerable<MessageHandlerRouter> routers,
+            IEnumerable<IMessageHandler> messageHandlers,
+            IEnumerable<IAsyncMessageHandler> asyncMessageHandlers,
+            IEnumerable<INonCyclicMessageHandler> nonCyclicHandlers,
+            IEnumerable<IAsyncNonCyclicMessageHandler> asyncNonCyclicHandlers)
         {
-            var routePatterns = routers.SelectMany(x => x.RoutePatterns).Distinct();
-            return WildcardExtensions.ConstructRoutesTree(routePatterns);
+            var containers = new List<MessageHandlerContainer>();
+            var generalRouters = routers.Where(x => x.IsGeneral).ToList();
+            if (generalRouters.Any())
+            {
+                var container = CreateContailer(
+                    null,
+                    generalRouters,
+                    messageHandlers,
+                    asyncMessageHandlers,
+                    nonCyclicHandlers,
+                    asyncNonCyclicHandlers);
+                containers.Add(container);
+            }
+            
+            var exchanges = routers.Where(x => !x.IsGeneral).Select(x => x.Exchange).Distinct().ToList();
+            foreach (var exchange in exchanges)
+            {
+                var exchangeRouters = routers.Where(x => x.Exchange == exchange).ToList();
+                var container = CreateContailer(
+                    exchange,
+                    exchangeRouters,
+                    messageHandlers,
+                    asyncMessageHandlers,
+                    nonCyclicHandlers,
+                    asyncNonCyclicHandlers);
+                containers.Add(container);
+            }
+            return containers;
+        }
+
+        static MessageHandlerContainer CreateContailer(
+            string exchange,
+            IEnumerable<MessageHandlerRouter> selectedRouters,
+            IEnumerable<IMessageHandler> messageHandlers,
+            IEnumerable<IAsyncMessageHandler> asyncMessageHandlers,
+            IEnumerable<INonCyclicMessageHandler> nonCyclicHandlers,
+            IEnumerable<IAsyncNonCyclicMessageHandler> asyncNonCyclicHandlers)
+        {
+            var routersDictionary = TransformMessageHandlerRoutersToDictionary(selectedRouters);
+            var boundMessageHandlers = messageHandlers.Where(x => routersDictionary.Keys.Contains(x.GetType()));
+            var boundAsyncMessageHandlers = asyncMessageHandlers.Where(x => routersDictionary.Keys.Contains(x.GetType()));
+            var boundNonCyclicMessageHandlers = nonCyclicHandlers.Where(x => routersDictionary.Keys.Contains(x.GetType()));
+            var boundAsyncNonCyclicMessageHandlers = asyncNonCyclicHandlers.Where(x => routersDictionary.Keys.Contains(x.GetType()));
+            var routePatterns = selectedRouters.SelectMany(x => x.RoutePatterns).Distinct().ToList();
+            return new MessageHandlerContainer
+            {
+                Exchange = exchange,
+                Tree = WildcardExtensions.ConstructRoutesTree(routePatterns),
+                MessageHandlers = TransformMessageHandlersCollectionToDictionary(boundMessageHandlers, routersDictionary),
+                AsyncMessageHandlers = TransformMessageHandlersCollectionToDictionary(boundAsyncMessageHandlers, routersDictionary),
+                NonCyclicHandlers = TransformMessageHandlersCollectionToDictionary(boundNonCyclicMessageHandlers, routersDictionary),
+                AsyncNonCyclicHandlers = TransformMessageHandlersCollectionToDictionary(boundAsyncNonCyclicMessageHandlers, routersDictionary)
+            };
         }
 
         static IDictionary<Type, List<string>> TransformMessageHandlerRoutersToDictionary(IEnumerable<MessageHandlerRouter> routers)

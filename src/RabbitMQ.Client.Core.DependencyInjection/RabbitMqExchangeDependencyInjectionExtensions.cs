@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using RabbitMQ.Client.Core.DependencyInjection.Configuration;
 using System;
 using System.Linq;
+using RabbitMQ.Client.Core.DependencyInjection.Models;
 
 namespace RabbitMQ.Client.Core.DependencyInjection
 {

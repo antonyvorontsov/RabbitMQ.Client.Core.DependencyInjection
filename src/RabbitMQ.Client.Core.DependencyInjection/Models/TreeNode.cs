@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace RabbitMQ.Client.Core.DependencyInjection.Extensions
+namespace RabbitMQ.Client.Core.DependencyInjection.Models
 {
     /// <summary>
     /// A model that represents nodes supposed for building a tree (trie) structure for a pattern (wildcard) matching.
