@@ -106,15 +106,14 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             IEnumerable<INonCyclicMessageHandler> nonCyclicMessageHandler,
             IEnumerable<IAsyncNonCyclicMessageHandler> asyncNonCyclicMessageHandlers)
         {
-            var loggerMock = new Mock<ILogger<MessageHandlingService>>();
-            return new MessageHandlingService(
-                exchanges,
+            var messageHandlerContainerBuilder = new MessageHandlerContainerBuilder(
                 routers,
                 messageHandlers,
                 asyncMessageHandlers,
                 nonCyclicMessageHandler,
-                asyncNonCyclicMessageHandlers,
-                loggerMock.Object);
+                asyncNonCyclicMessageHandlers);
+            var loggerMock = new Mock<ILogger<MessageHandlingService>>();
+            return new MessageHandlingService(messageHandlerContainerBuilder, exchanges, loggerMock.Object);
         }
     }
 }

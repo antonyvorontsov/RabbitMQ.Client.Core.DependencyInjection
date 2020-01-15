@@ -22,21 +22,12 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         readonly ILogger<MessageHandlingService> _logger;
         
         public MessageHandlingService(
+            IMessageHandlerContainerBuilder messageHandlerContainerBuilder,
             IEnumerable<RabbitMqExchange> exchanges,
-            IEnumerable<MessageHandlerRouter> routers,
-            IEnumerable<IMessageHandler> messageHandlers,
-            IEnumerable<IAsyncMessageHandler> asyncMessageHandlers,
-            IEnumerable<INonCyclicMessageHandler> nonCyclicHandlers,
-            IEnumerable<IAsyncNonCyclicMessageHandler> asyncNonCyclicHandlers,
             ILogger<MessageHandlingService> logger)
         {
             _exchanges = exchanges;
-            _messageHandlerContainers = ConstructMessageHandlerContainers(
-                routers,
-                messageHandlers,
-                asyncMessageHandlers,
-                nonCyclicHandlers,
-                asyncNonCyclicHandlers);
+            _messageHandlerContainers = messageHandlerContainerBuilder.BuildCollection();
             _logger = logger;
         }
         
@@ -217,111 +208,6 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             {
                 throw new ArgumentNullException(nameof(messageHandler), "Message handler is null.");
             }
-        }
-
-        static IEnumerable<MessageHandlerContainer> ConstructMessageHandlerContainers(
-            IEnumerable<MessageHandlerRouter> routers,
-            IEnumerable<IMessageHandler> messageHandlers,
-            IEnumerable<IAsyncMessageHandler> asyncMessageHandlers,
-            IEnumerable<INonCyclicMessageHandler> nonCyclicHandlers,
-            IEnumerable<IAsyncNonCyclicMessageHandler> asyncNonCyclicHandlers)
-        {
-            var containers = new List<MessageHandlerContainer>();
-            var generalRouters = routers.Where(x => x.IsGeneral).ToList();
-            if (generalRouters.Any())
-            {
-                var container = CreateContailer(
-                    null,
-                    generalRouters,
-                    messageHandlers,
-                    asyncMessageHandlers,
-                    nonCyclicHandlers,
-                    asyncNonCyclicHandlers);
-                containers.Add(container);
-            }
-            
-            var exchanges = routers.Where(x => !x.IsGeneral).Select(x => x.Exchange).Distinct().ToList();
-            foreach (var exchange in exchanges)
-            {
-                var exchangeRouters = routers.Where(x => x.Exchange == exchange).ToList();
-                var container = CreateContailer(
-                    exchange,
-                    exchangeRouters,
-                    messageHandlers,
-                    asyncMessageHandlers,
-                    nonCyclicHandlers,
-                    asyncNonCyclicHandlers);
-                containers.Add(container);
-            }
-            return containers;
-        }
-
-        static MessageHandlerContainer CreateContailer(
-            string exchange,
-            IEnumerable<MessageHandlerRouter> selectedRouters,
-            IEnumerable<IMessageHandler> messageHandlers,
-            IEnumerable<IAsyncMessageHandler> asyncMessageHandlers,
-            IEnumerable<INonCyclicMessageHandler> nonCyclicHandlers,
-            IEnumerable<IAsyncNonCyclicMessageHandler> asyncNonCyclicHandlers)
-        {
-            var routersDictionary = TransformMessageHandlerRoutersToDictionary(selectedRouters);
-            var boundMessageHandlers = messageHandlers.Where(x => routersDictionary.Keys.Contains(x.GetType()));
-            var boundAsyncMessageHandlers = asyncMessageHandlers.Where(x => routersDictionary.Keys.Contains(x.GetType()));
-            var boundNonCyclicMessageHandlers = nonCyclicHandlers.Where(x => routersDictionary.Keys.Contains(x.GetType()));
-            var boundAsyncNonCyclicMessageHandlers = asyncNonCyclicHandlers.Where(x => routersDictionary.Keys.Contains(x.GetType()));
-            var routePatterns = selectedRouters.SelectMany(x => x.RoutePatterns).Distinct().ToList();
-            return new MessageHandlerContainer
-            {
-                Exchange = exchange,
-                Tree = WildcardExtensions.ConstructRoutesTree(routePatterns),
-                MessageHandlers = TransformMessageHandlersCollectionToDictionary(boundMessageHandlers, routersDictionary),
-                AsyncMessageHandlers = TransformMessageHandlersCollectionToDictionary(boundAsyncMessageHandlers, routersDictionary),
-                NonCyclicHandlers = TransformMessageHandlersCollectionToDictionary(boundNonCyclicMessageHandlers, routersDictionary),
-                AsyncNonCyclicHandlers = TransformMessageHandlersCollectionToDictionary(boundAsyncNonCyclicMessageHandlers, routersDictionary)
-            };
-        }
-
-        static IDictionary<Type, List<string>> TransformMessageHandlerRoutersToDictionary(IEnumerable<MessageHandlerRouter> routers)
-        {
-            var dictionary = new Dictionary<Type, List<string>>();
-            foreach (var router in routers)
-            {
-                if (dictionary.ContainsKey(router.Type))
-                {
-                    dictionary[router.Type] = dictionary[router.Type].Union(router.RoutePatterns).ToList();
-                }
-                else
-                {
-                    dictionary.Add(router.Type, router.RoutePatterns);
-                }
-            }
-            return dictionary;
-        }
-
-        static IDictionary<string, IList<T>> TransformMessageHandlersCollectionToDictionary<T>(
-            IEnumerable<T> messageHandlers,
-            IDictionary<Type, List<string>> routersDictionary)
-        {
-            var dictionary = new Dictionary<string, IList<T>>();
-            foreach (var handler in messageHandlers)
-            {
-                var type = handler.GetType();
-                foreach (var routingKey in routersDictionary[type])
-                {
-                    if (dictionary.ContainsKey(routingKey))
-                    {
-                        if (!dictionary[routingKey].Any(x => x.GetType() == handler.GetType()))
-                        {
-                            dictionary[routingKey].Add(handler);
-                        }
-                    }
-                    else
-                    {
-                        dictionary.Add(routingKey, new List<T> { handler });
-                    }
-                }
-            }
-            return dictionary;
         }
     }
 }

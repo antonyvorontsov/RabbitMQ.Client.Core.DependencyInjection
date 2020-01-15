@@ -21,6 +21,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             services.AddOptions();
             services.AddLogging(options => options.AddConsole());
             services.Configure<RabbitMqClientOptions>(configuration);
+            services.AddSingleton<IMessageHandlerContainerBuilder, MessageHandlerContainerBuilder>();
             services.AddSingleton<IMessageHandlingService, MessageHandlingService>();
             services.AddSingleton<IQueueService, QueueService>();
             return services;
