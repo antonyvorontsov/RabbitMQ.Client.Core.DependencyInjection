@@ -1,14 +1,11 @@
-name: .NET Core workflow
+name: .NET Core
 
 on: [push]
 
 jobs:
-  test:
+  workflow:
 
-    runs-on: ${{ matrix.os }}
-    strategy:
-          matrix:
-            os: [macOS-latest, ubuntu-latest, windows-latest]
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - name: Setup .NET Core
