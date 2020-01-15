@@ -9,6 +9,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using RabbitMQ.Client.Core.DependencyInjection.Models;
 
 namespace RabbitMQ.Client.Core.DependencyInjection
 {
@@ -17,58 +18,39 @@ namespace RabbitMQ.Client.Core.DependencyInjection
     /// </summary>
     internal class QueueService : IQueueService, IDisposable
     {
-        /// <summary>
-        /// RabbitMQ connection.
-        /// </summary>
         public IConnection Connection => _connection;
 
-        /// <summary>
-        /// RabbitMQ channel.
-        /// </summary>
         public IModel Channel => _channel;
+
+        readonly IConnection _connection;
+        readonly IModel _channel;
+        
+        readonly IMessageHandlingService _messageHandlingService;
+        readonly IEnumerable<RabbitMqExchange> _exchanges;
+        readonly ILogger<QueueService> _logger;
+        readonly EventingBasicConsumer _consumer;
 
         EventHandler<BasicDeliverEventArgs> _receivedMessage;
         bool _consumingStarted;
-
-        readonly IDictionary<string, IList<IMessageHandler>> _messageHandlers;
-        readonly IDictionary<string, IList<IAsyncMessageHandler>> _asyncMessageHandlers;
-        readonly IDictionary<string, IList<INonCyclicMessageHandler>> _nonCyclicHandlers;
-        readonly IDictionary<string, IList<IAsyncNonCyclicMessageHandler>> _asyncNonCyclicHandlers;
-        readonly IDictionary<Type, List<string>> _messageHandlerRouters;
-        readonly IEnumerable<RabbitMqExchange> _exchanges;
-        readonly ILogger<QueueService> _logger;
-        readonly IConnection _connection;
-        readonly IModel _channel;
-        readonly EventingBasicConsumer _consumer;
         readonly object _lock = new object();
 
-        const int ResendTimeout = 60;
         const int QueueExpirationTime = 60000;
 
         public QueueService(
-            IEnumerable<IMessageHandler> messageHandlers,
-            IEnumerable<IAsyncMessageHandler> asyncMessageHandlers,
-            IEnumerable<INonCyclicMessageHandler> nonCyclicHandlers,
-            IEnumerable<IAsyncNonCyclicMessageHandler> asyncNonCyclicHandlers,
+            IMessageHandlingService messageHandlingService,
             IEnumerable<RabbitMqExchange> exchanges,
-            IEnumerable<MessageHandlerRouter> routers,
-            ILoggerFactory loggerFactory,
-            IOptions<RabbitMqClientOptions> options)
+            IOptions<RabbitMqClientOptions> options,
+            ILogger<QueueService> logger)
         {
             if (options is null)
             {
                 throw new ArgumentException($"Argument {nameof(options)} is null.", nameof(options));
             }
 
+            _messageHandlingService = messageHandlingService;
             _exchanges = exchanges;
-
-            _messageHandlerRouters = TransformMessageHandlerRouters(routers);
-            _messageHandlers = TransformMessageHandlersCollection(messageHandlers);
-            _asyncMessageHandlers = TransformMessageHandlersCollection(asyncMessageHandlers);
-            _nonCyclicHandlers = TransformMessageHandlersCollection(nonCyclicHandlers);
-            _asyncNonCyclicHandlers = TransformMessageHandlersCollection(asyncNonCyclicHandlers);
-
-            _logger = loggerFactory.CreateLogger<QueueService>();
+            _logger = logger;
+            
             _connection = CreateRabbitMqConnection(options.Value);
             // Event handling.
             _connection.CallbackException += HandleConnectionCallbackException;
@@ -111,9 +93,6 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             _connection?.Dispose();
         }
 
-        /// <summary>
-        /// Start consuming (getting messages).
-        /// </summary>
         public void StartConsuming()
         {
             if (_consumingStarted)
@@ -283,129 +262,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             _logger.LogError(new EventId(), @event.Exception, @event.Exception.Message, @event);
         }
 
-        IDictionary<Type, List<string>> TransformMessageHandlerRouters(IEnumerable<MessageHandlerRouter> routers)
-        {
-            var dictionary = new Dictionary<Type, List<string>>();
-            foreach (var router in routers)
-            {
-                if (dictionary.ContainsKey(router.Type))
-                {
-                    dictionary[router.Type] = dictionary[router.Type].Union(router.RoutingKeys).ToList();
-                }
-                else
-                {
-                    dictionary.Add(router.Type, router.RoutingKeys);
-                }
-            }
-            return dictionary;
-        }
-
-        IDictionary<string, IList<T>> TransformMessageHandlersCollection<T>(IEnumerable<T> messageHandlers)
-        {
-            var dictionary = new Dictionary<string, IList<T>>();
-            foreach (var handler in messageHandlers)
-            {
-                var type = handler.GetType();
-                foreach (var routingKey in _messageHandlerRouters[type])
-                {
-                    if (dictionary.ContainsKey(routingKey))
-                    {
-                        if (!dictionary[routingKey].Any(x => x.GetType() == handler.GetType()))
-                        {
-                            dictionary[routingKey].Add(handler);
-                        }
-                    }
-                    else
-                    {
-                        dictionary.Add(routingKey, new List<T> { handler });
-                    }
-                }
-            }
-            return dictionary;
-        }
-
         void StartClient()
         {
-            _receivedMessage = (sender, @event) =>
-            {
-                var message = Encoding.UTF8.GetString(@event.Body);
-
-                _logger.LogInformation($"New message was received with deliveryTag {@event.DeliveryTag}.");
-                _logger.LogInformation(message);
-
-                try
-                {
-                    if (_asyncMessageHandlers.ContainsKey(@event.RoutingKey))
-                    {
-                        var tasks = new List<Task>();
-                        foreach (var handler in _asyncMessageHandlers[@event.RoutingKey])
-                        {
-                            tasks.Add(RunAsyncHandler(handler, message, @event.RoutingKey));
-                        }
-                        Task.WaitAll(tasks.ToArray());
-                    }
-                    if (_messageHandlers.ContainsKey(@event.RoutingKey))
-                    {
-                        foreach (var handler in _messageHandlers[@event.RoutingKey])
-                        {
-                            _logger.LogDebug($"Starting processing the message by message handler {handler?.GetType().Name}.");
-                            handler.Handle(message, @event.RoutingKey);
-                            _logger.LogDebug($"The message has been processed by message handler {handler?.GetType().Name}.");
-                        }
-                    }
-                    if (_asyncNonCyclicHandlers.ContainsKey(@event.RoutingKey))
-                    {
-                        var tasks = new List<Task>();
-                        foreach (var handler in _asyncNonCyclicHandlers[@event.RoutingKey])
-                        {
-                            tasks.Add(RunAsyncNonCyclicHandler(handler, message, @event.RoutingKey));
-                        }
-                        Task.WaitAll(tasks.ToArray());
-                    }
-                    if (_nonCyclicHandlers.ContainsKey(@event.RoutingKey))
-                    {
-                        foreach (var handler in _nonCyclicHandlers[@event.RoutingKey])
-                        {
-                            _logger.LogDebug($"Starting processing the message by non-cyclic message handler {handler?.GetType().Name}.");
-                            handler.Handle(message, @event.RoutingKey, this);
-                            _logger.LogDebug($"The message has been processed by non-cyclic message handler {handler?.GetType().Name}.");
-                        }
-                    }
-                    _logger.LogInformation($"Success message with deliveryTag {@event.DeliveryTag}.");
-                    Channel.BasicAck(@event.DeliveryTag, false);
-                }
-                catch (Exception exception)
-                {
-                    _logger.LogError(new EventId(), exception, $"An error occurred while processing received message with delivery tag {@event.DeliveryTag}.");
-
-                    Channel.BasicAck(@event.DeliveryTag, false);
-
-                    if (@event.BasicProperties.Headers is null)
-                    {
-                        @event.BasicProperties.Headers = new Dictionary<string, object>();
-                    }
-
-                    var exchange = _exchanges.FirstOrDefault(x => x.Name == @event.Exchange);
-                    if (exchange is null)
-                    {
-                        _logger.LogError($"Could not detect exchange {@event.Exchange} to detect the necessity of resending the failed message.");
-                        return;
-                    }
-
-                    if (exchange.Options.RequeueFailedMessages
-                        && !string.IsNullOrEmpty(exchange.Options.DeadLetterExchange)
-                        && !@event.BasicProperties.Headers.ContainsKey("requeued"))
-                    {
-                        @event.BasicProperties.Headers.Add("requeued", true);
-                        Send(@event.Body, @event.BasicProperties, @event.Exchange, @event.RoutingKey, ResendTimeout);
-                        _logger.LogInformation("The failed message has been requeued.");
-                    }
-                    else
-                    {
-                        _logger.LogInformation("The failed message would not be requeued.");
-                    }
-                }
-            };
+            _receivedMessage = (sender, eventArgs) => _messageHandlingService.HandleMessageReceivingEvent(eventArgs, this);
 
             var deadLetterExchanges = _exchanges
                 .Where(x => !string.IsNullOrEmpty(x.Options.DeadLetterExchange))
@@ -421,20 +280,6 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             {
                 StartExchange(exchange);
             }
-        }
-
-        async Task RunAsyncHandler(IAsyncMessageHandler handler, string message, string routingKey)
-        {
-            _logger.LogDebug($"Starting processing the message by async message handler {handler?.GetType().Name}.");
-            await handler.Handle(message, routingKey);
-            _logger.LogDebug($"The message has been processed by async message handler {handler?.GetType().Name}.");
-        }
-
-        async Task RunAsyncNonCyclicHandler(IAsyncNonCyclicMessageHandler handler, string message, string routingKey)
-        {
-            _logger.LogDebug($"Starting processing the message by async non-cyclic message handler {handler?.GetType().Name}.");
-            await handler.Handle(message, routingKey, this);
-            _logger.LogDebug($"The message has been processed by async non-cyclic message handler {handler?.GetType().Name}.");
         }
 
         void StartDeadLetterExchange(string exchangeName) =>

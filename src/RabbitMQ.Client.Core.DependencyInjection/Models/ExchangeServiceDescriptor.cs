@@ -1,7 +1,7 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using System;
+﻿using System;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace RabbitMQ.Client.Core.DependencyInjection
+namespace RabbitMQ.Client.Core.DependencyInjection.Models
 {
     /// <summary>
     /// A service extension for registration exchange singleton "services".
