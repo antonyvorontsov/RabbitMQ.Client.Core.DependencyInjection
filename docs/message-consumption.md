@@ -2,8 +2,8 @@
 
 ### Starting a consumer
 
-The first step that has to be done to retrieve messages from queues is to start a consumer. This can be achieved by calling `StartConsuming` method of the `IQueueService`.
-Consumption exchanges will work only in message-production mode if `StartConsuming` method won't be called.
+The first step that has to be done to retrieve messages from queues is to start a consumer. This can be achieved by calling the `StartConsuming` method of `IQueueService`.
+Consumption exchanges will work only in a message-production mode if the `StartConsuming` method won't be called.
 
 Let's say that your configuration looks like this.
 
@@ -27,7 +27,7 @@ public class Startup
 }
 ```
 
-You can register an `IHostedService` and inject the instance of the `IQueueService` into it.
+You can register `IHostedService` and inject an instance of `IQueueService` into it.
 
 ```c#
 services.AddSingleton<IHostedService, ConsumingService>();
@@ -108,7 +108,7 @@ public class Worker : BackgroundService
 
 The second step without which receiving messages does not make sense - configuration of message handling services. If there are no message handlers then received messages will not be processed.
 
-Message handlers are classes that implement `IMessageHandler` interface (or a few others) and contain functionality including error handling for processing messages.
+Message handlers are classes that implement the `IMessageHandler` interface (or a few others) and contain functionality (including error handling) for processing messages.
 You can register `IMessageHandler` in your `Startup` like this.
 
 ```c#
@@ -134,7 +134,8 @@ public class Startup
 
 RabbitMQ client and exchange configuration sections are not specified in this example, but covered [here](rabbit-configuration.md) and [here](exchange-configuration.md).
 
-`IMessageHandler` implementation will "listen" for messages by specified routing key, or a collection of routing keys. If it is necessary you can also register multiple message handler at once.
+`IMessageHandler` implementation will "listen" for messages by the specified routing key, or a collection of routing keys. If it is necessary, you can also register multiple message handler at once.
+
 ```c#
 services.AddRabbitMqClient(clientConfiguration)
     .AddExchange("ExchangeName", isConsuming: true, exchangeConfiguration)
@@ -151,7 +152,7 @@ services.AddRabbitMqClient(clientConfiguration)
     .AddMessageHandlerSingleton<AnotherCustomMessageHandler>(new[] { "#.key", "third.*" });
 ```
 
-You are also allowed to specify the exact exchange which will be "listened" by message handler with the given routing key (or pattern).
+You are also allowed to specify the exact exchange which will be "listened" by a message handler with the given routing key (or a pattern).
 
 ```c#
 services.AddRabbitMqClient(clientConfiguration)
@@ -178,8 +179,8 @@ services.AddRabbitMqClient(clientConfiguration)
     .AddMessageHandlerSingleton<OneMoreCustomMessageHandler>("first.routing.key");
 ```
 
-`IMessageHandler` consists of one method `Handle` that gets a message in string format. You can deserialize it (if it is a json message) or handle a raw value.
-Thus, message handler will look like this.
+`IMessageHandler` consists of one method `Handle` that gets a message in a string format. You can deserialize it (if it is a json message) or handle a raw value.
+Thus, a message handler will look like this.
 
 ```c#
 public class CustomMessageHandler : IMessageHandler
@@ -192,7 +193,7 @@ public class CustomMessageHandler : IMessageHandler
 }
 ```
 
-You can also inject services inside `IMessageHandler` constructor.
+You can also inject services inside the `IMessageHandler` constructor.
 
 ```c#
 public class CustomMessageHandler : IMessageHandler
@@ -210,7 +211,7 @@ public class CustomMessageHandler : IMessageHandler
 }
 ```
 
-The only exception is `IQueueService`. You can't inject it inside a message handler because of the appearance of cyclic dependencies. If you want to use an instance of `IQueueService` (e.g. handle one message and send another) use `INonCyclicMessageHandler`.
+The only exception is the `IQueueService`. You can't inject it inside a message handler because of the appearance of cyclic dependencies. If you want to use an instance of `IQueueService` (e.g. handle one message and send another) use `INonCyclicMessageHandler`.
 `INonCyclicMessageHandler` can be registered the same way as `IMessageHandler`. There are similar semantic methods for adding it in **singleton** or **transient** modes.
 
 ```c#
@@ -298,7 +299,7 @@ So you can use async/await power inside your message handler.
 
 The message handling process is organized as follows:
 
-- `IQueueMessage` receives a message and delegates it to the `IMessageHandlingService`.
+- `IQueueMessage` receives a message and delegates it to `IMessageHandlingService`.
 - `IMessageHandlingService` gets a message (as a byte array) and decodes it to the UTF8 string. It also checks if there are any message handlers in collections of `IMessageHandler`, `IAsyncMessageHandler`, `INonCyclicMessageHandler` and `IAsyncNonCyclicMessageHandler` instances and forwards a message to them.
 - All subscribed message handlers (`IMessageHandler`, `IAsyncMessageHandler`, `INonCyclicMessageHandler`, `IAsyncNonCyclicMessageHandler`) process the given message.
 - `IMessageHandlingService` acknowledges the message by its `DeliveryTag`.

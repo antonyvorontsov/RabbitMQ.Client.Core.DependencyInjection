@@ -2,6 +2,15 @@
 
 All notable changes to this library will be documented in this file.
 
+## [3.1.1] - 2020-01-20
+
+### Added
+
+- Pattern matching (`WildcardExtensions`) so message handlers can now
+- Extension methods which allow user to set the exact exchange from which messages will be processed by message handlers.
+- `MessageHandlingService` which is responsible for message processing.
+- `WildcardExtensions` and `MessageHandlingService` unit tests.
+
 ## [2.2.1] copy of [3.1.0] - 2019-12-06
 
 ### Added

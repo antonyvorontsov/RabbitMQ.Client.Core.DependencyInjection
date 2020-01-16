@@ -3,15 +3,15 @@
 <a href="https://www.nuget.org/packages/RabbitMQ.Client.Core.DependencyInjection/" alt="NuGet package"><img src="https://img.shields.io/nuget/v/RabbitMQ.Client.Core.DependencyInjection.svg" /></a><br/>
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/f688764d2ba340099ec50b74726e25fd)](https://app.codacy.com/app/AntonyVorontsov/RabbitMQ.Client.Core.DependencyInjection?utm_source=github.com&utm_medium=referral&utm_content=AntonyVorontsov/RabbitMQ.Client.Core.DependencyInjection&utm_campaign=Badge_Grade_Dashboard)<br/>
 
-This repository contains the library that provides functionality for wrapping [RabbitMQ.Client](https://github.com/rabbitmq/rabbitmq-dotnet-client) code and adding it in your application via dependency injection mechanism.
+This repository contains the library that provides functionality for wrapping [RabbitMQ.Client](https://github.com/rabbitmq/rabbitmq-dotnet-client) code and adding it in your application via the dependency injection mechanism.
 
 ## Usage
 
-This section contains only example of basic usage of the library. You can find the [detailed documentation](./docs/index.md) in the docs directory where all functionality fully covered.
+This section contains only an example of a basic usage of the library. You can find the [detailed documentation](./docs/index.md) in the docs directory where all functionality fully covered.
 
 ### Producer
 
-To produce messages in the RabbitMQ queue you have to go through the routine of configuring RabbitMQ connection and exchanges. In your `Startup` file you can do it simply calling couple methods in a fluent-Api way.
+To produce messages in the RabbitMQ queue you have to go through the routine of configuring a RabbitMQ connection and exchanges. In your `Startup` file you can do it simply calling couple methods in a fluent-Api way.
 
 ```c#
 public static IConfiguration Configuration { get; set; }
@@ -26,10 +26,10 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
-By calling `AddRabbitMqClient` you add a singleton `IQueueService` that provides functionality of sending messages to queues. `AddProductionExchange` configures exchange to queues bindings (presented as json configuration) that allow messages routing properly. 
+By calling `AddRabbitMqClient` you add a singleton `IQueueService` that provides functionality of sending messages to queues. `AddProductionExchange` configures exchange to queues bindings (presented in json configuration) that allow messages to route properly. 
 Example of `appsettings.json` is two sections below. You can also configure everything manually. For more information, see [rabbit-configuration](./docs/rabbit-configuration.md) and [exchange-configuration](./docs/exchange-configuration.md) documentation files.
 
-Now you can inject an instance implementing `IQueueService` inside anything you want.
+Now you can inject an instance of `IQueueService` inside anything you want.
 
 ```c#
 [Route("api/[controller]")]
@@ -72,7 +72,7 @@ _queueService.Send(
  
 ### Consumer
 
-After making message production possible let's make the consumption possible too! Imagine that a consumer will be a simple console application.
+After making the message production possible let's make the consumption possible too! Imagine that a consumer is a simple console application.
 
 ```c#
 class Program
@@ -107,11 +107,11 @@ class Program
 }
 ```
 
-You have to configure everything almost the same way as you have already done with producer. The main differences are that you need to declare (configure) consumption exchange calling `AddConsumptionExchange` instead of production exchange. For detailed information about difference in exchange declarations you may want to see the [documentation](./docs/exchange-configuration.md).
-The other important part is adding custom message handlers by implementing `IMessageHandler` interface and calling `AddMessageHandlerSingleton<T>` or `AddMessageHandlerTransient<T>` methods. `IMessageHandler` is a simple subscriber, which receives messages from a queue by selected routing key. You are allowed to set multiple message handlers for one routing key (e.g. one is writing it in a database, and the other does the business logic).
+You have to configure everything almost the same way as you have already done previously with the producer. The main differences are that you need to declare (configure) a consumption exchange calling `AddConsumptionExchange` instead of a production exchange. For detailed information about difference in exchange declarations you may want to see the [documentation](./docs/exchange-configuration.md).
+The other important part is adding custom message handlers by implementing the `IMessageHandler` interface and calling `AddMessageHandlerSingleton<T>` or `AddMessageHandlerTransient<T>` methods. `IMessageHandler` is a simple subscriber, which receives messages from a queue by selected routing key. You are allowed to set multiple message handlers for one routing key (e.g. one is writing it in a database, and the other does the business logic).
 
-You can also use pattern matching while adding message handlers where `*` (star) can substitute for exactly one word and `#` (hash) can substitute for zero or more words.
-You are also allowed to specify the exact exchange which will be "listened" by the message handler with the given routing key (or a pattern).
+You can also use **pattern matching** while adding message handlers where `*` (star) can substitute for exactly one word and `#` (hash) can substitute for zero or more words.
+You are also allowed to specify the exact exchange which will be "listened" by the selected message handler with the given routing key (or a pattern).
 
 ```c#
 services.AddRabbitMqClient(rabbitMqSection)
@@ -122,7 +122,7 @@ services.AddRabbitMqClient(rabbitMqSection)
 
 The very last step is to start "listening" (consuming) by simply calling `StartConsuming` method of `IQueueService`. After that you will start getting messages, and you can handle them in any way you want.
 
-Message handler example.
+A message handler example.
 
 ```c#
 public class CustomMessageHandler : IMessageHandler
@@ -146,8 +146,8 @@ You can also find example projects in the repository inside the [examples](./exa
 
 ### Configuration
  
- In both cases for producing and consuming messages configuration file is the same. `appsettings.json` consists of those sections: (1) settings to connect to the RabbitMQ server and (2) sections that configure exchanges and queue bindings. You can have multiple exchanges and one configuration section per each exchange.
-Exchange sections define how to bind queues and exchanges with each other using specified routing keys. You allowed to bind a queue to an exchange with more than one routing key, but if there are no routing keys in the queue section, then that queue will be bound to the exchange with its name.
+In both cases for producing and consuming messages the configuration file is the same. `appsettings.json` consists of those sections: (1) settings to connect to the RabbitMQ server and (2) sections that configure exchanges and queue bindings. You can have multiple exchanges and one configuration section per each exchange.
+Exchange sections define how to bind queues and exchanges with each other using specified routing keys (or patterns). You allowed to bind a queue to an exchange with more than one routing key, but if there are no routing keys in the queue section, then that queue will be bound to the exchange with its name.
 
 ```json
 {
@@ -173,7 +173,7 @@ Exchange sections define how to bind queues and exchanges with each other using 
 }
 ```
 
-For more information about `appsettings.json` file format and manual configuration, see [rabbit-configuration](./docs/rabbit-configuration.md) and [exchange-configuration](./docs/exchange-configuration.md) documentation files.
+For more information about `appsettings.json` and manual configuration features, see [rabbit-configuration](./docs/rabbit-configuration.md) and [exchange-configuration](./docs/exchange-configuration.md) documentation files.
 
 ## Versioning
 
@@ -181,10 +181,10 @@ For now this project uses semantic versioning that follows .Net Core versioning.
 
 ## Changelog
 
-All notable changes being tracked in the [changelog](./docs/changelog.md) file.
+All notable changes are being tracked in the [changelog](./docs/changelog.md) file.
 
 ## License
 
-This library licenced under MIT license.
+This library licenced under the MIT license.
 
 Feel free to contribute!
