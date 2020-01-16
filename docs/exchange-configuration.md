@@ -2,8 +2,8 @@
 
 ### Basics
 
-Client applications work with exchanges and queues, and they must be "declared" and "bound" to each other is a certain way before they can be used.
-Queues and exchanges can also be customized by using additional parameters. This library allows to do this routine simply calling `AddExchange` method passing additional parameters to it.
+Client applications work with exchanges and queues which must be "declared" and "bound" to each other in a certain way before they can be used.
+Queues and exchanges can also be customized by using additional parameters. This library allows you to do this routine simply calling the `AddExchange` method passing additional parameters to it.
 You are allowed to configure multiple exchanges with multiple queues bound to them.
 
 Your `Startup` code will look like this.
@@ -57,26 +57,26 @@ And the `appsettings.json` file will be like this.
 }
 ```
 
-The RabbitMQ client configuration section not specified in this example, for more information see the [documentation](rabbit-configuration.md) file.
+The RabbitMQ client configuration section is not specified in this example, for more information see the [documentation](rabbit-configuration.md) file.
 
 Exchanges can be configured with properties:
-- `Type`  - exchange type (direct, topic, fanout). Default value is `"direct"`.
-- `Durable` - durability option. Default value is `true`.
-- `AutoDelete` - option for exchange auto deleting. Default value is `false`.
-- `Arguments` - dictionary of additional arguments. Default value is `null`.
-- `RequeueFailedMessages` - option that specifies behaviour of re-queueing failed messages with delay through dead-letter-exchange. Default value is `true`. Mechanism of sending delayed messages covered in the [documentation](message-production.md).
-- `DeadLetterExchange` - default value for dead-letter-exchange. Default value for dead-letter-exchange name is `"default.dlx.exchange"`.
-- `Queues` - collection of queues bound to the exchange.
+- `Type`  - an exchange type (direct, topic, fanout). The default value is `"direct"`.
+- `Durable` - a durability option. The default value is `true`.
+- `AutoDelete` - an option for exchange auto deleting. The default value is `false`.
+- `Arguments` - a dictionary of additional arguments. The default value is `null`.
+- `RequeueFailedMessages` - an option that specifies behaviour of re-queueing failed messages with certain delay through the dead-letter-exchange. The default value is `true`. The mechanism of sending delayed messages is covered in the [documentation](message-production.md).
+- `DeadLetterExchange` - a value for dead-letter-exchange. The default value for the dead-letter-exchange name is `"default.dlx.exchange"`.
+- `Queues` - a collection of queues bound to the exchange.
 
 Queue options:
-- `Name`  - queue name.
-- `Durable` - durability option. Default value is `true`.
-- `AutoDelete` - option for queue auto deleting. Default value is `false`.
-- `Exclusive` - exclusive option. Default value is `false`.
-- `Arguments` - dictionary of additional [arguments](https://www.rabbitmq.com/queues.html#optional-arguments). Default value is `null`.
-- `RoutingKeys` - collection of routing keys that queue "listens".
+- `Name`  - a queue name.
+- `Durable` - a durability option. The default value is `true`.
+- `AutoDelete` - an option for queue auto deleting. The default value is `false`.
+- `Exclusive` - an exclusive option. The default value is `false`.
+- `Arguments` - a dictionary of additional [arguments](https://www.rabbitmq.com/queues.html#optional-arguments). The default value is `null`.
+- `RoutingKeys` - a collection of routing keys that the queue "listens".
 
-Taking into account all the default values that you can skip configuration will look like this.
+Taking into account all the default values that you can skip, configuration will look like this.
 
 ```json
 {
@@ -92,7 +92,7 @@ Taking into account all the default values that you can skip configuration will 
 }
 ```
 
-If you want to use routing keys matching with queue names you can skip `"RoutingKeys"` option and queues will be bound to the exchange by their names.
+If you want to use routing keys matching with queue names you can skip the `"RoutingKeys"` option and queues will be bound to the exchange by their names.
 
 ```json
 {
@@ -184,5 +184,6 @@ services.AddRabbitMqClient(clientConfiguration)
     .AddConsumptionExchange("ConsumptionExchange", exchangeConfiguration);
 ```
 
-For the RabbitMQ client configuration see the [Previous page](rabbit-configuration.md) <br>
+For the RabbitMQ client configuration see the [Previous page](rabbit-configuration.md)
+
 For message production features see the [Next page](message-production.md)
