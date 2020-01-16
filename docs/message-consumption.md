@@ -2,10 +2,10 @@
 
 ### Starting a consumer
 
-The first step that needs to be done to retrieve messages from queues is to start a consumer. This can be achieved by calling `StartConsuming` method of `IQueueService`.
-Without calling `StartConsuming` consumption exchanges will work only in production mode.
+The first step that has to be done to retrieve messages from queues is to start a consumer. This can be achieved by calling the `StartConsuming` method of `IQueueService`.
+Consumption exchanges will work only in a message-production mode if the `StartConsuming` method won't be called.
 
-Let's say that your configuration look like this.
+Let's say that your configuration looks like this.
 
 ```c#
 public class Startup
@@ -27,13 +27,13 @@ public class Startup
 }
 ```
 
-You can register an `IHostedService` and inject the instance of `IQueueService` into it.
+You can register `IHostedService` and inject an instance of `IQueueService` into it.
 
 ```c#
 services.AddSingleton<IHostedService, ConsumingService>();
 ```
 
-And then simply call `StartConsuming` so consumer can work in a background.
+And then simply call `StartConsuming` so a consumer can work in the background.
 
 ```c#
 public class ConsumingService : IHostedService
@@ -64,7 +64,7 @@ public class ConsumingService : IHostedService
 }
 ```
 
-Otherwise you can implement a worker service template from .Net Core 3 like this.
+Otherwise, you can implement a worker service template from .Net Core 3 like this.
 
 ```c#
 public class Program
@@ -108,7 +108,7 @@ public class Worker : BackgroundService
 
 The second step without which receiving messages does not make sense - configuration of message handling services. If there are no message handlers then received messages will not be processed.
 
-Message handlers are classes that implement `IMessageHandler` interface (or a few others) and contain functionality including error handling for processing messages.
+Message handlers are classes that implement the `IMessageHandler` interface (or a few others) and contain functionality (including error handling) for processing messages.
 You can register `IMessageHandler` in your `Startup` like this.
 
 ```c#
@@ -132,30 +132,41 @@ public class Startup
 }
 ```
 
-The RabbitMQ client configuration and exchange configuration sections not specified in this example, but covered [here](rabbit-configuration.md) and [here](exchange-configuration.md).
+RabbitMQ client and exchange configuration sections are not specified in this example, but covered [here](rabbit-configuration.md) and [here](exchange-configuration.md).
 
-`IMessageHandler` implementation will "listen" for messages by specified routing key, or a collection of routing keys.
+`IMessageHandler` implementation will "listen" for messages by the specified routing key, or a collection of routing keys. If it is necessary, you can also register multiple message handler at once.
+
 ```c#
 services.AddRabbitMqClient(clientConfiguration)
     .AddExchange("ExchangeName", isConsuming: true, exchangeConfiguration)
-    .AddMessageHandlerSingleton<CustomMessageHandler>(new[] { "first.routing.key", "second.routing.key", "third.routing.key" });
+    .AddMessageHandlerSingleton<CustomMessageHandler>("first.routing.key");
+    .AddMessageHandlerSingleton<AnotherCustomMessageHandler>(new[] { "second.routing.key", "third.routing.key" });
 ```
 
-You can register it in two modes - **singleton** or **transient** using `AddMessageHandlerSingleton` or `AddMessageHandlerTransient` methods respectively.
+You can also use **pattern matching** in routes where `*` (star) can substitute for exactly one word and `#` (hash) can substitute for zero or more words.
 
 ```c#
 services.AddRabbitMqClient(clientConfiguration)
     .AddExchange("ExchangeName", isConsuming: true, exchangeConfiguration)
-    .AddMessageHandlerTransient<CustomMessageHandler>(new[] { "first.routing.key", "second.routing.key", "third.routing.key" });
+    .AddMessageHandlerSingleton<CustomMessageHandler>("*.routing.*");
+    .AddMessageHandlerSingleton<AnotherCustomMessageHandler>(new[] { "#.key", "third.*" });
 ```
 
-If it is necessary you can also register multiple message handler at once.
+You are also allowed to specify the exact exchange which will be "listened" by a message handler with the given routing key (or a pattern).
 
 ```c#
 services.AddRabbitMqClient(clientConfiguration)
     .AddExchange("ExchangeName", isConsuming: true, exchangeConfiguration)
-    .AddMessageHandlerTransient<CustomMessageHandler>("first.routing.key")
-    .AddMessageHandlerTransient<AnotherCustomMessageHandler>("second.routing.key");
+    .AddMessageHandlerSingleton<CustomMessageHandler>("*.*.*", "ExchangeName");
+    .AddMessageHandlerSingleton<AnotherCustomMessageHandler>("routing.key", "ExchangeName");
+```
+
+You can register it in two modes, **singleton** or **transient**, using `AddMessageHandlerSingleton` or `AddMessageHandlerTransient` methods respectively.
+
+```c#
+services.AddRabbitMqClient(clientConfiguration)
+    .AddExchange("ExchangeName", isConsuming: true, exchangeConfiguration)
+    .AddMessageHandlerTransient<CustomMessageHandler>(new[] { "#.key", "third.*" });
 ```
 
 You can also set multiple message handlers for managing messages received by one routing key. This case can happen when you want to divide responsibilities between services (e.g. one contains business logic, and the other writes messages in the database).
@@ -168,8 +179,8 @@ services.AddRabbitMqClient(clientConfiguration)
     .AddMessageHandlerSingleton<OneMoreCustomMessageHandler>("first.routing.key");
 ```
 
-`IMessageHandler` consists of one method `Handle` that gets a message in string format. You can deserialize it (if it is a json message) or handle a raw value.
-Thus, message handler will look like this.
+`IMessageHandler` consists of one method `Handle` that gets a message in a string format. You can deserialize it (if it is a json message) or handle a raw value.
+Thus, a message handler will look like this.
 
 ```c#
 public class CustomMessageHandler : IMessageHandler
@@ -182,7 +193,7 @@ public class CustomMessageHandler : IMessageHandler
 }
 ```
 
-You can also inject services inside `IMessageHandler` constructor.
+You can also inject services inside the `IMessageHandler` constructor.
 
 ```c#
 public class CustomMessageHandler : IMessageHandler
@@ -200,8 +211,8 @@ public class CustomMessageHandler : IMessageHandler
 }
 ```
 
-The only exception is `IQueueService`, you can't inject it because of the appearance of cyclic dependencies. If you want to use an instance of `IQueueService` (e.g. handle one message and send another) use `INonCyclicMessageHandler`.
-`INonCyclicMessageHandler` can be registered the same way as `IMessageHandler`. There are similar semantic methods for adding it in **singleton** or **transient** mode. 
+The only exception is the `IQueueService`. You can't inject it inside a message handler because of the appearance of cyclic dependencies. If you want to use an instance of `IQueueService` (e.g. handle one message and send another) use `INonCyclicMessageHandler`.
+`INonCyclicMessageHandler` can be registered the same way as `IMessageHandler`. There are similar semantic methods for adding it in **singleton** or **transient** modes.
 
 ```c#
 services.AddRabbitMqClient(clientConfiguration)
@@ -232,8 +243,8 @@ public class CustomNonCyclicMessageHandler : INonCyclicMessageHandler
 
 ### Asynchronous message handlers
 
-`IMessageHandler` and `INonCyclicMessageHandler` work synchronously, but if you want an async version then use `IAsyncMessageHandler` and `IAsyncNonCyclicMessageHandler`.
-There are extension methods that allows you to register it the same way as synchronous ones in **singleton** or **transient** modes.
+`IMessageHandler` and `INonCyclicMessageHandler` work synchronously, but if you want to use an async technology then use `IAsyncMessageHandler` and `IAsyncNonCyclicMessageHandler`.
+There are extension methods that allow you to register it the same way as synchronous ones in **singleton** or **transient** modes.
 
 ```c#
 services.AddRabbitMqClient(clientConfiguration)
@@ -288,11 +299,11 @@ So you can use async/await power inside your message handler.
 
 The message handling process is organized as follows:
 
-- `IQueueMessage` receives a message as a byte array and decodes it in UTF8 string.
-- `IQueueMessage` checks if there are any message handlers in collections of `IMessageHandler`, `IAsyncMessageHandler`, `INonCyclicMessageHandler` and `IAsyncNonCyclicMessageHandler` instances and forwards a message to them.
-- All subscribed message handlers (`IMessageHandler`, `IAsyncMessageHandler`, `INonCyclicMessageHandler`, `IAsyncNonCyclicMessageHandler`) process the message.
-- `IQueueMessage` acknowledges the message by its `DeliveryTag`.
-- If any exception occurs `IQueueMessage` acknowledges the message anyway and checks if the message has to be re-send. If exchange option `RequeueFailedMessages` is set `true` then `IQueueMessage` adds a header `"requeued"` to the message and sends it again with delay in 60 seconds. Mechanism of sending delayed messages covered in the message production [documentation](message-production.md).
+- `IQueueMessage` receives a message and delegates it to `IMessageHandlingService`.
+- `IMessageHandlingService` gets a message (as a byte array) and decodes it to the UTF8 string. It also checks if there are any message handlers in collections of `IMessageHandler`, `IAsyncMessageHandler`, `INonCyclicMessageHandler` and `IAsyncNonCyclicMessageHandler` instances and forwards a message to them.
+- All subscribed message handlers (`IMessageHandler`, `IAsyncMessageHandler`, `INonCyclicMessageHandler`, `IAsyncNonCyclicMessageHandler`) process the given message.
+- `IMessageHandlingService` acknowledges the message by its `DeliveryTag`.
+- If any exception occurs `IMessageHandlingService` acknowledges the message anyway and checks if the message has to be re-send. If exchange option `RequeueFailedMessages` is set `true` then `IMessageHandlingService` adds a header `"requeued"` to the message and sends it again with delay in 60 seconds. Mechanism of sending delayed messages covered in the message production [documentation](message-production.md).
 - If any exception occurs within handling the message that has been already re-sent that message will not be re-send again (re-send happens only once).
 
 For message production features see the [Previous page](message-production.md)

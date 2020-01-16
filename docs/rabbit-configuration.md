@@ -1,7 +1,7 @@
 # RabbitMQ configuration
 
-To connect to a RabbitMQ, it is necessary to instantiate an `IQueueService` and configure it to use desired endpoint, credentials and other valuable connection settings.
-`IQueueService` allows clients to configure queues to exchange bindings, and to consume and produce messages in different ways (sync or async, with or without delay). To add `IQueueService` in your application simply use `AddRabbitMqClient` extension method as in the example below.
+To connect to a RabbitMQ server, it is necessary to instantiate `IQueueService` and configure it to use a desired endpoint, credentials and other valuable connection settings.
+`IQueueService` allows clients to configure queues to exchange bindings, and to consume and produce messages in different ways (sync or async, with or without delay). To add `IQueueService` in your application simply use the `AddRabbitMqClient` extension method as in the example below.
 
 ```c#
 public class Startup
@@ -24,7 +24,7 @@ public class Startup
 }
 ```
 
-RabbitMQ client can be configured via configuration section located in the `appsettings.json` file. This configuration section must be of a certain format and down below is an example of all configuration options used in `IQueueService`.
+A RabbitMQ client can be configured via a configuration section located in the `appsettings.json` file. This configuration section must be of a certain format and down below is an example of all configuration options used in `IQueueService`.
 
 ```json
 {
@@ -43,7 +43,7 @@ RabbitMQ client can be configured via configuration section located in the `apps
 }
 ```
 
-RabbitMQ connection can be configured with properties:
+A RabbitMQ connection can be configured with properties:
 - `HostName`  - RabbitMQ server,
 - `HostNames` - collection of RabbitMQ hostnames,
 - `TcpEndpoints` - collection of AMPQ TCP endpoints,
@@ -70,7 +70,7 @@ RabbitMQ connection can be configured with properties:
 }
 ```
 
-For high availability RabbitMQ clusters with multiple nodes you can set hosts collection with `HostNames` option.
+For high availability RabbitMQ clusters with multiple nodes you can set hosts collection with the `HostNames` option.
 
 ```json
 {
@@ -109,9 +109,9 @@ If nodes are running on different hosts with different ports you have an option 
 }
 ```
 
-There is an importance of `TcpEndpoints`, `HostNames`, `HostName` options. If all of them are set connection will be created using `TcpEndpoints` option. The second will be option `HostNames` and the `HostName` option is the least important between those three.
+There is an importance of `TcpEndpoints`, `HostNames`, `HostName` options. If all of them are set connection will be created using the `TcpEndpoints` option. The second will be the option `HostNames` and the `HostName` option is the least important between those three.
 
-If `.json` configuration files unacceptable for you there is another `AddRabbitMqClient` extension method that takes manually created `RabbitMqClientOptions` configuration as a parameter. `RabbitMqClientOptions` is the model class used for injecting RabbitMQ client configuration as an `IOtions<T>` instance so properties named the same as in the previous method.
+If `.json` configuration files unacceptable for you there is another `AddRabbitMqClient` extension method that takes manually created `RabbitMqClientOptions` configuration as a parameter. `RabbitMqClientOptions` is the model class used for injecting a RabbitMQ client configuration as an `IOtions<T>` instance so properties named the same as in the previous method.
 
 ```c#
 public class Startup
