@@ -110,6 +110,16 @@ class Program
 You have to configure everything almost the same way as you have already done with producer. The main differences are that you need to declare (configure) consumption exchange calling `AddConsumptionExchange` instead of production exchange. For detailed information about difference in exchange declarations you may want to see the [documentation](./docs/exchange-configuration.md).
 The other important part is adding custom message handlers by implementing `IMessageHandler` interface and calling `AddMessageHandlerSingleton<T>` or `AddMessageHandlerTransient<T>` methods. `IMessageHandler` is a simple subscriber, which receives messages from a queue by selected routing key. You are allowed to set multiple message handlers for one routing key (e.g. one is writing it in a database, and the other does the business logic).
 
+You can also use pattern matching while adding message handlers where `*` (star) can substitute for exactly one word and `#` (hash) can substitute for zero or more words.
+You are also allowed to specify the exact exchange which will be "listened" by the message handler with the given routing key (or a pattern).
+
+```c#
+services.AddRabbitMqClient(rabbitMqSection)
+    .AddConsumptionExchange("exchange.name", exchangeSection)
+    .AddMessageHandlerSingleton<CustomMessageHandler>("*.*.key")
+    .AddMessageHandlerSingleton<AnotherCustomMessageHandler>("#", "exchange.name");
+```
+
 The very last step is to start "listening" (consuming) by simply calling `StartConsuming` method of `IQueueService`. After that you will start getting messages, and you can handle them in any way you want.
 
 Message handler example.
