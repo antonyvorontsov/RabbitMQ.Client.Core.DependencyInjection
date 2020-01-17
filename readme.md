@@ -26,7 +26,7 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
-By calling `AddRabbitMqClient` you add a singleton `IQueueService` that provides functionality of sending messages to queues. `AddProductionExchange` configures exchange to queues bindings (presented in json configuration) that allow messages to route properly. 
+By calling `AddRabbitMqClient` you add `IQueueService` that provides functionality of sending messages to queues. `AddProductionExchange` configures exchange to queues bindings (presented in json configuration) that allow messages to route properly. 
 Example of `appsettings.json` is two sections below. You can also configure everything manually. For more information, see [rabbit-configuration](./docs/rabbit-configuration.md) and [exchange-configuration](./docs/exchange-configuration.md) documentation files.
 
 Now you can inject an instance of `IQueueService` inside anything you want.
