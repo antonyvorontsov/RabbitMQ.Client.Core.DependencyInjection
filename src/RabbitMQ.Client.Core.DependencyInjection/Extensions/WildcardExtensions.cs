@@ -15,7 +15,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Extensions
         const string Separator = ".";
         const string SingleWordPattern = "*";
         const string MultipleWordsPattern = "#";
-        
+
         /// <summary>
         /// Construct tree (trie) structure of message handler route patterns.
         /// </summary>
@@ -39,8 +39,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Extensions
                 {
                     var part = keyParts[index];
 
-                    var existingNode = index == keyParts.Length - 1 
-                        ? currentTreeNode.FirstOrDefault(x => x.KeyPartition == part && x.IsLastNode) 
+                    var existingNode = index == keyParts.Length - 1
+                        ? currentTreeNode.FirstOrDefault(x => x.KeyPartition == part && x.IsLastNode)
                         : currentTreeNode.FirstOrDefault(x => x.KeyPartition == part && !x.IsLastNode);
 
                     if (existingNode is null)
@@ -76,7 +76,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Extensions
         {
             return GetMatchingRoutePatterns(tree, routingKeyParts, depth: 0);
         }
-        
+
         static IEnumerable<string> GetMatchingRoutePatterns(IEnumerable<TreeNode> tree, string[] routingKeyParts, int depth)
         {
             foreach (var node in tree)
@@ -118,7 +118,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Extensions
                 }
             }
         }
-        
+
         static IEnumerable<string[]> CollectRoutingKeyTails(IReadOnlyCollection<string> routingKeyParts, int depthStart)
         {
             for (var index = depthStart; index < routingKeyParts.Count; index++)
@@ -126,7 +126,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Extensions
                 yield return routingKeyParts.Skip(index).ToArray();
             }
         }
-        
+
         static string CollectRoutingKeyInReverseOrder(TreeNode node, string routingKey = "")
         {
             routingKey = string.IsNullOrEmpty(routingKey) ? node.KeyPartition : $"{node.KeyPartition}.{routingKey}";

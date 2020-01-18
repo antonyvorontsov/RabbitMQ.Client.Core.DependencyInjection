@@ -43,7 +43,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             services.AddSingleton<IQueueService, QueueService>();
             return services;
         }
-        
+
         /// <summary>
         /// Add RabbitMQ client and required service infrastructure.
         /// </summary>
@@ -60,7 +60,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             services.AddTransient<IQueueService, QueueService>();
             return services;
         }
-        
+
         /// <summary>
         /// Add RabbitMQ client and required service infrastructure.
         /// </summary>

@@ -169,7 +169,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// <returns>Service collection.</returns>
         public static IServiceCollection AddAsyncNonCyclicMessageHandlerSingleton<T>(this IServiceCollection services, IEnumerable<string> routePatterns) where T : class, IAsyncNonCyclicMessageHandler =>
             services.AddInstanceSingleton<IAsyncNonCyclicMessageHandler, T>(routePatterns.ToList());
-        
+
         /// <summary>
         /// Add a transient message handler.
         /// </summary>
@@ -361,7 +361,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         public static IServiceCollection AddAsyncNonCyclicMessageHandlerSingleton<T>(this IServiceCollection services, IEnumerable<string> routePatterns, string exchange)
             where T : class, IAsyncNonCyclicMessageHandler =>
             services.AddInstanceSingleton<IAsyncNonCyclicMessageHandler, T>(routePatterns.ToList(), exchange);
-        
+
         static IServiceCollection AddInstanceTransient<TInterface, TImplementation>(this IServiceCollection services, IEnumerable<string> routePatterns)
             where TInterface : class
             where TImplementation : class, TInterface =>
@@ -371,7 +371,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             where TInterface : class
             where TImplementation : class, TInterface =>
             services.AddInstanceSingleton<TInterface, TImplementation>(routePatterns, null);
-        
+
         static IServiceCollection AddInstanceTransient<TInterface, TImplementation>(this IServiceCollection services, IEnumerable<string> routePatterns, string exchange)
             where TInterface : class
             where TImplementation : class, TInterface

@@ -6,7 +6,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
     public class HandleMessageReceivingEventTestData : IEnumerable<object[]>
     {
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-        
+
         public IEnumerator<object[]> GetEnumerator()
         {
             yield return new object[]

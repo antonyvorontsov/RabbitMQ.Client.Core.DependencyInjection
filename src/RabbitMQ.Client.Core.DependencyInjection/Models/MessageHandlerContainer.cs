@@ -15,7 +15,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Models
         /// Could be null.
         /// </remarks>
         public string Exchange { get; set; }
-        
+
         /// <summary>
         /// Route patterns tree (trie) structure.
         /// </summary>
@@ -30,17 +30,17 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Models
         /// Dictionary of route patterns and message handlers connected by them.
         /// </summary>
         public IDictionary<string, IList<IMessageHandler>> MessageHandlers { get; set; }
-        
+
         /// <summary>
         /// Dictionary of route patterns and async message handlers connected by them.
         /// </summary>
         public IDictionary<string, IList<IAsyncMessageHandler>> AsyncMessageHandlers { get; set; }
-        
+
         /// <summary>
         /// Dictionary of route patterns and non-cyclic message handlers connected by them.
         /// </summary>
         public IDictionary<string, IList<INonCyclicMessageHandler>> NonCyclicHandlers { get; set; }
-        
+
         /// <summary>
         /// Dictionary of route patterns and async non-cyclic message handlers connected by them.
         /// </summary>

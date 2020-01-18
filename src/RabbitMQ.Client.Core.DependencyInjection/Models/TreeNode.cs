@@ -24,7 +24,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Models
         /// Child nodes.
         /// </summary>
         public List<TreeNode> Nodes { get; } = new List<TreeNode>();
-        
+
         /// <summary>
         /// Flag is the node "last" - a single word that comes without any other parts.
         /// </summary>

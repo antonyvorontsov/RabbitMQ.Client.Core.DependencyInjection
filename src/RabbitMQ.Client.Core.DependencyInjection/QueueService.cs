@@ -24,7 +24,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
 
         readonly IConnection _connection;
         readonly IModel _channel;
-        
+
         readonly IMessageHandlingService _messageHandlingService;
         readonly IEnumerable<RabbitMqExchange> _exchanges;
         readonly ILogger<QueueService> _logger;
@@ -50,7 +50,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             _messageHandlingService = messageHandlingService;
             _exchanges = exchanges;
             _logger = logger;
-            
+
             _connection = CreateRabbitMqConnection(options.Value);
             // Event handling.
             _connection.CallbackException += HandleConnectionCallbackException;

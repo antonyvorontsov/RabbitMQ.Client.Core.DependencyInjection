@@ -16,11 +16,11 @@ namespace RabbitMQ.Client.Core.DependencyInjection
     public class MessageHandlingService : IMessageHandlingService
     {
         const int ResendTimeout = 60;
-        
+
         readonly IEnumerable<RabbitMqExchange> _exchanges;
         readonly IEnumerable<MessageHandlerContainer> _messageHandlerContainers;
         readonly ILogger<MessageHandlingService> _logger;
-        
+
         public MessageHandlingService(
             IMessageHandlerContainerBuilder messageHandlerContainerBuilder,
             IEnumerable<RabbitMqExchange> exchanges,
@@ -30,7 +30,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             _messageHandlerContainers = messageHandlerContainerBuilder.BuildCollection();
             _logger = logger;
         }
-        
+
         /// <summary>
         /// Handle message receiving event.
         /// </summary>
@@ -85,7 +85,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
 
         IEnumerable<string> GetMatchingRoutePatterns(string exchange, string routingKey)
         {
-            var tree = _messageHandlerContainers.FirstOrDefault(x => x.Exchange == exchange)?.Tree 
+            var tree = _messageHandlerContainers.FirstOrDefault(x => x.Exchange == exchange)?.Tree
                 ?? _messageHandlerContainers.FirstOrDefault(x => x.IsGeneral)?.Tree;
             if (tree is null)
             {
@@ -166,7 +166,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                         executedHandlers.Add(handlerType);
                         RunNonCyclicMessageHandler(handler, message, matchingRoute, queueService);
                     }
-                } 
+                }
             }
         }
 

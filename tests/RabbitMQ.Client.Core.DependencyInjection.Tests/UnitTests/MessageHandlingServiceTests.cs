@@ -21,16 +21,16 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
 
             var messageHandlerMock = new Mock<IMessageHandler>();
             var messageHandlers = new[] { messageHandlerMock.Object };
-            
+
             var asyncMessageHandlerMock = new Mock<IAsyncMessageHandler>();
             var asyncMessageHandlers = new[] { asyncMessageHandlerMock.Object };
-            
+
             var nonCyclicMessageHandlerMock = new Mock<INonCyclicMessageHandler>();
             var nonCyclicMessageHandlers = new[] { nonCyclicMessageHandlerMock.Object };
-            
+
             var asyncNonCyclicMessageHandlerMock = new Mock<IAsyncNonCyclicMessageHandler>();
             var asyncNonCyclicMessageHandlers = new[] { asyncNonCyclicMessageHandlerMock.Object };
-            
+
             var routers = new List<MessageHandlerRouter>
             {
                 new MessageHandlerRouter
@@ -58,7 +58,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                     RoutePatterns = testDataModel.AsyncNonCyclicMessageHandlerPatterns
                 }
             };
-            
+
             var service = CreateService(
                 exchanges,
                 routers,
@@ -67,7 +67,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                 nonCyclicMessageHandlers,
                 asyncNonCyclicMessageHandlers);
             var queueService = CreateQueueService();
-            
+
             var eventArgs = new BasicDeliverEventArgs
             {
                 Exchange = testDataModel.MessageExchange,
@@ -78,13 +78,13 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
 
             var messageHandlerTimes = testDataModel.MessageHandlerShouldTrigger ? Times.Once() : Times.Never();
             messageHandlerMock.Verify(x => x.Handle(It.IsAny<string>(), It.IsAny<string>()), messageHandlerTimes);
-            
+
             var asyncMessageHandlerTimes = testDataModel.AsyncMessageHandlerShouldTrigger ? Times.Once() : Times.Never();
             asyncMessageHandlerMock.Verify(x => x.Handle(It.IsAny<string>(), It.IsAny<string>()), asyncMessageHandlerTimes);
-            
+
             var nonCyclicMessageHandlerTimes = testDataModel.NonCyclicMessageHandlerShouldTrigger ? Times.Once() : Times.Never();
             nonCyclicMessageHandlerMock.Verify(x => x.Handle(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IQueueService>()), nonCyclicMessageHandlerTimes);
-            
+
             var asyncNonCyclicMessageHandlerTimes = testDataModel.AsyncNonCyclicMessageHandlerShouldTrigger ? Times.Once() : Times.Never();
             asyncNonCyclicMessageHandlerMock.Verify(x => x.Handle(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IQueueService>()), asyncNonCyclicMessageHandlerTimes);
         }
