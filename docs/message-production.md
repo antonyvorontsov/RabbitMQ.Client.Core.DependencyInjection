@@ -18,7 +18,7 @@ public class HomeController : Controller
 }
 ```
 
-Or you can get the instance of singleton `IQueueService` in a console application.
+Or you can get the instance of `IQueueService` in a console application.
 
 ```c#
 public static class Program
