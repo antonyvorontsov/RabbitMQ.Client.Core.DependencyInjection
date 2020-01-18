@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client.Core.DependencyInjection;
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 

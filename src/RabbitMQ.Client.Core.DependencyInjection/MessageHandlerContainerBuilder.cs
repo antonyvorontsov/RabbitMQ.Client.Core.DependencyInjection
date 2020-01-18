@@ -18,7 +18,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         readonly IEnumerable<IAsyncMessageHandler> _asyncMessageHandlers;
         readonly IEnumerable<INonCyclicMessageHandler> _nonCyclicHandlers;
         readonly IEnumerable<IAsyncNonCyclicMessageHandler> _asyncNonCyclicHandlers;
-        
+
         public MessageHandlerContainerBuilder(
             IEnumerable<MessageHandlerRouter> routers,
             IEnumerable<IMessageHandler> messageHandlers,
@@ -32,7 +32,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             _nonCyclicHandlers = nonCyclicHandlers;
             _asyncNonCyclicHandlers = asyncNonCyclicHandlers;
         }
-        
+
         /// <summary>
         /// Build message handler containers collection.
         /// </summary>
@@ -46,7 +46,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                 var container = CreateContainer(null, generalRouters);
                 containers.Add(container);
             }
-            
+
             var exchanges = _routers.Where(x => !x.IsGeneral).Select(x => x.Exchange).Distinct().ToList();
             foreach (var exchange in exchanges)
             {
