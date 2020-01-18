@@ -2,7 +2,15 @@
 
 All notable changes to this library will be documented in this file.
 
-## [3.1.1] - 2020-01-20
+## [2.2.2] copy of [3.1.1] - 2020-01-18
+
+**The latest version that supports backward compatibility for .Net Core 2.2**
+
+### Added
+
+- Backwards compability for .Net Core 2.2.
+
+## [3.1.1] - 2020-01-18
 
 ### Added
 
@@ -38,7 +46,7 @@ All notable changes to this library will be documented in this file.
 
 ### Added
 
-- **!Breaking change** Boolean parameter `isConsuming` for `AddExchange` method. 
+- **!Breaking change** Boolean parameter `isConsuming` for `AddExchange` method.
 - Extension methods for adding different exchanges (`AddProductionExchange` and `AddConsumptionExchange`) that wraps `isConsuming` parameter.
 
 ### Updated
