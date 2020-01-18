@@ -40,7 +40,7 @@ public class ConsumingService : IHostedService
 {
     readonly IQueueService _queueService;
     readonly ILogger<ConsumingService> _logger;
-    
+
     public ConsumingService(
         IQueueService queueService,
         ILogger<ConsumingService> logger)
@@ -48,14 +48,14 @@ public class ConsumingService : IHostedService
         _queueService = queueService;
         _logger = logger;
     }
-    
+
     public Task StartAsync(CancellationToken cancellationToken)
     {
         _logger.LogInformation("Starting consuming.");
         _queueService.StartConsuming();
         return Task.CompletedTask;
     }
-    
+
     public Task StopAsync(CancellationToken cancellationToken)
     {
         _logger.LogInformation("Stopping consuming.");
@@ -82,7 +82,7 @@ public class Program
                 var exchangeConfiguration = hostContext.Configuration.GetSection("RabbitMqExchange");
                 services.AddRabbitMqClient(clientConfiguration)
                     .AddExchange("ExchangeName", isConsuming: true, exchangeConfiguration);
-                
+
                 // And add the background service.
                 services.AddHostedService<Worker>();;
             });
@@ -139,7 +139,7 @@ RabbitMQ client and exchange configuration sections are not specified in this ex
 ```c#
 services.AddRabbitMqClient(clientConfiguration)
     .AddExchange("ExchangeName", isConsuming: true, exchangeConfiguration)
-    .AddMessageHandlerSingleton<CustomMessageHandler>("first.routing.key");
+    .AddMessageHandlerSingleton<CustomMessageHandler>("first.routing.key")
     .AddMessageHandlerSingleton<AnotherCustomMessageHandler>(new[] { "second.routing.key", "third.routing.key" });
 ```
 
@@ -148,7 +148,7 @@ You can also use **pattern matching** in routes where `*` (star) can substitute 
 ```c#
 services.AddRabbitMqClient(clientConfiguration)
     .AddExchange("ExchangeName", isConsuming: true, exchangeConfiguration)
-    .AddMessageHandlerSingleton<CustomMessageHandler>("*.routing.*");
+    .AddMessageHandlerSingleton<CustomMessageHandler>("*.routing.*")
     .AddMessageHandlerSingleton<AnotherCustomMessageHandler>(new[] { "#.key", "third.*" });
 ```
 
@@ -157,7 +157,7 @@ You are also allowed to specify the exact exchange which will be "listened" by a
 ```c#
 services.AddRabbitMqClient(clientConfiguration)
     .AddExchange("ExchangeName", isConsuming: true, exchangeConfiguration)
-    .AddMessageHandlerSingleton<CustomMessageHandler>("*.*.*", "ExchangeName");
+    .AddMessageHandlerSingleton<CustomMessageHandler>("*.*.*", "ExchangeName")
     .AddMessageHandlerSingleton<AnotherCustomMessageHandler>("routing.key", "ExchangeName");
 ```
 
@@ -170,7 +170,7 @@ services.AddRabbitMqClient(clientConfiguration)
 ```
 
 You can also set multiple message handlers for managing messages received by one routing key. This case can happen when you want to divide responsibilities between services (e.g. one contains business logic, and the other writes messages in the database).
- 
+
 ```c#
 services.AddRabbitMqClient(clientConfiguration)
     .AddExchange("ExchangeName", isConsuming: true, exchangeConfiguration)
@@ -203,7 +203,7 @@ public class CustomMessageHandler : IMessageHandler
     {
         _logger = logger;
     }
-    
+
     public void Handle(string message, string routingKey)
     {
         _logger.LogInformation($"I got a message {message} by routing key {routingKey}");
@@ -231,7 +231,7 @@ public class CustomNonCyclicMessageHandler : INonCyclicMessageHandler
     {
         _logger = logger;
     }
-    
+
     public void Handle(string message, string routingKey, IQueueService queueService)
     {
         _logger.LogInformation("Got a message. I will send it back to another queue.");
@@ -259,12 +259,12 @@ services.AddRabbitMqClient(clientConfiguration)
 public class CustomAsyncMessageHandler : IAsyncMessageHandler
 {
     readonly ILogger<CustomAsyncMessageHandler> _logger;
-    
+
     public CustomAsyncMessageHandler(ILogger<CustomAsyncMessageHandler> logger)
     {
         _logger = logger;
     }
-    
+
     public async Task Handle(string message, string routingKey)
     {
         // Do whatever you want asynchronously!
@@ -278,12 +278,12 @@ And `IAsyncNonCyclicMessageHandler` will be as in example below.
 public class CustomAsyncNonCyclicMessageHandler : IAsyncNonCyclicMessageHandler
 {
     readonly ILogger<CustomAsyncNonCyclicMessageHandler> _logger;
-    
+
     public CustomAsyncNonCyclicMessageHandler(ILogger<CustomAsyncNonCyclicMessageHandler> logger)
     {
         _logger = logger;
     }
-    
+
     public async Task Handle(string message, string routingKey, IQueueService queueService)
     {
         _logger.LogInformation("You can do something async, e.g. send message back.");

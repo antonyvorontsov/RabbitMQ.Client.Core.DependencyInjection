@@ -45,7 +45,7 @@ public static class Program
 
 To publish a message to an exchange, use one of `IQueueService` sending methods.
 
-You can send objects using `Send` or `SendAsync` methods. Objects will be serialized into json and sent with `IBasicProperties` where content type set as `"application/json"` and `Persistent` set as `true`. 
+You can send objects using `Send` or `SendAsync` methods. Objects will be serialized into json and sent with `IBasicProperties` where content type set as `"application/json"` and `Persistent` set as `true`.
 
 ```c#
 var message = new

@@ -25,7 +25,7 @@ public class Startup
         services.AddRabbitMqClient(clientConfiguration)
             .AddExchange("ExchangeName", isConsuming: true, exchangeConfiguration);
     }
-    
+
     public void Configure(IApplicationBuilder app, IHostingEnvironment env)
     {
     }
@@ -134,7 +134,7 @@ services.AddRabbitMqClient(clientConfiguration)
 ### Manual configuring
 
 You can also configure exchanges manually passing instances of `RabbitMqExchangeOptions` and `RabbitMqQueueOptions` classes to one of the `AddExchange` methods.
- 
+
 ```c#
 var exchangeOptions = new RabbitMqExchangeOptions
 {
