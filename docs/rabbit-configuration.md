@@ -24,6 +24,8 @@ public class Startup
 }
 ```
 
+The `AddRabbitMqClient` method will add an `IQueueService` as a **singleton**, but you can register it in the **transient** mode simply calling the `AddRabbitMqClientTransient` method which takes the same set of parameters. 
+
 A RabbitMQ client can be configured via a configuration section located in the `appsettings.json` file. This configuration section must be of a certain format and down below is an example of all configuration options used in `IQueueService`.
 
 ```json
@@ -140,5 +142,7 @@ public class Startup
     }
 }
 ```
+
+There is also the `AddRabbitMqClientTransient` method which takes `RabbitMqClientOptions`.
 
 For the exchange configuration see the [Next page](exchange-configuration.md)

@@ -13,16 +13,16 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// <summary>
         /// Add RabbitMQ client and required service infrastructure.
         /// </summary>
+        /// <remarks>
+        /// QueueService will be added in the singleton mode.
+        /// </remarks>
         /// <param name="services">Service collection.</param>
         /// <param name="configuration">RabbitMq configuration section.</param>
         /// <returns>Service collection.</returns>
         public static IServiceCollection AddRabbitMqClient(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddOptions();
-            services.AddLogging(options => options.AddConsole());
+            services.AddRabbitMqClientInfrastructure();
             services.Configure<RabbitMqClientOptions>(configuration);
-            services.AddSingleton<IMessageHandlerContainerBuilder, MessageHandlerContainerBuilder>();
-            services.AddSingleton<IMessageHandlingService, MessageHandlingService>();
             services.AddSingleton<IQueueService, QueueService>();
             return services;
         }
@@ -30,12 +30,65 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// <summary>
         /// Add RabbitMQ client and required service infrastructure.
         /// </summary>
+        /// <remarks>
+        /// QueueService will be added in the singleton mode.
+        /// </remarks>
         /// <param name="services">Service collection.</param>
         /// <param name="configuration">RabbitMq configuration <see cref="RabbitMqClientOptions"/>.</param>
         /// <returns>Service collection.</returns>
         public static IServiceCollection AddRabbitMqClient(this IServiceCollection services, RabbitMqClientOptions configuration)
         {
+            services.AddRabbitMqClientInfrastructure();
+            services.ConfigureRabbitMqClientOptions(configuration);
+            services.AddSingleton<IQueueService, QueueService>();
+            return services;
+        }
+        
+        /// <summary>
+        /// Add RabbitMQ client and required service infrastructure.
+        /// </summary>
+        /// <remarks>
+        /// QueueService will be added in the transient mode.
+        /// </remarks>
+        /// <param name="services">Service collection.</param>
+        /// <param name="configuration">RabbitMq configuration section.</param>
+        /// <returns>Service collection.</returns>
+        public static IServiceCollection AddRabbitMqClientTransient(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.AddRabbitMqClientInfrastructure();
+            services.Configure<RabbitMqClientOptions>(configuration);
+            services.AddTransient<IQueueService, QueueService>();
+            return services;
+        }
+        
+        /// <summary>
+        /// Add RabbitMQ client and required service infrastructure.
+        /// </summary>
+        /// <remarks>
+        /// QueueService will be added in the transient mode.
+        /// </remarks>
+        /// <param name="services">Service collection.</param>
+        /// <param name="configuration">RabbitMq configuration <see cref="RabbitMqClientOptions"/>.</param>
+        /// <returns>Service collection.</returns>
+        public static IServiceCollection AddRabbitMqClientTransient(this IServiceCollection services, RabbitMqClientOptions configuration)
+        {
+            services.AddRabbitMqClientInfrastructure();
+            services.ConfigureRabbitMqClientOptions(configuration);
+            services.AddTransient<IQueueService, QueueService>();
+            return services;
+        }
+
+        static IServiceCollection AddRabbitMqClientInfrastructure(this IServiceCollection services)
+        {
+            services.AddOptions();
             services.AddLogging(options => options.AddConsole());
+            services.AddSingleton<IMessageHandlerContainerBuilder, MessageHandlerContainerBuilder>();
+            services.AddSingleton<IMessageHandlingService, MessageHandlingService>();
+            return services;
+        }
+
+        static IServiceCollection ConfigureRabbitMqClientOptions(this IServiceCollection services, RabbitMqClientOptions configuration)
+        {
             services.Configure<RabbitMqClientOptions>(opt =>
             {
                 opt.HostName = configuration.HostName;
@@ -51,7 +104,6 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                 opt.RequestedHeartbeat = configuration.RequestedHeartbeat;
                 opt.ClientProvidedName = configuration.ClientProvidedName;
             });
-            services.AddSingleton<IQueueService, QueueService>();
             return services;
         }
     }
