@@ -1,13 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <LangVersion>latest</LangVersion>
-    <Version>3.1.1</Version>
+    <Version>3.1.1.1</Version>
     <PackageTags>RabbitMQ</PackageTags>
     <RepositoryUrl>https://github.com/AntonyVorontsov/RabbitMQ.Client.Core.DependencyInjection</RepositoryUrl>
     <Company />
-    <Description>.Net Core library-wrapper of RabbitMQ.Client for Dependency Injection.</Description>
+    <Description>A RabbitMQ.Client wrapper that provides easy, managed, injectable (via standard dependency injection) message queue consume and publish operations.</Description>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageIcon>icon.png</PackageIcon>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
