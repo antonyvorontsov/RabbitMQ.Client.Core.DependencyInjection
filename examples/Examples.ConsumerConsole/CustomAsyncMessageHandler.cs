@@ -15,7 +15,7 @@ namespace Examples.ConsumerConsole
 
         public async Task Handle(string message, string routingKey)
         {
-            _logger.LogInformation($"A weird example of running something async with message {message}.");
+            _logger.LogInformation($"A weird example of running something async with message {message} that has been received by {routingKey}.");
             await Task.CompletedTask.ConfigureAwait(false);
         }
     }

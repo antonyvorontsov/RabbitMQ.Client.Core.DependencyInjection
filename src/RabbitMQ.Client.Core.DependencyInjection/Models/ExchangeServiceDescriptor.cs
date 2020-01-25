@@ -8,20 +8,13 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Models
     /// </summary>
     internal class ExchangeServiceDescriptor : ServiceDescriptor
     {
+        /// <summary>
+        /// Name of the exchange that has been registered.
+        /// </summary>
         public string ExchangeName { get; set; }
 
         public ExchangeServiceDescriptor(Type serviceType, object instance)
             : base(serviceType, instance)
-        {
-        }
-
-        public ExchangeServiceDescriptor(Type serviceType, Type implementationType, ServiceLifetime lifetime)
-            : base(serviceType, implementationType, lifetime)
-        {
-        }
-
-        public ExchangeServiceDescriptor(Type serviceType, Func<IServiceProvider, object> factory, ServiceLifetime lifetime)
-            : base(serviceType, factory, lifetime)
         {
         }
     }

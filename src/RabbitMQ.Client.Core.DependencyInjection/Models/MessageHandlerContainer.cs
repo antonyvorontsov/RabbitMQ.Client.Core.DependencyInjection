@@ -29,21 +29,11 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Models
         /// <summary>
         /// Dictionary of route patterns and message handlers connected by them.
         /// </summary>
-        public IDictionary<string, IList<IMessageHandler>> MessageHandlers { get; set; }
+        public IDictionary<string, IList<IBaseMessageHandler>> MessageHandlers { get; set; }
 
         /// <summary>
-        /// Dictionary of route patterns and async message handlers connected by them.
+        /// The collection of models that contain information about an order in which message handlers will be called.
         /// </summary>
-        public IDictionary<string, IList<IAsyncMessageHandler>> AsyncMessageHandlers { get; set; }
-
-        /// <summary>
-        /// Dictionary of route patterns and non-cyclic message handlers connected by them.
-        /// </summary>
-        public IDictionary<string, IList<INonCyclicMessageHandler>> NonCyclicHandlers { get; set; }
-
-        /// <summary>
-        /// Dictionary of route patterns and async non-cyclic message handlers connected by them.
-        /// </summary>
-        public IDictionary<string, IList<IAsyncNonCyclicMessageHandler>> AsyncNonCyclicHandlers { get; set; }
+        public IEnumerable<MessageHandlerOrderingModel> MessageHandlerOrderingModels { get; set; }
     }
 }

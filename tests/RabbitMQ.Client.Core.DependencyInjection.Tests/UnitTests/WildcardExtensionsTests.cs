@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-using RabbitMQ.Client.Core.DependencyInjection.Extensions;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
+using RabbitMQ.Client.Core.DependencyInjection.ServiceExtensions;
 using Xunit;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests

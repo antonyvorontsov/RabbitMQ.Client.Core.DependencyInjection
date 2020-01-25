@@ -103,10 +103,12 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         static void CheckExchangeExists(IServiceCollection services, string exchangeName)
         {
             var exchangeExists = services.Any(x => x.ServiceType == typeof(RabbitMqExchange)
-                              && x.Lifetime == ServiceLifetime.Singleton
-                              && string.Equals(((ExchangeServiceDescriptor)x).ExchangeName, exchangeName, StringComparison.OrdinalIgnoreCase));
+                  && x.Lifetime == ServiceLifetime.Singleton
+                  && string.Equals(((ExchangeServiceDescriptor)x).ExchangeName, exchangeName, StringComparison.OrdinalIgnoreCase));
             if (exchangeExists)
+            {
                 throw new ArgumentException($"Exchange {exchangeName} has been added already!");
+            }
         }
     }
 }

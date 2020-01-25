@@ -5,7 +5,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
     /// <summary>
     /// Interface of asynchronous message handler.
     /// </summary>
-    public interface IAsyncMessageHandler
+    public interface IAsyncMessageHandler : IBaseMessageHandler
     {
         /// <summary>
         /// Handle message from a queue.
