@@ -128,7 +128,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             }
 
             var executedHandlers = new List<Type>();
-            var orderedContainers = messageHandlerOrderingContainers.OrderByDescending(x => x.Order).ToList();
+            var orderedContainers = messageHandlerOrderingContainers.OrderByDescending(x => x.Order)
+                .ThenByDescending(x => x.MessageHandler.GetHashCode())
+                .ToList();
             foreach (var orderedContainer in orderedContainers)
             {
                 var handlerType = orderedContainer.MessageHandler.GetType();
