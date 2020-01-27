@@ -175,10 +175,6 @@ Exchange sections define how to bind queues and exchanges with each other using 
 
 For more information about `appsettings.json` and manual configuration features, see [rabbit-configuration](./docs/rabbit-configuration.md) and [exchange-configuration](./docs/exchange-configuration.md) documentation files.
 
-## Versioning
-
-For now this project uses semantic versioning that follows .Net Core versioning. That means that major and minor versions are equal to .Net Core major and minor versions but patch versions will be used independently.
-
 ## Changelog
 
 All notable changes are being tracked in the [changelog](./docs/changelog.md) file.

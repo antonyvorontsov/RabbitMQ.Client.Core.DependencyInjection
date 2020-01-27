@@ -840,8 +840,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         {
             var messageHandlerOrderingModel = services.FirstOrDefault(x => x.ServiceType == typeof(MessageHandlerOrderingModel)
                 && x.Lifetime == ServiceLifetime.Singleton
-                && x.ImplementationType == typeof(TImplementation)
-                && string.Equals(((MessageHandlerOrderingModel)x.ImplementationInstance).Exchange, exchange, StringComparison.OrdinalIgnoreCase)
+                && ((MessageHandlerOrderingModel)x.ImplementationInstance).MessageHandlerType == typeof(TImplementation)
+                && (string.Equals(((MessageHandlerOrderingModel)x.ImplementationInstance).Exchange, exchange, StringComparison.OrdinalIgnoreCase) 
+                    || (exchange is null && ((MessageHandlerOrderingModel)x.ImplementationInstance).Exchange is null))
                 && ((MessageHandlerOrderingModel)x.ImplementationInstance).Order != order
                 && routePatterns.Intersect(((MessageHandlerOrderingModel)x.ImplementationInstance).RoutePatterns).Any());
             if (messageHandlerOrderingModel is null)
