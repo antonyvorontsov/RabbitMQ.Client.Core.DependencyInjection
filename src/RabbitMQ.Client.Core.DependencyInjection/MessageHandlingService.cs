@@ -46,7 +46,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             try
             {
                 var matchingRoutes = GetMatchingRoutePatterns(eventArgs.Exchange, eventArgs.RoutingKey);
-                await ProcessMessage(eventArgs.Exchange, message, queueService, matchingRoutes);
+                await ProcessMessage(eventArgs.Exchange, message, queueService, matchingRoutes).ConfigureAwait(false);
                 queueService.Channel.BasicAck(eventArgs.DeliveryTag, false);
                 _logger.LogInformation(
                     $"Message processing finished successfully. Acknowledge has been sent with deliveryTag {eventArgs.DeliveryTag}.");
@@ -145,13 +145,13 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                         RunMessageHandler(messageHandler, message, orderedContainer.MatchingRoute);
                         break;
                     case IAsyncMessageHandler asyncMessageHandler:
-                        await RunAsyncMessageHandler(asyncMessageHandler, message, orderedContainer.MatchingRoute);
+                        await RunAsyncMessageHandler(asyncMessageHandler, message, orderedContainer.MatchingRoute).ConfigureAwait(false);
                         break;
                     case INonCyclicMessageHandler nonCyclicMessageHandler:
                         RunNonCyclicMessageHandler(nonCyclicMessageHandler, message, orderedContainer.MatchingRoute, queueService);
                         break;
                     case IAsyncNonCyclicMessageHandler asyncNonCyclicMessageHandler:
-                        await RunAsyncNonCyclicMessageHandler(asyncNonCyclicMessageHandler, message, orderedContainer.MatchingRoute, queueService);
+                        await RunAsyncNonCyclicMessageHandler(asyncNonCyclicMessageHandler, message, orderedContainer.MatchingRoute, queueService).ConfigureAwait(false);
                         break;
                     default:
                         throw new NotSupportedException($"The type {orderedContainer.MessageHandler.GetType()} of message handler is not supported.");
