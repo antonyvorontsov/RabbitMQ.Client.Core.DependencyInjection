@@ -4,8 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using RabbitMQ.Client.Core.DependencyInjection.Extensions;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
+using RabbitMQ.Client.Core.DependencyInjection.ServiceExtensions;
 using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Core.DependencyInjection
@@ -36,7 +36,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// </summary>
         /// <param name="eventArgs">Arguments of message receiving event.</param>
         /// <param name="queueService">An instance of the queue service <see cref="IQueueService"/>.</param>
-        public void HandleMessageReceivingEvent(BasicDeliverEventArgs eventArgs, IQueueService queueService)
+        public async Task HandleMessageReceivingEvent(BasicDeliverEventArgs eventArgs, IQueueService queueService)
         {
             var message = Encoding.UTF8.GetString(eventArgs.Body);
 
@@ -46,13 +46,17 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             try
             {
                 var matchingRoutes = GetMatchingRoutePatterns(eventArgs.Exchange, eventArgs.RoutingKey);
-                ProcessMessage(eventArgs.Exchange, message, queueService, matchingRoutes);
+                await ProcessMessage(eventArgs.Exchange, message, queueService, matchingRoutes).ConfigureAwait(false);
                 queueService.Channel.BasicAck(eventArgs.DeliveryTag, false);
-                _logger.LogInformation($"Message processing finished successfully. Acknowledge has been sent with deliveryTag {eventArgs.DeliveryTag}.");
+                _logger.LogInformation(
+                    $"Message processing finished successfully. Acknowledge has been sent with deliveryTag {eventArgs.DeliveryTag}.");
             }
             catch (Exception exception)
             {
-                _logger.LogError(new EventId(), exception, $"An error occurred while processing received message with the delivery tag {eventArgs.DeliveryTag}.");
+                _logger.LogError(
+                    new EventId(),
+                    exception,
+                    $"An error occurred while processing received message with the delivery tag {eventArgs.DeliveryTag}.");
 
                 queueService.Channel.BasicAck(eventArgs.DeliveryTag, false);
 
@@ -64,13 +68,14 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                 var exchange = _exchanges.FirstOrDefault(x => x.Name == eventArgs.Exchange);
                 if (exchange is null)
                 {
-                    _logger.LogError($"Could not detect an exchange \"{eventArgs.Exchange}\" to determine the necessity of resending the failed message.");
+                    _logger.LogError(
+                        $"Could not detect an exchange \"{eventArgs.Exchange}\" to determine the necessity of resending the failed message.");
                     return;
                 }
 
-                if (exchange.Options.RequeueFailedMessages
-                    && !string.IsNullOrEmpty(exchange.Options.DeadLetterExchange)
-                    && !eventArgs.BasicProperties.Headers.ContainsKey("requeued"))
+                if (exchange.Options.RequeueFailedMessages &&
+                    !string.IsNullOrEmpty(exchange.Options.DeadLetterExchange) &&
+                    !eventArgs.BasicProperties.Headers.ContainsKey("requeued"))
                 {
                     eventArgs.BasicProperties.Headers.Add("requeued", true);
                     queueService.Send(eventArgs.Body, eventArgs.BasicProperties, eventArgs.Exchange, eventArgs.RoutingKey, ResendTimeout);
@@ -85,8 +90,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection
 
         IEnumerable<string> GetMatchingRoutePatterns(string exchange, string routingKey)
         {
-            var tree = _messageHandlerContainers.FirstOrDefault(x => x.Exchange == exchange)?.Tree
-                ?? _messageHandlerContainers.FirstOrDefault(x => x.IsGeneral)?.Tree;
+            var tree = _messageHandlerContainers.FirstOrDefault(x => x.Exchange == exchange)?.Tree ??
+                _messageHandlerContainers.FirstOrDefault(x => x.IsGeneral)?.Tree;
             if (tree is null)
             {
                 return Enumerable.Empty<string>();
@@ -96,83 +101,69 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             return WildcardExtensions.GetMatchingRoutePatterns(tree, routingKeyParts).ToList();
         }
 
-        void ProcessMessage(string exchange, string message, IQueueService queueService, IEnumerable<string> matchingRoutes)
+        async Task ProcessMessage(string exchange, string message, IQueueService queueService, IEnumerable<string> matchingRoutes)
         {
-            var container = _messageHandlerContainers.FirstOrDefault(x => x.Exchange == exchange) ?? _messageHandlerContainers.FirstOrDefault(x => x.IsGeneral);
+            var container = _messageHandlerContainers.FirstOrDefault(x => x.Exchange == exchange) ??
+                _messageHandlerContainers.FirstOrDefault(x => x.IsGeneral);
             if (container is null)
             {
                 return;
             }
 
-            var executedHandlers = new List<Type>();
+            var messageHandlerOrderingContainers = new List<MessageHandlerOrderingContainer>();
             foreach (var matchingRoute in matchingRoutes)
             {
-                if (container.AsyncMessageHandlers.ContainsKey(matchingRoute))
+                if (!container.MessageHandlers.ContainsKey(matchingRoute))
                 {
-                    var tasks = new List<Task>();
-                    foreach (var handler in container.AsyncMessageHandlers[matchingRoute])
-                    {
-                        var handlerType = handler.GetType();
-                        if (executedHandlers.Contains(handlerType))
-                        {
-                            continue;
-                        }
-
-                        executedHandlers.Add(handlerType);
-                        tasks.Add(RunAsyncMessageHandler(handler, message, matchingRoute));
-                    }
-                    Task.WaitAll(tasks.ToArray());
+                    continue;
                 }
-                if (container.MessageHandlers.ContainsKey(matchingRoute))
+
+                var orderingContainers = container.MessageHandlers[matchingRoute].Select(handler => new MessageHandlerOrderingContainer
                 {
-                    foreach (var handler in container.MessageHandlers[matchingRoute])
-                    {
-                        var handlerType = handler.GetType();
-                        if (executedHandlers.Contains(handlerType))
-                        {
-                            continue;
-                        }
+                    MessageHandler = handler,
+                    Order = container.MessageHandlerOrderingModels.FirstOrDefault(x => x.MessageHandlerType == handler.GetType())?.Order,
+                    MatchingRoute = matchingRoute
+                });
+                messageHandlerOrderingContainers.AddRange(orderingContainers);
+            }
 
-                        executedHandlers.Add(handlerType);
-                        RunMessageHandler(handler, message, matchingRoute);
-                    }
-                }
-                if (container.AsyncNonCyclicHandlers.ContainsKey(matchingRoute))
+            var executedHandlers = new List<Type>();
+            var orderedContainers = messageHandlerOrderingContainers.OrderByDescending(x => x.Order)
+                .ThenByDescending(x => x.MessageHandler.GetHashCode())
+                .ToList();
+            foreach (var orderedContainer in orderedContainers)
+            {
+                var handlerType = orderedContainer.MessageHandler.GetType();
+                if (executedHandlers.Contains(handlerType))
                 {
-                    var tasks = new List<Task>();
-                    foreach (var handler in container.AsyncNonCyclicHandlers[matchingRoute])
-                    {
-                        var handlerType = handler.GetType();
-                        if (executedHandlers.Contains(handlerType))
-                        {
-                            continue;
-                        }
-
-                        executedHandlers.Add(handlerType);
-                        tasks.Add(RunAsyncNonCyclicMessageHandler(handler, message, matchingRoute, queueService));
-                    }
-                    Task.WaitAll(tasks.ToArray());
+                    continue;
                 }
-                if (container.NonCyclicHandlers.ContainsKey(matchingRoute))
+                
+                switch (orderedContainer.MessageHandler)
                 {
-                    foreach (var handler in container.NonCyclicHandlers[matchingRoute])
-                    {
-                        var handlerType = handler.GetType();
-                        if (executedHandlers.Contains(handlerType))
-                        {
-                            continue;
-                        }
-
-                        executedHandlers.Add(handlerType);
-                        RunNonCyclicMessageHandler(handler, message, matchingRoute, queueService);
-                    }
+                    case IMessageHandler messageHandler:
+                        RunMessageHandler(messageHandler, message, orderedContainer.MatchingRoute);
+                        break;
+                    case IAsyncMessageHandler asyncMessageHandler:
+                        await RunAsyncMessageHandler(asyncMessageHandler, message, orderedContainer.MatchingRoute).ConfigureAwait(false);
+                        break;
+                    case INonCyclicMessageHandler nonCyclicMessageHandler:
+                        RunNonCyclicMessageHandler(nonCyclicMessageHandler, message, orderedContainer.MatchingRoute, queueService);
+                        break;
+                    case IAsyncNonCyclicMessageHandler asyncNonCyclicMessageHandler:
+                        await RunAsyncNonCyclicMessageHandler(asyncNonCyclicMessageHandler, message, orderedContainer.MatchingRoute, queueService).ConfigureAwait(false);
+                        break;
+                    default:
+                        throw new NotSupportedException($"The type {orderedContainer.MessageHandler.GetType()} of message handler is not supported.");
                 }
+                
+                executedHandlers.Add(handlerType);
             }
         }
 
         void RunMessageHandler(IMessageHandler handler, string message, string routingKey)
         {
-            ValidateHandler(handler);
+            ValidateMessageHandler(handler);
             _logger.LogDebug($"Starting processing the message by message handler {handler.GetType().Name}.");
             handler.Handle(message, routingKey);
             _logger.LogDebug($"The message has been processed by message handler {handler.GetType().Name}.");
@@ -180,7 +171,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
 
         void RunNonCyclicMessageHandler(INonCyclicMessageHandler handler, string message, string routingKey, IQueueService queueService)
         {
-            ValidateHandler(handler);
+            ValidateMessageHandler(handler);
             _logger.LogDebug($"Starting processing the message by non-cyclic message handler {handler.GetType().Name}.");
             handler?.Handle(message, routingKey, queueService);
             _logger.LogDebug($"The message has been processed by non-cyclic message handler {handler.GetType().Name}.");
@@ -188,21 +179,25 @@ namespace RabbitMQ.Client.Core.DependencyInjection
 
         async Task RunAsyncMessageHandler(IAsyncMessageHandler handler, string message, string routingKey)
         {
-            ValidateHandler(handler);
+            ValidateMessageHandler(handler);
             _logger.LogDebug($"Starting processing the message by async message handler {handler.GetType().Name}.");
             await handler.Handle(message, routingKey);
             _logger.LogDebug($"The message has been processed by async message handler {handler.GetType().Name}.");
         }
 
-        async Task RunAsyncNonCyclicMessageHandler(IAsyncNonCyclicMessageHandler handler, string message, string routingKey, IQueueService queueService)
+        async Task RunAsyncNonCyclicMessageHandler(
+            IAsyncNonCyclicMessageHandler handler,
+            string message,
+            string routingKey,
+            IQueueService queueService)
         {
-            ValidateHandler(handler);
+            ValidateMessageHandler(handler);
             _logger.LogDebug($"Starting processing the message by async non-cyclic message handler {handler.GetType().Name}.");
             await handler.Handle(message, routingKey, queueService);
             _logger.LogDebug($"The message has been processed by async non-cyclic message handler {handler.GetType().Name}.");
         }
 
-        static void ValidateHandler<T>(T messageHandler)
+        static void ValidateMessageHandler<T>(T messageHandler)
         {
             if (messageHandler is null)
             {

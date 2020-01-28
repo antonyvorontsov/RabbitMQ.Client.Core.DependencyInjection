@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Core.DependencyInjection
@@ -12,6 +13,6 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// </summary>
         /// <param name="eventArgs">Arguments of message receiving event.</param>
         /// <param name="queueService">An instance of the queue service <see cref="IQueueService"/>.</param>
-        void HandleMessageReceivingEvent(BasicDeliverEventArgs eventArgs, IQueueService queueService);
+        Task HandleMessageReceivingEvent(BasicDeliverEventArgs eventArgs, IQueueService queueService);
     }
 }

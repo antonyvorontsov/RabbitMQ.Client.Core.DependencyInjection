@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using RabbitMQ.Client.Core.DependencyInjection.Configuration;
+using RabbitMQ.Client.Core.DependencyInjection.Models;
 using RabbitMQ.Client.Events;
 using System;
 using System.Collections.Generic;
@@ -9,7 +9,6 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using RabbitMQ.Client.Core.DependencyInjection.Models;
 
 namespace RabbitMQ.Client.Core.DependencyInjection
 {
@@ -28,9 +27,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         readonly IMessageHandlingService _messageHandlingService;
         readonly IEnumerable<RabbitMqExchange> _exchanges;
         readonly ILogger<QueueService> _logger;
-        readonly EventingBasicConsumer _consumer;
-
-        EventHandler<BasicDeliverEventArgs> _receivedMessage;
+        readonly AsyncEventingBasicConsumer _consumer;
+        
         bool _consumingStarted;
         readonly object _lock = new object();
 
@@ -38,20 +36,16 @@ namespace RabbitMQ.Client.Core.DependencyInjection
 
         public QueueService(
             IMessageHandlingService messageHandlingService,
+            IRabbitMqConnectionFactory rabbitMqConnectionFactory,
             IEnumerable<RabbitMqExchange> exchanges,
-            IOptions<RabbitMqClientOptions> options,
             ILogger<QueueService> logger)
         {
-            if (options is null)
-            {
-                throw new ArgumentException($"Argument {nameof(options)} is null.", nameof(options));
-            }
 
             _messageHandlingService = messageHandlingService;
             _exchanges = exchanges;
             _logger = logger;
 
-            _connection = CreateRabbitMqConnection(options.Value);
+            _connection = rabbitMqConnectionFactory.CreateRabbitMqConnection();
             // Event handling.
             _connection.CallbackException += HandleConnectionCallbackException;
             _connection.ConnectionRecoveryError += HandleConnectionRecoveryError;
@@ -61,7 +55,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             _channel.CallbackException += HandleChannelCallbackException;
             _channel.BasicRecoverOk += HandleChannelBasicRecoverOk;
 
-            _consumer = new EventingBasicConsumer(_channel);
+            _consumer = new AsyncEventingBasicConsumer(_channel);
             StartClient();
         }
 
@@ -100,7 +94,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                 return;
             }
 
-            _consumer.Received += _receivedMessage;
+            _consumer.Received += async (sender, eventArgs) => await _messageHandlingService.HandleMessageReceivingEvent(eventArgs, this);
             _consumingStarted = true;
 
             var consumptionExchanges = _exchanges.Where(x => x.IsConsuming);
@@ -264,8 +258,6 @@ namespace RabbitMQ.Client.Core.DependencyInjection
 
         void StartClient()
         {
-            _receivedMessage = (sender, eventArgs) => _messageHandlingService.HandleMessageReceivingEvent(eventArgs, this);
-
             var deadLetterExchanges = _exchanges
                 .Where(x => !string.IsNullOrEmpty(x.Options.DeadLetterExchange))
                 .Select(x => x.Options.DeadLetterExchange)
@@ -389,52 +381,5 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                 { "x-message-ttl", secondsDelay * 1000 },
                 { "x-expires", secondsDelay * 1000 + QueueExpirationTime }
             };
-
-        static IConnection CreateRabbitMqConnection(RabbitMqClientOptions options)
-        {
-            var factory = new ConnectionFactory
-            {
-                Port = options.Port,
-                UserName = options.UserName,
-                Password = options.Password,
-                VirtualHost = options.VirtualHost,
-                AutomaticRecoveryEnabled = options.AutomaticRecoveryEnabled,
-                TopologyRecoveryEnabled = options.TopologyRecoveryEnabled,
-                RequestedConnectionTimeout = options.RequestedConnectionTimeout,
-                RequestedHeartbeat = options.RequestedHeartbeat
-            };
-
-            if (options.TcpEndpoints?.Any() == true)
-            {
-                var clientEndpoints = options.TcpEndpoints.Select(x => new AmqpTcpEndpoint(x.HostName, x.Port)).ToList();
-                return factory.CreateConnection(clientEndpoints);
-            }
-
-            return string.IsNullOrEmpty(options.ClientProvidedName)
-                ? CreateConnection(options, factory)
-                : CreateNamedConnection(options, factory);
-        }
-
-        static IConnection CreateNamedConnection(RabbitMqClientOptions options, ConnectionFactory factory)
-        {
-            if (options.HostNames?.Any() == true)
-            {
-                return factory.CreateConnection(options.HostNames.ToList(), options.ClientProvidedName);
-            }
-
-            factory.HostName = options.HostName;
-            return factory.CreateConnection(options.ClientProvidedName);
-        }
-
-        static IConnection CreateConnection(RabbitMqClientOptions options, ConnectionFactory factory)
-        {
-            if (options.HostNames?.Any() == true)
-            {
-                return factory.CreateConnection(options.HostNames.ToList());
-            }
-
-            factory.HostName = options.HostName;
-            return factory.CreateConnection();
-        }
     }
 }

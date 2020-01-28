@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
 
-namespace RabbitMQ.Client.Core.DependencyInjection.Extensions
+namespace RabbitMQ.Client.Core.DependencyInjection.ServiceExtensions
 {
     /// <summary>
     /// An extension class that contains functionality of pattern (wildcard) matching.
@@ -77,7 +77,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Extensions
             return GetMatchingRoutePatterns(tree, routingKeyParts, depth: 0);
         }
 
-        static IEnumerable<string> GetMatchingRoutePatterns(IEnumerable<TreeNode> tree, string[] routingKeyParts, int depth)
+        static IEnumerable<string> GetMatchingRoutePatterns(IEnumerable<TreeNode> tree, IReadOnlyList<string> routingKeyParts, int depth)
         {
             foreach (var node in tree)
             {
@@ -103,11 +103,11 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Extensions
                 }
                 else if(node.KeyPartition == SingleWordPattern || node.KeyPartition == matchingPart)
                 {
-                    if (routingKeyParts.Length == depth + 1 && !node.Nodes.Any())
+                    if (routingKeyParts.Count == depth + 1 && !node.Nodes.Any())
                     {
                         yield return CollectRoutingKeyInReverseOrder(node);
                     }
-                    else if (routingKeyParts.Length != depth + 1 && node.Nodes.Any())
+                    else if (routingKeyParts.Count != depth + 1 && node.Nodes.Any())
                     {
                         var routes = GetMatchingRoutePatterns(node.Nodes, routingKeyParts, depth + 1).ToList();
                         foreach (var route in routes)

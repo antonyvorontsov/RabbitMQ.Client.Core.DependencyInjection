@@ -3,7 +3,7 @@
     /// <summary>
     /// Interface of a non-cycling message handler.
     /// </summary>
-    public interface INonCyclicMessageHandler
+    public interface INonCyclicMessageHandler : IBaseMessageHandler
     {
         /// <summary>
         /// Handle message from a queue.

@@ -13,7 +13,7 @@ namespace Examples.ConsumerHost
 
         public void Handle(string message, string routingKey)
         {
-            _logger.LogInformation("Handling messages");
+            _logger.LogInformation($"Handling message {message} by routing key {routingKey}");
         }
     }
 }

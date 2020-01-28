@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RabbitMQ.Client.Core.DependencyInjection.Extensions;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
+using RabbitMQ.Client.Core.DependencyInjection.ServiceExtensions;
 
 namespace RabbitMQ.Client.Core.DependencyInjection
 {
@@ -14,6 +14,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
     public class MessageHandlerContainerBuilder : IMessageHandlerContainerBuilder
     {
         readonly IEnumerable<MessageHandlerRouter> _routers;
+        readonly IEnumerable<MessageHandlerOrderingModel> _orderingModels;
         readonly IEnumerable<IMessageHandler> _messageHandlers;
         readonly IEnumerable<IAsyncMessageHandler> _asyncMessageHandlers;
         readonly IEnumerable<INonCyclicMessageHandler> _nonCyclicHandlers;
@@ -21,12 +22,14 @@ namespace RabbitMQ.Client.Core.DependencyInjection
 
         public MessageHandlerContainerBuilder(
             IEnumerable<MessageHandlerRouter> routers,
+            IEnumerable<MessageHandlerOrderingModel> orderingModels,
             IEnumerable<IMessageHandler> messageHandlers,
             IEnumerable<IAsyncMessageHandler> asyncMessageHandlers,
             IEnumerable<INonCyclicMessageHandler> nonCyclicHandlers,
             IEnumerable<IAsyncNonCyclicMessageHandler> asyncNonCyclicHandlers)
         {
             _routers = routers;
+            _orderingModels = orderingModels;
             _messageHandlers = messageHandlers;
             _asyncMessageHandlers = asyncMessageHandlers;
             _nonCyclicHandlers = nonCyclicHandlers;
@@ -65,14 +68,25 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             var boundNonCyclicMessageHandlers = _nonCyclicHandlers.Where(x => routersDictionary.Keys.Contains(x.GetType()));
             var boundAsyncNonCyclicMessageHandlers = _asyncNonCyclicHandlers.Where(x => routersDictionary.Keys.Contains(x.GetType()));
             var routePatterns = selectedRouters.SelectMany(x => x.RoutePatterns).Distinct().ToList();
+            var messageHandlers = TransformMessageHandlersCollectionsToDictionary(
+                boundMessageHandlers,
+                boundAsyncMessageHandlers,
+                boundNonCyclicMessageHandlers,
+                boundAsyncNonCyclicMessageHandlers,
+                routersDictionary);
+            var orderingModels = GetMessageHandlerOrderingModels(
+                exchange,
+                boundMessageHandlers,
+                boundAsyncMessageHandlers,
+                boundNonCyclicMessageHandlers,
+                boundAsyncNonCyclicMessageHandlers,
+                _orderingModels);
             return new MessageHandlerContainer
             {
                 Exchange = exchange,
                 Tree = WildcardExtensions.ConstructRoutesTree(routePatterns),
-                MessageHandlers = TransformMessageHandlersCollectionToDictionary(boundMessageHandlers, routersDictionary),
-                AsyncMessageHandlers = TransformMessageHandlersCollectionToDictionary(boundAsyncMessageHandlers, routersDictionary),
-                NonCyclicHandlers = TransformMessageHandlersCollectionToDictionary(boundNonCyclicMessageHandlers, routersDictionary),
-                AsyncNonCyclicHandlers = TransformMessageHandlersCollectionToDictionary(boundAsyncNonCyclicMessageHandlers, routersDictionary)
+                MessageHandlers = messageHandlers,
+                MessageHandlerOrderingModels = orderingModels
             };
         }
 
@@ -92,12 +106,46 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             }
             return dictionary;
         }
+        
+        static IEnumerable<MessageHandlerOrderingModel> GetMessageHandlerOrderingModels(
+            string exchange,
+            IEnumerable<IMessageHandler> messageHandlers,
+            IEnumerable<IAsyncMessageHandler> asyncMessageHandlers,
+            IEnumerable<INonCyclicMessageHandler> nonCyclicMessageHandlers,
+            IEnumerable<IAsyncNonCyclicMessageHandler> asyncNonCyclicMessageHandlers,
+            IEnumerable<MessageHandlerOrderingModel> orderingModels)
+        {
+            var messageHandlersCollection = new List<IBaseMessageHandler>(messageHandlers);
+            messageHandlersCollection.AddRange(asyncMessageHandlers);
+            messageHandlersCollection.AddRange(nonCyclicMessageHandlers);
+            messageHandlersCollection.AddRange(asyncNonCyclicMessageHandlers);
 
-        static IDictionary<string, IList<T>> TransformMessageHandlersCollectionToDictionary<T>(
-            IEnumerable<T> messageHandlers,
+            var messageHandlerTypes = messageHandlersCollection.Select(x => x.GetType()).ToList();
+            return orderingModels.Where(x => messageHandlerTypes.Contains(x.MessageHandlerType) && x.Exchange == exchange);
+        }
+
+        static IDictionary<string, IList<IBaseMessageHandler>> TransformMessageHandlersCollectionsToDictionary(
+            IEnumerable<IMessageHandler> messageHandlers,
+            IEnumerable<IAsyncMessageHandler> asyncMessageHandlers,
+            IEnumerable<INonCyclicMessageHandler> nonCyclicMessageHandlers,
+            IEnumerable<IAsyncNonCyclicMessageHandler> asyncNonCyclicMessageHandlers,
             IDictionary<Type, List<string>> routersDictionary)
         {
-            var dictionary = new Dictionary<string, IList<T>>();
+            var transformedMessageHandlers = TransformMessageHandlersCollectionToDictionary(messageHandlers, routersDictionary);
+            var transformedAsyncMessageHandlers = TransformMessageHandlersCollectionToDictionary(asyncMessageHandlers, routersDictionary);
+            var transformedNonCyclicHandlers = TransformMessageHandlersCollectionToDictionary(nonCyclicMessageHandlers, routersDictionary);
+            var transformedAsyncNonCyclicHandlers = TransformMessageHandlersCollectionToDictionary(asyncNonCyclicMessageHandlers, routersDictionary);
+            return transformedMessageHandlers.UnionKeysAndValues(transformedAsyncMessageHandlers)
+                .UnionKeysAndValues(transformedNonCyclicHandlers)
+                .UnionKeysAndValues(transformedAsyncNonCyclicHandlers);
+        }
+
+        static IDictionary<string, IList<IBaseMessageHandler>> TransformMessageHandlersCollectionToDictionary<T>(
+            IEnumerable<T> messageHandlers,
+            IDictionary<Type, List<string>> routersDictionary)
+            where T : class, IBaseMessageHandler
+        {
+            var dictionary = new Dictionary<string, IList<IBaseMessageHandler>>();
             foreach (var handler in messageHandlers)
             {
                 var type = handler.GetType();
@@ -112,7 +160,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                     }
                     else
                     {
-                        dictionary.Add(routingKey, new List<T> { handler });
+                        dictionary.Add(routingKey, new List<IBaseMessageHandler> { handler });
                     }
                 }
             }

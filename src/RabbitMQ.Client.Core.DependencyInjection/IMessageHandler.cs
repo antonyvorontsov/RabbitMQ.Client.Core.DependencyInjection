@@ -3,7 +3,7 @@
     /// <summary>
     /// Interface of message handler.
     /// </summary>
-    public interface IMessageHandler
+    public interface IMessageHandler : IBaseMessageHandler
     {
         /// <summary>
         /// Handle message from a queue.

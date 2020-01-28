@@ -83,6 +83,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             services.AddOptions();
             services.AddLogging(options => options.AddConsole());
             services.AddSingleton<IMessageHandlerContainerBuilder, MessageHandlerContainerBuilder>();
+            services.AddSingleton<IRabbitMqConnectionFactory, RabbitMqConnectionFactory>();
             services.AddSingleton<IMessageHandlingService, MessageHandlingService>();
             return services;
         }
