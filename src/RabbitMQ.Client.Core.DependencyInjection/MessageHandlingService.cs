@@ -153,6 +153,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                     case IAsyncNonCyclicMessageHandler asyncNonCyclicMessageHandler:
                         await RunAsyncNonCyclicMessageHandler(asyncNonCyclicMessageHandler, message, orderedContainer.MatchingRoute, queueService);
                         break;
+                    default:
+                        throw new NotSupportedException($"The type {orderedContainer.MessageHandler.GetType()} of message handler is not supported.");
                 }
                 
                 executedHandlers.Add(handlerType);
