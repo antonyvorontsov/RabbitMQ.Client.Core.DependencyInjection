@@ -28,9 +28,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         readonly IMessageHandlingService _messageHandlingService;
         readonly IEnumerable<RabbitMqExchange> _exchanges;
         readonly ILogger<QueueService> _logger;
-        readonly EventingBasicConsumer _consumer;
-
-        EventHandler<BasicDeliverEventArgs> _receivedMessage;
+        readonly AsyncEventingBasicConsumer _consumer;
+        
         bool _consumingStarted;
         readonly object _lock = new object();
 
@@ -61,7 +60,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             _channel.CallbackException += HandleChannelCallbackException;
             _channel.BasicRecoverOk += HandleChannelBasicRecoverOk;
 
-            _consumer = new EventingBasicConsumer(_channel);
+            _consumer = new AsyncEventingBasicConsumer(_channel);
             StartClient();
         }
 
@@ -100,7 +99,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                 return;
             }
 
-            _consumer.Received += _receivedMessage;
+            _consumer.Received += async (sender, eventArgs) => await _messageHandlingService.HandleMessageReceivingEvent(eventArgs, this);
             _consumingStarted = true;
 
             var consumptionExchanges = _exchanges.Where(x => x.IsConsuming);
@@ -264,8 +263,6 @@ namespace RabbitMQ.Client.Core.DependencyInjection
 
         void StartClient()
         {
-            _receivedMessage = async (sender, eventArgs) => await _messageHandlingService.HandleMessageReceivingEvent(eventArgs, this);
-
             var deadLetterExchanges = _exchanges
                 .Where(x => !string.IsNullOrEmpty(x.Options.DeadLetterExchange))
                 .Select(x => x.Options.DeadLetterExchange)
@@ -401,7 +398,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                 AutomaticRecoveryEnabled = options.AutomaticRecoveryEnabled,
                 TopologyRecoveryEnabled = options.TopologyRecoveryEnabled,
                 RequestedConnectionTimeout = options.RequestedConnectionTimeout,
-                RequestedHeartbeat = options.RequestedHeartbeat
+                RequestedHeartbeat = options.RequestedHeartbeat,
+                DispatchConsumersAsync = true
             };
 
             if (options.TcpEndpoints?.Any() == true)
