@@ -16,13 +16,17 @@ namespace Examples.Producer
             var serviceProvider = serviceCollection.BuildServiceProvider();
             var queueService = serviceProvider.GetRequiredService<IQueueService>();
 
-            var message = new Message
+            for (var i = 0; i < 10; i++)
             {
-                Name = "Custom message",
-                Flag = true,
-                Numbers = new[] { 1, 2, 3 }
-            };
-            await queueService.SendAsync(message, "exchange.name", "routing.key");
+                var message = new Message
+                {
+                    Name = "Custom message",
+                    Flag = true,
+                    Index = i,
+                    Numbers = new[] { 1, 2, 3 }
+                };
+                await queueService.SendAsync(message, "exchange.name", "routing.key");
+            }
         }
 
         static void ConfigureServices(IServiceCollection services)
