@@ -104,12 +104,118 @@ public class Worker : BackgroundService
 }
 ```
 
+The second step is to define classes that will take responsibility of handling received messages. There are synchronous and asynchronous message handlers.
+
 ### Synchronous message handlers
 
-The second step without which receiving messages does not make sense - configuration of message handling services. If there are no message handlers then received messages will not be processed.
+`IMessageHandler` consists of one method `Handle` that gets a message in a string format. You can deserialize that message (if it is a json message) or handle its raw value.
+Thus, a message handler will look like this.
 
-Message handlers are classes that implement the `IMessageHandler` interface (or a few others) and contain functionality (including error handling) for processing messages.
-You can register `IMessageHandler` in your `Startup` like this.
+```c#
+public class CustomMessageHandler : IMessageHandler
+{
+    public void Handle(string message, string routingKey)
+    {
+        // Do whatever you want.
+        var messageObject = JsonConvert.DeserializeObject<YourClass>(message);
+    }
+}
+```
+
+You can also inject almost any services inside the `IMessageHandler` constructor.
+
+```c#
+public class CustomMessageHandler : IMessageHandler
+{
+    readonly ILogger<CustomMessageHandler> _logger;
+    public CustomMessageHandler(ILogger<CustomMessageHandler> logger)
+    {
+        _logger = logger;
+    }
+
+    public void Handle(string message, string routingKey)
+    {
+        _logger.LogInformation($"I got a message {message} by routing key {routingKey}");
+    }
+}
+```
+
+The only exception is the `IQueueService`. You can't inject it inside a message handler because of the appearance of cyclic dependencies. If you want to use an instance of `IQueueService` (e.g. handle one message and send another) use `INonCyclicMessageHandler`.
+An example of `INonCyclicMessageHandler` will look like this.
+
+```c#
+public class CustomNonCyclicMessageHandler : INonCyclicMessageHandler
+{
+    readonly ILogger<CustomNonCyclicMessageHandler> _logger;
+    public CustomNonCyclicMessageHandler(ILogger<CustomNonCyclicMessageHandler> logger)
+    {
+        _logger = logger;
+    }
+
+    public void Handle(string message, string routingKey, IQueueService queueService)
+    {
+        _logger.LogInformation("Got a message. I will send it back to another queue.");
+        var response = new { Message = message };
+        queueService.Send(response, "exchange.name", "routing.key");
+    }
+}
+```
+
+### Asynchronous message handlers
+
+`IMessageHandler` and `INonCyclicMessageHandler` work synchronously, but if you want to use an async technology then use `IAsyncMessageHandler` and `IAsyncNonCyclicMessageHandler`.
+
+`IAsyncMessageHandler` will look like this.
+
+```c#
+public class CustomAsyncMessageHandler : IAsyncMessageHandler
+{
+    public async Task Handle(string message, string routingKey)
+    {
+        // Do whatever you want asynchronously!
+    }
+}
+```
+
+And `IAsyncNonCyclicMessageHandler` will be as in example below.
+
+```c#
+public class CustomAsyncNonCyclicMessageHandler : IAsyncNonCyclicMessageHandler
+{
+    readonly ILogger<CustomAsyncNonCyclicMessageHandler> _logger;
+
+	// Injecting services is a privilege, you can leave it clean.
+    public CustomAsyncNonCyclicMessageHandler(ILogger<CustomAsyncNonCyclicMessageHandler> logger)
+    {
+        _logger = logger;
+    }
+
+    public async Task Handle(string message, string routingKey, IQueueService queueService)
+    {
+        _logger.LogInformation("You can do something async, e.g. send message back.");
+        var response = new { Message = message };
+        await queueService.SendAsync(response, "exchange.name", "routing.key");
+    }
+}
+```
+
+So you can use async/await power inside your message handler.
+
+### Message handlers registering
+
+The third and final step is to register defined message handlers and let them "listen" for messages relying on specified rules. If there are no message handlers registered then received messages will not be processed.
+You can register `IMessageHandler` in your `Startup` calling one of `AddMessageHandler`-ish methods. You are allowed to add message handlers in two modes, **singleton** or **transient**, and there are extension methods for each mode and each message handler type:
+
+- `AddMessageHandlerTransient`
+- `AddMessageHandlerSingleton`
+- `AddNonCyclicMessageHandlerTransient`
+- `AddNonCyclicMessageHandlerSingleton`
+- `AddAsyncMessageHandlerTransient`
+- `AddAsyncMessageHandlerSingleton`
+- `AddAsyncNonCyclicMessageHandlerTransient`
+- `AddAsyncNonCyclicMessageHandlerSingleton`
+
+And this will look like this in your `Startup` code.
 
 ```c#
 public class Startup
@@ -134,7 +240,7 @@ public class Startup
 
 RabbitMQ client and exchange configuration sections are not specified in this example, but covered [here](rabbit-configuration.md) and [here](exchange-configuration.md).
 
-`IMessageHandler` implementation will "listen" for messages by the specified routing key, or a collection of routing keys. If it is necessary, you can also register multiple message handler at once.
+Message handlers can "listen" for messages by the **specified routing key**, or a **collection of routing keys**. If it is necessary, you can also register multiple message handler at once.
 
 ```c#
 services.AddRabbitMqClient(clientConfiguration)
@@ -161,14 +267,6 @@ services.AddRabbitMqClient(clientConfiguration)
     .AddMessageHandlerSingleton<AnotherCustomMessageHandler>("routing.key", "ExchangeName");
 ```
 
-You can register it in two modes, **singleton** or **transient**, using `AddMessageHandlerSingleton` or `AddMessageHandlerTransient` methods respectively.
-
-```c#
-services.AddRabbitMqClient(clientConfiguration)
-    .AddExchange("ExchangeName", isConsuming: true, exchangeConfiguration)
-    .AddMessageHandlerTransient<CustomMessageHandler>(new[] { "#.key", "third.*" });
-```
-
 You can also set multiple message handlers for managing messages received by one routing key. This case can happen when you want to divide responsibilities between services (e.g. one contains business logic, and the other writes messages in the database).
 
 ```c#
@@ -179,129 +277,36 @@ services.AddRabbitMqClient(clientConfiguration)
     .AddMessageHandlerSingleton<OneMoreCustomMessageHandler>("first.routing.key");
 ```
 
-`IMessageHandler` consists of one method `Handle` that gets a message in a string format. You can deserialize it (if it is a json message) or handle a raw value.
-Thus, a message handler will look like this.
-
-```c#
-public class CustomMessageHandler : IMessageHandler
-{
-    public void Handle(string message, string routingKey)
-    {
-        // Do whatever you want.
-        var messageObject = JsonConvert.DeserializeObject<YourClass>(message);
-    }
-}
-```
-
-You can also inject services inside the `IMessageHandler` constructor.
-
-```c#
-public class CustomMessageHandler : IMessageHandler
-{
-    readonly ILogger<CustomMessageHandler> _logger;
-    public CustomMessageHandler(ILogger<CustomMessageHandler> logger)
-    {
-        _logger = logger;
-    }
-
-    public void Handle(string message, string routingKey)
-    {
-        _logger.LogInformation($"I got a message {message} by routing key {routingKey}");
-    }
-}
-```
-
-The only exception is the `IQueueService`. You can't inject it inside a message handler because of the appearance of cyclic dependencies. If you want to use an instance of `IQueueService` (e.g. handle one message and send another) use `INonCyclicMessageHandler`.
-`INonCyclicMessageHandler` can be registered the same way as `IMessageHandler`. There are similar semantic methods for adding it in **singleton** or **transient** modes.
+Since you are allowed to register multiple message handlers for one routing key (or one route pattern) you might want to make it run in a special order. You are allowed to do that too.
 
 ```c#
 services.AddRabbitMqClient(clientConfiguration)
     .AddExchange("ExchangeName", isConsuming: true, exchangeConfiguration)
-    .AddNonCyclicMessageHandlerTransient<CustomNonCyclicMessageHandler>("first.routing.key")
-    .AddNonCyclicMessageHandlerSingleton<AnotherNonCyclicCustomMessageHandler>(new [] { "second.routing.key", "third.routing.key" });
+    .AddMessageHandlerSingleton<CustomMessageHandler>("first.routing.key", order: 1)
+    .AddMessageHandlerSingleton<AnotherCustomMessageHandler>("first.routing.key", order: 20)
+    .AddMessageHandlerSingleton<OneMoreCustomMessageHandler>("first.routing.key", order: 300);
 ```
 
-And the code of `INonCyclicMessageHandler` will look like this.
+The higher order value - the more important message handler is. So it the previous code snippet the `OneMoreCustomMessageHandler` will process the received message first, `AnotherCustomMessageHandler` will be the second and `CustomMessageHandler` will be the third one.
 
-```c#
-public class CustomNonCyclicMessageHandler : INonCyclicMessageHandler
-{
-    readonly ILogger<CustomNonCyclicMessageHandler> _logger;
-    public CustomNonCyclicMessageHandler(ILogger<CustomNonCyclicMessageHandler> logger)
-    {
-        _logger = logger;
-    }
-
-    public void Handle(string message, string routingKey, IQueueService queueService)
-    {
-        _logger.LogInformation("Got a message. I will send it back to another queue.");
-        var response = new { Message = message };
-        queueService.Send(response, "exchange.name", "routing.key");
-    }
-}
-```
-
-### Asynchronous message handlers
-
-`IMessageHandler` and `INonCyclicMessageHandler` work synchronously, but if you want to use an async technology then use `IAsyncMessageHandler` and `IAsyncNonCyclicMessageHandler`.
-There are extension methods that allow you to register it the same way as synchronous ones in **singleton** or **transient** modes.
-
+You can also combine exchange and order configurations together!
 ```c#
 services.AddRabbitMqClient(clientConfiguration)
     .AddExchange("ExchangeName", isConsuming: true, exchangeConfiguration)
-    .AddAsyncMessageHandlerTransient<CustomAsyncMessageHandler>("first.routing.key")
-    .AddAsyncNonCyclicMessageHandlerSingleton<CustomAsyncNonCyclicMessageHandler>(new [] { "second.routing.key", "third.routing.key" });
+    .AddMessageHandlerSingleton<CustomMessageHandler>("first.routing.key", "an.exchange", order: 1)
+    .AddMessageHandlerSingleton<AnotherCustomMessageHandler>("first.routing.key", "an.exchange", order: 20)
+    .AddMessageHandlerSingleton<OneMoreCustomMessageHandler>("first.routing.key", "an.exchange", order: 300)
+    .AddMessageHandlerSingleton<SecondMessageHandler>("second.routing.key", "other.exchange", order: 10)
+    .AddMessageHandlerSingleton<ThirdMessageHandler>("second.routing.key", "other.exchange", order: 20);
 ```
-
-`IAsyncMessageHandler` will look like this.
-
-```c#
-public class CustomAsyncMessageHandler : IAsyncMessageHandler
-{
-    readonly ILogger<CustomAsyncMessageHandler> _logger;
-
-    public CustomAsyncMessageHandler(ILogger<CustomAsyncMessageHandler> logger)
-    {
-        _logger = logger;
-    }
-
-    public async Task Handle(string message, string routingKey)
-    {
-        // Do whatever you want asynchronously!
-    }
-}
-```
-
-And `IAsyncNonCyclicMessageHandler` will be as in example below.
-
-```c#
-public class CustomAsyncNonCyclicMessageHandler : IAsyncNonCyclicMessageHandler
-{
-    readonly ILogger<CustomAsyncNonCyclicMessageHandler> _logger;
-
-    public CustomAsyncNonCyclicMessageHandler(ILogger<CustomAsyncNonCyclicMessageHandler> logger)
-    {
-        _logger = logger;
-    }
-
-    public async Task Handle(string message, string routingKey, IQueueService queueService)
-    {
-        _logger.LogInformation("You can do something async, e.g. send message back.");
-        var response = new { Message = message };
-        await queueService.SendAsync(response, "exchange.name", "routing.key");
-    }
-}
-```
-
-So you can use async/await power inside your message handler.
 
 ### Workflow of message handling
 
 The message handling process is organized as follows:
 
 - `IQueueMessage` receives a message and delegates it to `IMessageHandlingService`.
-- `IMessageHandlingService` gets a message (as a byte array) and decodes it to the UTF8 string. It also checks if there are any message handlers in collections of `IMessageHandler`, `IAsyncMessageHandler`, `INonCyclicMessageHandler` and `IAsyncNonCyclicMessageHandler` instances and forwards a message to them.
-- All subscribed message handlers (`IMessageHandler`, `IAsyncMessageHandler`, `INonCyclicMessageHandler`, `IAsyncNonCyclicMessageHandler`) process the given message.
+- `IMessageHandlingService` gets a message (as a byte array) and decodes it to the UTF8 string. It also checks if there are any message handlers in a combined collection of `IMessageHandler`, `IAsyncMessageHandler`, `INonCyclicMessageHandler` and `IAsyncNonCyclicMessageHandler` instances and forwards a message to them.
+- All subscribed message handlers (`IMessageHandler`, `IAsyncMessageHandler`, `INonCyclicMessageHandler`, `IAsyncNonCyclicMessageHandler`) process the given message in a given or a default order.
 - `IMessageHandlingService` acknowledges the message by its `DeliveryTag`.
 - If any exception occurs `IMessageHandlingService` acknowledges the message anyway and checks if the message has to be re-send. If exchange option `RequeueFailedMessages` is set `true` then `IMessageHandlingService` adds a header `"requeued"` to the message and sends it again with delay in 60 seconds. Mechanism of sending delayed messages covered in the message production [documentation](message-production.md).
 - If any exception occurs within handling the message that has been already re-sent that message will not be re-send again (re-send happens only once).
