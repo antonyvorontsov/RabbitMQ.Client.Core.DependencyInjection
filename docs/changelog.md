@@ -2,6 +2,14 @@
 
 All notable changes to this library will be documented in this file.
 
+## [3.1.2] - 2020-01-31
+
+### Added
+
+- Ordering for message handlers.
+- Separated the DI extensions file for message handlers so there are four of them now (each file covers each message handler type).
+- Changed target platform to the .netstandard2.1
+
 ## [2.2.2] copy of [3.1.1] - 2020-01-18
 
 **The latest version that supports backward compatibility for .Net Core 2.2**
