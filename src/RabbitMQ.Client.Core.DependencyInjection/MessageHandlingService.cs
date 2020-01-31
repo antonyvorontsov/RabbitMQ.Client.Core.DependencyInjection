@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
-using RabbitMQ.Client.Core.DependencyInjection.ServiceExtensions;
+using RabbitMQ.Client.Core.DependencyInjection.Extensions;
 using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Core.DependencyInjection
@@ -138,7 +138,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                 {
                     continue;
                 }
-                
+
                 switch (orderedContainer.MessageHandler)
                 {
                     case IMessageHandler messageHandler:
@@ -156,7 +156,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                     default:
                         throw new NotSupportedException($"The type {orderedContainer.MessageHandler.GetType()} of message handler is not supported.");
                 }
-                
+
                 executedHandlers.Add(handlerType);
             }
         }

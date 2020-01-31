@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
-using RabbitMQ.Client.Core.DependencyInjection.ServiceExtensions;
+using RabbitMQ.Client.Core.DependencyInjection.Extensions;
 
 namespace RabbitMQ.Client.Core.DependencyInjection
 {
@@ -106,7 +106,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             }
             return dictionary;
         }
-        
+
         static IEnumerable<MessageHandlerOrderingModel> GetMessageHandlerOrderingModels(
             string exchange,
             IEnumerable<IMessageHandler> messageHandlers,

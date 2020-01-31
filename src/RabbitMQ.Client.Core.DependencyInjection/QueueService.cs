@@ -28,7 +28,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         readonly IEnumerable<RabbitMqExchange> _exchanges;
         readonly ILogger<QueueService> _logger;
         readonly AsyncEventingBasicConsumer _consumer;
-        
+
         bool _consumingStarted;
         readonly object _lock = new object();
 

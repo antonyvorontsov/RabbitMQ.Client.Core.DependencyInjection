@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
 
-namespace RabbitMQ.Client.Core.DependencyInjection.ServiceExtensions
+namespace RabbitMQ.Client.Core.DependencyInjection.Extensions
 {
     /// <summary>
     /// An extension class that contains functionality of pattern (wildcard) matching.

@@ -11,14 +11,14 @@ namespace RabbitMQ.Client.Core.DependencyInjection
     public class RabbitMqConnectionFactory : IRabbitMqConnectionFactory
     {
         readonly RabbitMqClientOptions _options;
-        
+
         public RabbitMqConnectionFactory(IOptions<RabbitMqClientOptions> options)
         {
             if (options is null)
             {
                 throw new ArgumentException($"Argument {nameof(options)} is null.", nameof(options));
             }
-            
+
             _options = options.Value;
         }
 
