@@ -326,11 +326,11 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                 .Distinct()
                 .ToList();
 
-            StartChannel(Channel, deadLetterExchanges);
-            StartChannel(ConsumingChannel, deadLetterExchanges);
+            StartChannel(Channel, _exchanges, deadLetterExchanges);
+            StartChannel(ConsumingChannel, _exchanges, deadLetterExchanges);
         }
 
-        void StartChannel(IModel channel, IEnumerable<string> deadLetterExchanges)
+        static void StartChannel(IModel channel, IEnumerable<RabbitMqExchange> exchanges, IEnumerable<string> deadLetterExchanges)
         {
             if (channel is null)
             {
@@ -342,13 +342,13 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                 StartDeadLetterExchange(channel, exchangeName);
             }
 
-            foreach (var exchange in _exchanges)
+            foreach (var exchange in exchanges)
             {
                 StartExchange(channel, exchange);
             }
         }
 
-        void StartDeadLetterExchange(IModel channel, string exchangeName)
+        static void StartDeadLetterExchange(IModel channel, string exchangeName)
         {
             channel.ExchangeDeclare(
                 exchange: exchangeName,
@@ -358,7 +358,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                 arguments: null);
         }
         
-        void StartExchange(IModel channel, RabbitMqExchange exchange)
+        static void StartExchange(IModel channel, RabbitMqExchange exchange)
         {
             channel.ExchangeDeclare(
                 exchange: exchange.Name,
@@ -373,7 +373,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             }
         }
 
-        void StartQueue(IModel channel, RabbitMqQueueOptions queue, string exchangeName)
+        static void StartQueue(IModel channel, RabbitMqQueueOptions queue, string exchangeName)
         {
             channel.QueueDeclare(queue: queue.Name,
                     durable: queue.Durable,
