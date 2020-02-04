@@ -14,7 +14,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
     public static class RabbitMqClientDependencyInjectionExtensions
     {
         /// <summary>
-        /// Add RabbitMQ client and required service infrastructure.
+        /// Add a singleton fully-functional RabbitMQ client and required service infrastructure.
         /// </summary>
         /// <remarks>
         /// QueueService will be added in the singleton mode.
@@ -33,7 +33,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         }
 
         /// <summary>
-        /// Add RabbitMQ client and required service infrastructure.
+        /// Add a singleton fully-functional RabbitMQ client and required service infrastructure.
         /// </summary>
         /// <remarks>
         /// QueueService will be added in the singleton mode.
@@ -51,7 +51,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         }
 
         /// <summary>
-        /// Add RabbitMQ client and required service infrastructure.
+        /// Add a transient fully-functional RabbitMQ client and required service infrastructure.
         /// </summary>
         /// <remarks>
         /// QueueService will be added in the transient mode.
@@ -70,7 +70,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         }
 
         /// <summary>
-        /// Add RabbitMQ client and required service infrastructure.
+        /// Add a transient fully-functional RabbitMQ client and required service infrastructure.
         /// </summary>
         /// <remarks>
         /// QueueService will be added in the transient mode.
@@ -87,6 +87,12 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             return services;
         }
         
+        /// <summary>
+        /// Add a singleton producing RabbitMQ client and required service infrastructure.
+        /// </summary>
+        /// <param name="services">Service collection.</param>
+        /// <param name="configuration">RabbitMq configuration section.</param>
+        /// <returns>Service collection.</returns>
         public static IServiceCollection AddRabbitMqProducingClientSingleton(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddRabbitMqClientInfrastructure();
@@ -97,6 +103,12 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             return services;
         }
         
+        /// <summary>
+        /// Add a singleton producing RabbitMQ client and required service infrastructure.
+        /// </summary>
+        /// <param name="services">Service collection.</param>
+        /// <param name="configuration">RabbitMq configuration <see cref="RabbitMqClientOptions"/>.</param>
+        /// <returns>Service collection.</returns>
         public static IServiceCollection AddRabbitMqProducingClientSingleton(this IServiceCollection services, RabbitMqClientOptions configuration)
         {
             services.AddRabbitMqClientInfrastructure();
@@ -106,6 +118,12 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             return services;
         }
         
+        /// <summary>
+        /// Add a transient producing RabbitMQ client and required service infrastructure.
+        /// </summary>
+        /// <param name="services">Service collection.</param>
+        /// <param name="configuration">RabbitMq configuration section.</param>
+        /// <returns>Service collection.</returns>
         public static IServiceCollection AddRabbitMqProducingClientTransient(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddRabbitMqClientInfrastructure();
@@ -116,6 +134,12 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             return services;
         }
         
+        /// <summary>
+        /// Add a singleton producing RabbitMQ client and required service infrastructure.
+        /// </summary>
+        /// <param name="services">Service collection.</param>
+        /// <param name="configuration">RabbitMq configuration <see cref="RabbitMqClientOptions"/>.</param>
+        /// <returns>Service collection.</returns>
         public static IServiceCollection AddRabbitMqProducingClientTransient(this IServiceCollection services, RabbitMqClientOptions configuration)
         {
             services.AddRabbitMqClientInfrastructure();
@@ -125,6 +149,12 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             return services;
         }
         
+        /// <summary>
+        /// Add a singleton consuming RabbitMQ client and required service infrastructure.
+        /// </summary>
+        /// <param name="services">Service collection.</param>
+        /// <param name="configuration">RabbitMq configuration section.</param>
+        /// <returns>Service collection.</returns>
         public static IServiceCollection AddRabbitMqConsumingClientSingleton(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddRabbitMqClientInfrastructure();
@@ -135,6 +165,12 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             return services;
         }
         
+        /// <summary>
+        /// Add a singleton consuming RabbitMQ client and required service infrastructure.
+        /// </summary>
+        /// <param name="services">Service collection.</param>
+        /// <param name="configuration">RabbitMq configuration <see cref="RabbitMqClientOptions"/>.</param>
+        /// <returns>Service collection.</returns>
         public static IServiceCollection AddRabbitMqConsumingClientSingleton(this IServiceCollection services, RabbitMqClientOptions configuration)
         {
             services.AddRabbitMqClientInfrastructure();
@@ -144,6 +180,12 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             return services;
         }
         
+        /// <summary>
+        /// Add a transient consuming RabbitMQ client and required service infrastructure.
+        /// </summary>
+        /// <param name="services">Service collection.</param>
+        /// <param name="configuration">RabbitMq configuration section.</param>
+        /// <returns>Service collection.</returns>
         public static IServiceCollection AddRabbitMqConsumingClientTransient(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddRabbitMqClientInfrastructure();
@@ -154,6 +196,12 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             return services;
         }
         
+        /// <summary>
+        /// Add a transient consuming RabbitMQ client and required service infrastructure.
+        /// </summary>
+        /// <param name="services">Service collection.</param>
+        /// <param name="configuration">RabbitMq configuration <see cref="RabbitMqClientOptions"/>.</param>
+        /// <returns>Service collection.</returns>
         public static IServiceCollection AddRabbitMqConsumingClientTransient(this IServiceCollection services, RabbitMqClientOptions configuration)
         {
             services.AddRabbitMqClientInfrastructure();
