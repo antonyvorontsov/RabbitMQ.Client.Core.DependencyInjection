@@ -21,13 +21,8 @@ namespace Examples.ConsumerConsole
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
-            var consumingService = serviceProvider.GetRequiredService<IConsumingService>();
+            var consumingService = serviceProvider.GetRequiredService<IQueueService>();
             consumingService.StartConsuming();
-            
-            var producingService = serviceProvider.GetRequiredService<IProducingService>();
-            
-            // This is just an example.
-            //producingService.SendString("I am sending messages!", "exchange", "routing.key");
         }
 
         static void ConfigureServices(IServiceCollection services)
@@ -35,8 +30,7 @@ namespace Examples.ConsumerConsole
             var rabbitMqSection = Configuration.GetSection("RabbitMq");
             var exchangeSection = Configuration.GetSection("RabbitMqExchange");
 
-            services.AddRabbitMqConsumingClientSingleton(rabbitMqSection)
-                .AddRabbitMqProducingClientSingleton(rabbitMqSection)
+            services.AddRabbitMqClient(rabbitMqSection)
                 .AddConsumptionExchange("exchange.name", exchangeSection)
                 .AddAsyncMessageHandlerSingleton<CustomAsyncMessageHandler>("routing.key");
                 //.AddAsyncNonCyclicMessageHandlerSingleton<CustomAsyncNonCyclicMessageHandler>("routing.key");
