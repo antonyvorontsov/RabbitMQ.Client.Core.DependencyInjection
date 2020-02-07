@@ -9,25 +9,29 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using RabbitMQ.Client.Core.DependencyInjection.Exceptions;
+using RabbitMQ.Client.Core.DependencyInjection.Extensions;
 
 namespace RabbitMQ.Client.Core.DependencyInjection
 {
     /// <summary>
     /// Implementation of the custom RabbitMQ queue service.
     /// </summary>
-    internal class QueueService : IQueueService, IDisposable
+    internal sealed class QueueService : IQueueService, IDisposable
     {
-        public IConnection Connection => _connection;
+        public IConnection Connection { get; private set; }
 
-        public IModel Channel => _channel;
+        public IModel Channel { get; private set; }
 
-        readonly IConnection _connection;
-        readonly IModel _channel;
+        public IConnection ConsumingConnection { get; private set; }
+
+        public IModel ConsumingChannel { get; private set; }
+
+        AsyncEventingBasicConsumer _consumer;
 
         readonly IMessageHandlingService _messageHandlingService;
         readonly IEnumerable<RabbitMqExchange> _exchanges;
         readonly ILogger<QueueService> _logger;
-        readonly AsyncEventingBasicConsumer _consumer;
 
         bool _consumingStarted;
         readonly object _lock = new object();
@@ -35,60 +39,85 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         const int QueueExpirationTime = 60000;
 
         public QueueService(
+            Guid guid,
+            IEnumerable<RabbitMqConnectionOptionsContainer> connectionOptionsContainers,
             IMessageHandlingService messageHandlingService,
-            IRabbitMqConnectionFactory rabbitMqConnectionFactory,
             IEnumerable<RabbitMqExchange> exchanges,
             ILogger<QueueService> logger)
         {
+            var optionsContainer = connectionOptionsContainers.FirstOrDefault(x => x.Guid == guid);
+            if (optionsContainer is null)
+            {
+                throw new ArgumentException($"Connection options container for {nameof(QueueService)} with the Guid {guid} is not found.", nameof(connectionOptionsContainers));
+            }
 
             _messageHandlingService = messageHandlingService;
             _exchanges = exchanges;
             _logger = logger;
 
-            _connection = rabbitMqConnectionFactory.CreateRabbitMqConnection();
-            // Event handling.
-            _connection.CallbackException += HandleConnectionCallbackException;
-            _connection.ConnectionRecoveryError += HandleConnectionRecoveryError;
-
-            _channel = _connection.CreateModel();
-            // Event handling.
-            _channel.CallbackException += HandleChannelCallbackException;
-            _channel.BasicRecoverOk += HandleChannelBasicRecoverOk;
-
-            _consumer = new AsyncEventingBasicConsumer(_channel);
+            ConfigureConnectionInfrastructure(optionsContainer);
             StartClient();
         }
 
         public void Dispose()
         {
-            if (_connection != null)
+            if (Connection != null)
             {
-                _connection.CallbackException -= HandleConnectionCallbackException;
-                _connection.ConnectionRecoveryError -= HandleConnectionRecoveryError;
+                Connection.CallbackException -= HandleConnectionCallbackException;
+                Connection.ConnectionRecoveryError -= HandleConnectionRecoveryError;
             }
 
-            if (_channel != null)
+            if (ConsumingConnection != null)
             {
-                _channel.CallbackException -= HandleChannelCallbackException;
-                _channel.BasicRecoverOk -= HandleChannelBasicRecoverOk;
+                ConsumingConnection.CallbackException -= HandleConnectionCallbackException;
+                ConsumingConnection.ConnectionRecoveryError -= HandleConnectionRecoveryError;
             }
 
-            if (_channel?.IsOpen == true)
+            if (Channel != null)
             {
-                _channel.Close((int)HttpStatusCode.OK, "Channel closed");
+                Channel.CallbackException -= HandleChannelCallbackException;
+                Channel.BasicRecoverOk -= HandleChannelBasicRecoverOk;
             }
 
-            if (_connection?.IsOpen == true)
+            if (ConsumingChannel != null)
             {
-                _connection.Close();
+                ConsumingChannel.CallbackException -= HandleChannelCallbackException;
+                ConsumingChannel.BasicRecoverOk -= HandleChannelBasicRecoverOk;
             }
 
-            _channel?.Dispose();
-            _connection?.Dispose();
+            if (Channel?.IsOpen == true)
+            {
+                Channel.Close((int)HttpStatusCode.OK, "Channel closed");
+            }
+
+            if (ConsumingChannel?.IsOpen == true)
+            {
+                ConsumingChannel.Close((int)HttpStatusCode.OK, "Channel closed");
+            }
+
+            if (Connection?.IsOpen == true)
+            {
+                Connection.Close();
+            }
+
+            if (ConsumingConnection?.IsOpen == true)
+            {
+                ConsumingConnection.Close();
+            }
+
+            Channel?.Dispose();
+            Connection?.Dispose();
+            ConsumingChannel?.Dispose();
+            ConsumingConnection?.Dispose();
         }
 
         public void StartConsuming()
         {
+            if (ConsumingChannel is null)
+            {
+                throw new ConsumingChannelIsNullException($"Consuming channel is null. Configure {nameof(IConsumingService)} or full functional {nameof(IQueueService)} for consuming messages.");
+            }
+
             if (_consumingStarted)
             {
                 return;
@@ -102,13 +131,14 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             {
                 foreach (var queue in exchange.Options.Queues)
                 {
-                    _channel.BasicConsume(queue: queue.Name, autoAck: false, consumer: _consumer);
+                    ConsumingChannel.BasicConsume(queue: queue.Name, autoAck: false, consumer: _consumer);
                 }
             }
         }
 
         public void Send<T>(T @object, string exchangeName, string routingKey) where T : class
         {
+            EnsureProducingChannelIsNotNull();
             ValidateArguments(exchangeName, routingKey);
             var json = JsonConvert.SerializeObject(@object);
             var bytes = Encoding.UTF8.GetBytes(json);
@@ -118,6 +148,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
 
         public void Send<T>(T @object, string exchangeName, string routingKey, int secondsDelay) where T : class
         {
+            EnsureProducingChannelIsNotNull();
             ValidateArguments(exchangeName, routingKey);
             var deadLetterExchange = GetDeadLetterExchange(exchangeName);
             var delayedQueueName = DeclareDelayedQueue(exchangeName, deadLetterExchange, routingKey, secondsDelay);
@@ -126,6 +157,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
 
         public void SendJson(string json, string exchangeName, string routingKey)
         {
+            EnsureProducingChannelIsNotNull();
             ValidateArguments(exchangeName, routingKey);
             var bytes = Encoding.UTF8.GetBytes(json);
             var properties = CreateJsonProperties();
@@ -134,6 +166,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
 
         public void SendJson(string json, string exchangeName, string routingKey, int secondsDelay)
         {
+            EnsureProducingChannelIsNotNull();
             ValidateArguments(exchangeName, routingKey);
             var deadLetterExchange = GetDeadLetterExchange(exchangeName);
             var delayedQueueName = DeclareDelayedQueue(exchangeName, deadLetterExchange, routingKey, secondsDelay);
@@ -142,6 +175,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
 
         public void SendString(string message, string exchangeName, string routingKey)
         {
+            EnsureProducingChannelIsNotNull();
             ValidateArguments(exchangeName, routingKey);
             var bytes = Encoding.UTF8.GetBytes(message);
             Send(bytes, CreateProperties(), exchangeName, routingKey);
@@ -149,6 +183,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
 
         public void SendString(string message, string exchangeName, string routingKey, int secondsDelay)
         {
+            EnsureProducingChannelIsNotNull();
             ValidateArguments(exchangeName, routingKey);
             var deadLetterExchange = GetDeadLetterExchange(exchangeName);
             var delayedQueueName = DeclareDelayedQueue(exchangeName, deadLetterExchange, routingKey, secondsDelay);
@@ -157,10 +192,11 @@ namespace RabbitMQ.Client.Core.DependencyInjection
 
         public void Send(byte[] bytes, IBasicProperties properties, string exchangeName, string routingKey)
         {
+            EnsureProducingChannelIsNotNull();
             ValidateArguments(exchangeName, routingKey);
             lock (_lock)
             {
-                _channel.BasicPublish(exchange: exchangeName,
+                Channel.BasicPublish(exchange: exchangeName,
                     routingKey: routingKey,
                     basicProperties: properties,
                     body: bytes);
@@ -169,6 +205,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
 
         public void Send(byte[] bytes, IBasicProperties properties, string exchangeName, string routingKey, int secondsDelay)
         {
+            EnsureProducingChannelIsNotNull();
             ValidateArguments(exchangeName, routingKey);
             var deadLetterExchange = GetDeadLetterExchange(exchangeName);
             var delayedQueueName = DeclareDelayedQueue(exchangeName, deadLetterExchange, routingKey, secondsDelay);
@@ -201,14 +238,14 @@ namespace RabbitMQ.Client.Core.DependencyInjection
 
         IBasicProperties CreateProperties()
         {
-            var properties = _channel.CreateBasicProperties();
+            var properties = Channel.CreateBasicProperties();
             properties.Persistent = true;
             return properties;
         }
 
         IBasicProperties CreateJsonProperties()
         {
-            var properties = _channel.CreateBasicProperties();
+            var properties = Channel.CreateBasicProperties();
             properties.Persistent = true;
             properties.ContentType = "application/json";
             return properties;
@@ -256,35 +293,74 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             _logger.LogError(new EventId(), @event.Exception, @event.Exception.Message, @event);
         }
 
+        void ConfigureConnectionInfrastructure(RabbitMqConnectionOptionsContainer optionsContainer)
+        {
+            Connection = RabbitMqFactoryExtensions.CreateRabbitMqConnection(optionsContainer?.Options?.ProducerOptions);
+            if (Connection != null)
+            {
+                Connection.CallbackException += HandleConnectionCallbackException;
+                Connection.ConnectionRecoveryError += HandleConnectionRecoveryError;
+                Channel = Connection.CreateModel();
+                Channel.CallbackException += HandleChannelCallbackException;
+                Channel.BasicRecoverOk += HandleChannelBasicRecoverOk;
+            }
+
+            ConsumingConnection = RabbitMqFactoryExtensions.CreateRabbitMqConnection(optionsContainer?.Options?.ConsumerOptions);
+            if (ConsumingConnection != null)
+            {
+                ConsumingConnection.CallbackException += HandleConnectionCallbackException;
+                ConsumingConnection.ConnectionRecoveryError += HandleConnectionRecoveryError;
+                ConsumingChannel = ConsumingConnection.CreateModel();
+                ConsumingChannel.CallbackException += HandleChannelCallbackException;
+                ConsumingChannel.BasicRecoverOk += HandleChannelBasicRecoverOk;
+
+                _consumer = new AsyncEventingBasicConsumer(ConsumingChannel);
+            }
+        }
+
         void StartClient()
         {
             var deadLetterExchanges = _exchanges
                 .Where(x => !string.IsNullOrEmpty(x.Options.DeadLetterExchange))
                 .Select(x => x.Options.DeadLetterExchange)
-                .Distinct();
+                .Distinct()
+                .ToList();
+
+            StartChannel(Channel, _exchanges, deadLetterExchanges);
+            StartChannel(ConsumingChannel, _exchanges, deadLetterExchanges);
+        }
+
+        static void StartChannel(IModel channel, IEnumerable<RabbitMqExchange> exchanges, IEnumerable<string> deadLetterExchanges)
+        {
+            if (channel is null)
+            {
+                return;
+            }
 
             foreach (var exchangeName in deadLetterExchanges)
             {
-                StartDeadLetterExchange(exchangeName);
+                StartDeadLetterExchange(channel, exchangeName);
             }
 
-            foreach (var exchange in _exchanges)
+            foreach (var exchange in exchanges)
             {
-                StartExchange(exchange);
+                StartExchange(channel, exchange);
             }
         }
 
-        void StartDeadLetterExchange(string exchangeName) =>
-            _channel.ExchangeDeclare(
+        static void StartDeadLetterExchange(IModel channel, string exchangeName)
+        {
+            channel.ExchangeDeclare(
                 exchange: exchangeName,
                 type: "direct",
                 durable: true,
                 autoDelete: false,
                 arguments: null);
-
-        void StartExchange(RabbitMqExchange exchange)
+        }
+        
+        static void StartExchange(IModel channel, RabbitMqExchange exchange)
         {
-            _channel.ExchangeDeclare(
+            channel.ExchangeDeclare(
                 exchange: exchange.Name,
                 type: exchange.Options.Type,
                 durable: exchange.Options.Durable,
@@ -293,13 +369,13 @@ namespace RabbitMQ.Client.Core.DependencyInjection
 
             foreach (var queue in exchange.Options.Queues)
             {
-                StartQueue(queue, exchange.Name);
+                StartQueue(channel, queue, exchange.Name);
             }
         }
 
-        void StartQueue(RabbitMqQueueOptions queue, string exchangeName)
+        static void StartQueue(IModel channel, RabbitMqQueueOptions queue, string exchangeName)
         {
-            _channel.QueueDeclare(queue: queue.Name,
+            channel.QueueDeclare(queue: queue.Name,
                     durable: queue.Durable,
                     exclusive: queue.Exclusive,
                     autoDelete: queue.AutoDelete,
@@ -309,7 +385,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             {
                 foreach (var route in queue.RoutingKeys)
                 {
-                    _channel.QueueBind(
+                    channel.QueueBind(
                         queue: queue.Name,
                         exchange: exchangeName,
                         routingKey: route);
@@ -318,10 +394,18 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             else
             {
                 // If there are not any routing keys then make a bind with a queue name.
-                _channel.QueueBind(
+                channel.QueueBind(
                     queue: queue.Name,
                     exchange: exchangeName,
                     routingKey: queue.Name);
+            }
+        }
+
+        void EnsureProducingChannelIsNotNull()
+        {
+            if (Channel is null)
+            {
+                throw new ProducingChannelIsNullException($"Producing channel is null. Configure {nameof(IProducingService)} or full functional {nameof(IQueueService)} for producing messages.");
             }
         }
 
@@ -359,14 +443,14 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             var delayedQueueName = $"{routingKey}.delayed.{secondsDelay}";
             var arguments = CreateArguments(exchange, routingKey, secondsDelay);
 
-            _channel.QueueDeclare(
+            Channel.QueueDeclare(
                 queue: delayedQueueName,
                 durable: true,
                 exclusive: false,
                 autoDelete: false,
                 arguments: arguments);
 
-            _channel.QueueBind(
+            Channel.QueueBind(
                 queue: delayedQueueName,
                 exchange: deadLetterExchange,
                 routingKey: delayedQueueName);

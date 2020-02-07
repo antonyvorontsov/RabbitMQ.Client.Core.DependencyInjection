@@ -21,8 +21,8 @@ namespace Examples.ConsumerConsole
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
-            var queueService = serviceProvider.GetRequiredService<IQueueService>();
-            queueService.StartConsuming();
+            var consumingService = serviceProvider.GetRequiredService<IQueueService>();
+            consumingService.StartConsuming();
         }
 
         static void ConfigureServices(IServiceCollection services)

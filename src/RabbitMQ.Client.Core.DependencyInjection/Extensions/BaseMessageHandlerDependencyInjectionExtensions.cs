@@ -53,7 +53,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Extensions
             return services;
         }
 
-        internal static IServiceCollection AddMessageHandlerOrderingModel<TImplementation>(this IServiceCollection services, IEnumerable<string> routePatterns, string exchange, int order)
+        static IServiceCollection AddMessageHandlerOrderingModel<TImplementation>(this IServiceCollection services, IEnumerable<string> routePatterns, string exchange, int order)
             where TImplementation : class
         {
             MessageHandlerOrderingModelExists<TImplementation>(services, routePatterns, exchange, order);
@@ -68,7 +68,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Extensions
             return services;
         }
 
-        internal static void MessageHandlerOrderingModelExists<TImplementation>(IServiceCollection services, IEnumerable<string> routePatterns, string exchange, int order)
+        static void MessageHandlerOrderingModelExists<TImplementation>(IServiceCollection services, IEnumerable<string> routePatterns, string exchange, int order)
         {
             var messageHandlerOrderingModel = services.FirstOrDefault(x => x.ServiceType == typeof(MessageHandlerOrderingModel)
                 && x.Lifetime == ServiceLifetime.Singleton
