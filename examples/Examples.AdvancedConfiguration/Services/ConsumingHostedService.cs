@@ -8,7 +8,7 @@ namespace Examples.AdvancedConfiguration.Services
     public class ConsumingHostedService : IHostedService
     {
         readonly IConsumingService _consumingService;
-        
+
         public ConsumingHostedService(IConsumingService consumingService)
         {
             _consumingService = consumingService;

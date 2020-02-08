@@ -48,7 +48,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             var optionsContainer = connectionOptionsContainers.FirstOrDefault(x => x.Guid == guid);
             if (optionsContainer is null)
             {
-                throw new ArgumentException($"Connection options container for {nameof(QueueService)} with the Guid {guid} is not found.", nameof(connectionOptionsContainers));
+                throw new ArgumentException($"Connection options container for {nameof(QueueService)} with the guid {guid} is not found.", nameof(connectionOptionsContainers));
             }
 
             _messageHandlingService = messageHandlingService;
@@ -357,7 +357,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                 autoDelete: false,
                 arguments: null);
         }
-        
+
         static void StartExchange(IModel channel, RabbitMqExchange exchange)
         {
             channel.ExchangeDeclare(

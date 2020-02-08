@@ -92,7 +92,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             services.ResolveTransientQueueService(guid);
             return services;
         }
-        
+
         /// <summary>
         /// Add a singleton producing RabbitMQ client and required service infrastructure.
         /// </summary>
@@ -109,7 +109,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             services.ResolveSingletonProducingService(guid);
             return services;
         }
-        
+
         /// <summary>
         /// Add a singleton producing RabbitMQ client and required service infrastructure.
         /// </summary>
@@ -125,7 +125,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             services.ResolveSingletonProducingService(guid);
             return services;
         }
-        
+
         /// <summary>
         /// Add a transient producing RabbitMQ client and required service infrastructure.
         /// </summary>
@@ -142,7 +142,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             services.ResolveTransientProducingService(guid);
             return services;
         }
-        
+
         /// <summary>
         /// Add a singleton producing RabbitMQ client and required service infrastructure.
         /// </summary>
@@ -158,7 +158,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             services.ResolveTransientProducingService(guid);
             return services;
         }
-        
+
         /// <summary>
         /// Add a singleton consuming RabbitMQ client and required service infrastructure.
         /// </summary>
@@ -175,7 +175,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             services.ResolveSingletonConsumingService(guid);
             return services;
         }
-        
+
         /// <summary>
         /// Add a singleton consuming RabbitMQ client and required service infrastructure.
         /// </summary>
@@ -191,7 +191,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             services.ResolveSingletonConsumingService(guid);
             return services;
         }
-        
+
         /// <summary>
         /// Add a transient consuming RabbitMQ client and required service infrastructure.
         /// </summary>
@@ -208,7 +208,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             services.ResolveTransientConsumingService(guid);
             return services;
         }
-        
+
         /// <summary>
         /// Add a transient consuming RabbitMQ client and required service infrastructure.
         /// </summary>
@@ -250,7 +250,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             };
             return services.AddRabbitMqConnectionOptionsContainer(container);
         }
-        
+
         static IServiceCollection ConfigureRabbitMqConsumingClientOptions(this IServiceCollection services, Guid guid, RabbitMqClientOptions options)
         {
             var container = new RabbitMqConnectionOptionsContainer
@@ -292,7 +292,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                 provider.GetService<ILogger<QueueService> >()));
             return services;
         }
-        
+
         static IServiceCollection ResolveTransientQueueService(this IServiceCollection services, Guid guid)
         {
             services.TryAddTransient<IQueueService>(provider => new QueueService(
@@ -303,7 +303,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                 provider.GetService<ILogger<QueueService> >()));
             return services;
         }
-        
+
         static IServiceCollection ResolveSingletonProducingService(this IServiceCollection services, Guid guid)
         {
             services.TryAddSingleton<IProducingService>(provider => new QueueService(
@@ -314,7 +314,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                 provider.GetService<ILogger<QueueService> >()));
             return services;
         }
-        
+
         static IServiceCollection ResolveTransientProducingService(this IServiceCollection services, Guid guid)
         {
             services.TryAddTransient<IProducingService>(provider => new QueueService(
@@ -325,7 +325,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                 provider.GetService<ILogger<QueueService> >()));
             return services;
         }
-        
+
         static IServiceCollection ResolveSingletonConsumingService(this IServiceCollection services, Guid guid)
         {
             services.TryAddSingleton<IConsumingService>(provider => new QueueService(
@@ -336,7 +336,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                 provider.GetService<ILogger<QueueService> >()));
             return services;
         }
-        
+
         static IServiceCollection ResolveTransientConsumingService(this IServiceCollection services, Guid guid)
         {
             services.TryAddTransient<IConsumingService>(provider => new QueueService(
@@ -353,7 +353,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             var descriptor = services.FirstOrDefault(x => x.ServiceType == typeof(T));
             if (descriptor != null)
             {
-                throw new QueueingServiceAlreadyConfiguredException(typeof(T), $"A queueing service of type {typeof(T)} has been already configured.");
+                throw new QueueingServiceAlreadyConfiguredException(typeof(T), $"A queuing service of type {typeof(T)} has been already configured.");
             }
 
             return services;

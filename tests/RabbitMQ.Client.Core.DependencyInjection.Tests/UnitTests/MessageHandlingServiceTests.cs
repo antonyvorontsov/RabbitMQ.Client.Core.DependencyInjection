@@ -230,32 +230,33 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             Mock<INonCyclicMessageHandler> nonCyclicMessageHandlerMock,
             Mock<IAsyncNonCyclicMessageHandler> asyncNonCyclicMessageHandlerMock)
         {
-            var collection = new List<MessageHandlerOrderingContainerTest>();
-
-            collection.Add(new MessageHandlerOrderingContainerTest
+            var collection = new List<MessageHandlerOrderingContainerTest>
             {
-                MessageHandler = messageHandlerMock.Object,
-                ShouldTrigger = testDataModel.MessageHandlerShouldTrigger,
-                OrderValue = testDataModel.MessageHandlerOrder
-            });
-            collection.Add(new MessageHandlerOrderingContainerTest
-            {
-                MessageHandler = asyncMessageHandlerMock.Object,
-                ShouldTrigger = testDataModel.AsyncMessageHandlerShouldTrigger,
-                OrderValue = testDataModel.AsyncMessageHandlerOrder
-            });
-            collection.Add(new MessageHandlerOrderingContainerTest
-            {
-                MessageHandler = nonCyclicMessageHandlerMock.Object,
-                ShouldTrigger = testDataModel.NonCyclicMessageHandlerShouldTrigger,
-                OrderValue = testDataModel.NonCyclicMessageHandlerOrder
-            });
-            collection.Add(new MessageHandlerOrderingContainerTest
-            {
-                MessageHandler = asyncNonCyclicMessageHandlerMock.Object,
-                ShouldTrigger = testDataModel.AsyncNonCyclicMessageHandlerShouldTrigger,
-                OrderValue = testDataModel.AsyncNonCyclicMessageHandlerOrder
-            });
+                new MessageHandlerOrderingContainerTest
+                {
+                    MessageHandler = messageHandlerMock.Object,
+                    ShouldTrigger = testDataModel.MessageHandlerShouldTrigger,
+                    OrderValue = testDataModel.MessageHandlerOrder
+                },
+                new MessageHandlerOrderingContainerTest
+                {
+                    MessageHandler = asyncMessageHandlerMock.Object,
+                    ShouldTrigger = testDataModel.AsyncMessageHandlerShouldTrigger,
+                    OrderValue = testDataModel.AsyncMessageHandlerOrder
+                },
+                new MessageHandlerOrderingContainerTest
+                {
+                    MessageHandler = nonCyclicMessageHandlerMock.Object,
+                    ShouldTrigger = testDataModel.NonCyclicMessageHandlerShouldTrigger,
+                    OrderValue = testDataModel.NonCyclicMessageHandlerOrder
+                },
+                new MessageHandlerOrderingContainerTest
+                {
+                    MessageHandler = asyncNonCyclicMessageHandlerMock.Object,
+                    ShouldTrigger = testDataModel.AsyncNonCyclicMessageHandlerShouldTrigger,
+                    OrderValue = testDataModel.AsyncNonCyclicMessageHandlerOrder
+                }
+            };
 
             var callOrder = 1;
             var orderedCollection = collection.OrderByDescending(x => x.OrderValue)

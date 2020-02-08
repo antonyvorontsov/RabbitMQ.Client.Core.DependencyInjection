@@ -20,7 +20,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Extensions
             {
                 return null;
             }
-            
+
             var factory = new ConnectionFactory
             {
                 Port = options.Port,
