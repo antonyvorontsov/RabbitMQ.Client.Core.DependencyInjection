@@ -242,7 +242,7 @@ For more information about `appsettings.json` and manual configuration features,
 RabbitMQ client implemented in this library (class which implements `IQueueService`) opens two connections to the RabbitMQ server. One connection is used for message production and the other one is for message consumption.
 This behavior covered in the [advanced usage documentation file](./docs/advanced-usage.md), dive into it deeply if you want to control the client behavior tighter.
 
-There is also an [example project](./examples/Examples.AdvancedConfiguration) that demonstrates an advances usage of the RabbitMq client.
+There is also an [example project](./examples/Examples.AdvancedConfiguration) that demonstrates an advances usage of the RabbitMQ client.
 
 ## Changelog
 
