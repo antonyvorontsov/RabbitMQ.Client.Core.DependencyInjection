@@ -312,3 +312,5 @@ The message handling process is organized as follows:
 - If any exception occurs within handling the message that has been already re-sent that message will not be re-send again (re-send happens only once).
 
 For message production features see the [Previous page](message-production.md)
+
+For more information about advanced usage of the RabbitMQ client see the [Next page](advanced-usage.md)
