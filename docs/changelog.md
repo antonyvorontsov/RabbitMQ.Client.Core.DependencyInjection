@@ -2,6 +2,17 @@
 
 All notable changes to this library will be documented in this file.
 
+## [3.2.0] - 2020-02-14
+
+### Added
+
+- Made a separation of `IQueueService`, which now implements two additional interfaces `IConsumingService` and `IProducingService`.
+- Added new DI extension methods for registering independent `IConsumingService` and `IProducingService` services.
+
+### Updated
+
+- Changed to logic of connecting to the RabbitMQ server. For now `IConsumingService` and `IProducingService` have their own connections, so if you use both of them there will be two connections - one for receiving messages and another one for sending.
+
 ## [3.1.2] - 2020-01-31
 
 ### Added
