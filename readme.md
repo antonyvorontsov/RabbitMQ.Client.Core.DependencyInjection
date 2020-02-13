@@ -181,14 +181,14 @@ public class MyNonCyclicMessageHandler : INonCyclicMessageHandler
 }
 ```
 
-`INonCyclicMessageHandler` has its asynchrony analogue IAsyncNonCyclicMessageHandler`.
+`INonCyclicMessageHandler` has its asynchronous analogue `IAsyncNonCyclicMessageHandler`.
 
 ```c#
 public class MyAsyncNonCyclicMessageHandler : IAsyncNonCyclicMessageHandler
 {
     // Inject anything you want except IQueueService.
     readonly ILogger<MyAsyncNonCyclicMessageHandler> _logger;
-    public MyNonCyclicMessageHandler(ILogger<MyAsyncNonCyclicMessageHandler> logger)
+    public MyAsyncNonCyclicMessageHandler(ILogger<MyAsyncNonCyclicMessageHandler> logger)
     {
         _logger = logger;
     }
@@ -237,9 +237,11 @@ Exchange sections define how to bind queues and exchanges with each other using 
 
 For more information about `appsettings.json` and manual configuration features, see [rabbit-configuration](./docs/rabbit-configuration.md) and [exchange-configuration](./docs/exchange-configuration.md) documentation files.
 
-## Important nuances and advanced usage
+## Advanced usage
 
-RabbitMQ client implemented in this library (class which implements `IQueueService`) opens two connections to the RabbitMQ server. One connection is used for message production and the other one is for message consumption. This behavior embedded since 3.2.0 version of the library.
+RabbitMQ client implemented in this library (class which implements `IQueueService`) opens two connections to the RabbitMQ server. One connection is used for message production and the other one is for message consumption.
+This behavior covered in the [advanced usage documentation file](./docs/advanced-usage.md), dive into it deeply if you want to control the client behavior tighter.
+There is also an [example project](.examples/Examples.AdvancedConfiguration) that demonstrates an advances usage of the RabbitMq client.
 
 ## Changelog
 
