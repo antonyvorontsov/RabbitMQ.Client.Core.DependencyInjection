@@ -24,25 +24,26 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{04EFD8F7-5120-4072-9728-64203F6F4873}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{BC4CDBDE-4AEE-44B3-B00B-380EB1AC5E62}"
-ProjectSection(SolutionItems) = preProject
-	docs\changelog.md = docs\changelog.md
-	docs\rabbit-configuration.md = docs\rabbit-configuration.md
-	docs\exchange-configuration.md = docs\exchange-configuration.md
-	docs\message-production.md = docs\message-production.md
-	docs\message-consumption.md = docs\message-consumption.md
-	docs\readme.md = docs\readme.md
-EndProjectSection
+	ProjectSection(SolutionItems) = preProject
+		docs\advanced-usage.md = docs\advanced-usage.md
+		docs\changelog.md = docs\changelog.md
+		docs\exchange-configuration.md = docs\exchange-configuration.md
+		docs\message-consumption.md = docs\message-consumption.md
+		docs\message-production.md = docs\message-production.md
+		docs\rabbit-configuration.md = docs\rabbit-configuration.md
+		docs\readme.md = docs\readme.md
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "images", "images", "{93D59B0E-856C-4260-B50E-57FE5C0F5073}"
-ProjectSection(SolutionItems) = preProject
-	docs\images\delayed-message-model.png = docs\images\delayed-message-model.png
-EndProjectSection
+	ProjectSection(SolutionItems) = preProject
+		docs\images\delayed-message-model.png = docs\images\delayed-message-model.png
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{9D0289B2-C566-46CC-A53A-471BCBA0F277}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitMQ.Client.Core.DependencyInjection.Tests", "tests\RabbitMQ.Client.Core.DependencyInjection.Tests\RabbitMQ.Client.Core.DependencyInjection.Tests.csproj", "{85907F19-00B0-4BA6-9B7C-0452A174903D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RabbitMQ.Client.Core.DependencyInjection.Tests", "tests\RabbitMQ.Client.Core.DependencyInjection.Tests\RabbitMQ.Client.Core.DependencyInjection.Tests.csproj", "{85907F19-00B0-4BA6-9B7C-0452A174903D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examples.AdvancedConfiguration", "examples\Examples.AdvancedConfiguration\Examples.AdvancedConfiguration.csproj", "{0C713913-8D54-49E7-AADD-45497216E2EF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.AdvancedConfiguration", "examples\Examples.AdvancedConfiguration\Examples.AdvancedConfiguration.csproj", "{0C713913-8D54-49E7-AADD-45497216E2EF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
