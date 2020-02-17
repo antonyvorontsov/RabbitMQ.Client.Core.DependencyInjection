@@ -250,6 +250,6 @@ All notable changes are being tracked in the [changelog](./docs/changelog.md) fi
 
 ## License
 
-This library licenced under the MIT license.
+This library licensed under the MIT license.
 
 Feel free to contribute!
