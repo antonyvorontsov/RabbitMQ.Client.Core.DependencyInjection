@@ -19,5 +19,10 @@
         /// Start consuming (getting messages).
         /// </summary>
         void StartConsuming();
+
+        /// <summary>
+        /// Stop consuming (getting messages).
+        /// </summary>
+        void StopConsuming();
     }
 }
