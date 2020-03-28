@@ -147,7 +147,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
         {
             var channelMock = new Mock<IModel>();
             var queueServiceMock = new Mock<IQueueService>();
-            queueServiceMock.Setup(x => x.Channel)
+            queueServiceMock.Setup(x => x.ConsumingChannel)
                 .Returns(channelMock.Object);
             return queueServiceMock.Object;
         }
