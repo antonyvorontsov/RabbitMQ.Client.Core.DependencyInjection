@@ -2,6 +2,16 @@
 
 All notable changes to this library will be documented in this file.
 
+## [3.2.1] - 2020-03-29
+
+### Fixed
+
+- Fixed message acknowledgement when both `IConsumingService` and `IProducingService` in use.
+
+### Updated
+
+- Updated Microsoft libraries to the newer version (3.1.3).
+
 ## [3.2.0] - 2020-02-14
 
 ### Added
