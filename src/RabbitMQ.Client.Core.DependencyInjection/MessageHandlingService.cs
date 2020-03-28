@@ -47,7 +47,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             {
                 var matchingRoutes = GetMatchingRoutePatterns(eventArgs.Exchange, eventArgs.RoutingKey);
                 await ProcessMessage(eventArgs.Exchange, message, queueService, matchingRoutes).ConfigureAwait(false);
-                queueService.Channel.BasicAck(eventArgs.DeliveryTag, false);
+                queueService.ConsumingChannel.BasicAck(eventArgs.DeliveryTag, false);
                 _logger.LogInformation(
                     $"Message processing finished successfully. Acknowledge has been sent with deliveryTag {eventArgs.DeliveryTag}.");
             }
@@ -58,7 +58,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                     exception,
                     $"An error occurred while processing received message with the delivery tag {eventArgs.DeliveryTag}.");
 
-                queueService.Channel.BasicAck(eventArgs.DeliveryTag, false);
+                queueService.ConsumingChannel.BasicAck(eventArgs.DeliveryTag, false);
 
                 if (eventArgs.BasicProperties.Headers is null)
                 {
