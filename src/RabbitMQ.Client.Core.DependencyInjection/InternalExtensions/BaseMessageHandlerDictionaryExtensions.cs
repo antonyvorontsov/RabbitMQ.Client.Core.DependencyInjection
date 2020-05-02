@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using RabbitMQ.Client.Core.DependencyInjection.MessageHandlers;
 
-namespace RabbitMQ.Client.Core.DependencyInjection.Extensions
+namespace RabbitMQ.Client.Core.DependencyInjection.InternalExtensions
 {
     /// <summary>
     /// An extension class which contains methods for easy operating with dictionaries.

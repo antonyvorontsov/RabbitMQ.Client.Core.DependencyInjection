@@ -1,10 +1,10 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using RabbitMQ.Client.Core.DependencyInjection.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
+using RabbitMQ.Client.Core.DependencyInjection.Models;
 
-namespace RabbitMQ.Client.Core.DependencyInjection.Extensions
+namespace RabbitMQ.Client.Core.DependencyInjection.InternalExtensions
 {
     /// <summary>
     /// Base DI extensions for all types of message handlers.

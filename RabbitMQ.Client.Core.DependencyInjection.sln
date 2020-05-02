@@ -45,6 +45,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RabbitMQ.Client.Core.Depend
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.AdvancedConfiguration", "examples\Examples.AdvancedConfiguration\Examples.AdvancedConfiguration.csproj", "{0C713913-8D54-49E7-AADD-45497216E2EF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examples.BatchMessageHandler", "examples\Examples.BatchMessageHandler\Examples.BatchMessageHandler.csproj", "{BC9BE326-AEFE-42F2-B592-80126188514D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -75,6 +77,10 @@ Global
 		{0C713913-8D54-49E7-AADD-45497216E2EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0C713913-8D54-49E7-AADD-45497216E2EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0C713913-8D54-49E7-AADD-45497216E2EF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC9BE326-AEFE-42F2-B592-80126188514D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC9BE326-AEFE-42F2-B592-80126188514D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC9BE326-AEFE-42F2-B592-80126188514D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC9BE326-AEFE-42F2-B592-80126188514D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -87,6 +93,7 @@ Global
 		{93D59B0E-856C-4260-B50E-57FE5C0F5073} = {BC4CDBDE-4AEE-44B3-B00B-380EB1AC5E62}
 		{85907F19-00B0-4BA6-9B7C-0452A174903D} = {9D0289B2-C566-46CC-A53A-471BCBA0F277}
 		{0C713913-8D54-49E7-AADD-45497216E2EF} = {04EFD8F7-5120-4072-9728-64203F6F4873}
+		{BC9BE326-AEFE-42F2-B592-80126188514D} = {04EFD8F7-5120-4072-9728-64203F6F4873}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0EBBD182-65B2-47F9-ABBE-64B5B8C9652F}

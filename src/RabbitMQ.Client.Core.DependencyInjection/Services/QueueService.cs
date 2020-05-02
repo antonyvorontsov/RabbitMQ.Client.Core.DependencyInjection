@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using RabbitMQ.Client.Core.DependencyInjection.Configuration;
 using RabbitMQ.Client.Core.DependencyInjection.Exceptions;
-using RabbitMQ.Client.Core.DependencyInjection.Extensions;
+using RabbitMQ.Client.Core.DependencyInjection.InternalExtensions;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
 using RabbitMQ.Client.Events;
 
@@ -20,6 +20,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
     internal sealed class QueueService : IQueueService, IDisposable
     {
         public IConnection Connection { get; private set; }
+
         public IModel Channel { get; private set; }
 
         public IConnection ConsumingConnection { get; private set; }
