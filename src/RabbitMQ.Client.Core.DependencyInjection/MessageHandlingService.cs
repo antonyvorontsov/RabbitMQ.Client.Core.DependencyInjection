@@ -38,7 +38,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// <param name="queueService">An instance of the queue service <see cref="IQueueService"/>.</param>
         public async Task HandleMessageReceivingEvent(BasicDeliverEventArgs eventArgs, IQueueService queueService)
         {
-            var message = Encoding.UTF8.GetString(eventArgs.Body);
+            var message = Encoding.UTF8.GetString(eventArgs.Body.ToArray());
 
             _logger.LogInformation($"A new message was received with deliveryTag {eventArgs.DeliveryTag}.");
             _logger.LogInformation(message);

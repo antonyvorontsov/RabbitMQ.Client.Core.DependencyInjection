@@ -20,7 +20,6 @@ namespace RabbitMQ.Client.Core.DependencyInjection
     internal sealed class QueueService : IQueueService, IDisposable
     {
         public IConnection Connection { get; private set; }
-
         public IModel Channel { get; private set; }
 
         public IConnection ConsumingConnection { get; private set; }
@@ -64,13 +63,19 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             if (Connection != null)
             {
                 Connection.CallbackException -= HandleConnectionCallbackException;
-                Connection.ConnectionRecoveryError -= HandleConnectionRecoveryError;
+                if (Connection is IAutorecoveringConnection connection)
+                {
+                    connection.ConnectionRecoveryError -= HandleConnectionRecoveryError;
+                }
             }
 
             if (ConsumingConnection != null)
             {
                 ConsumingConnection.CallbackException -= HandleConnectionCallbackException;
-                ConsumingConnection.ConnectionRecoveryError -= HandleConnectionRecoveryError;
+                if (Connection is IAutorecoveringConnection connection)
+                {
+                    connection.ConnectionRecoveryError -= HandleConnectionRecoveryError;
+                }
             }
 
             if (Channel != null)
@@ -190,7 +195,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             SendString(message, deadLetterExchange, delayedQueueName);
         }
 
-        public void Send(byte[] bytes, IBasicProperties properties, string exchangeName, string routingKey)
+        public void Send(ReadOnlyMemory<byte> bytes, IBasicProperties properties, string exchangeName, string routingKey)
         {
             EnsureProducingChannelIsNotNull();
             ValidateArguments(exchangeName, routingKey);
@@ -203,7 +208,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             }
         }
 
-        public void Send(byte[] bytes, IBasicProperties properties, string exchangeName, string routingKey, int secondsDelay)
+        public void Send(ReadOnlyMemory<byte> bytes, IBasicProperties properties, string exchangeName, string routingKey, int secondsDelay)
         {
             EnsureProducingChannelIsNotNull();
             ValidateArguments(exchangeName, routingKey);
@@ -230,10 +235,10 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         public async Task SendStringAsync(string message, string exchangeName, string routingKey, int secondsDelay) =>
             await Task.Run(() => SendString(message, exchangeName, routingKey, secondsDelay)).ConfigureAwait(false);
 
-        public async Task SendAsync(byte[] bytes, IBasicProperties properties, string exchangeName, string routingKey) =>
+        public async Task SendAsync(ReadOnlyMemory<byte> bytes, IBasicProperties properties, string exchangeName, string routingKey) =>
             await Task.Run(() => Send(bytes, properties, exchangeName, routingKey)).ConfigureAwait(false);
 
-        public async Task SendAsync(byte[] bytes, IBasicProperties properties, string exchangeName, string routingKey, int secondsDelay) =>
+        public async Task SendAsync(ReadOnlyMemory<byte> bytes, IBasicProperties properties, string exchangeName, string routingKey, int secondsDelay) =>
             await Task.Run(() => Send(bytes, properties, exchangeName, routingKey, secondsDelay)).ConfigureAwait(false);
 
         IBasicProperties CreateProperties()
@@ -299,7 +304,10 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             if (Connection != null)
             {
                 Connection.CallbackException += HandleConnectionCallbackException;
-                Connection.ConnectionRecoveryError += HandleConnectionRecoveryError;
+                if (Connection is IAutorecoveringConnection connection)
+                {
+                    connection.ConnectionRecoveryError += HandleConnectionRecoveryError;
+                }
                 Channel = Connection.CreateModel();
                 Channel.CallbackException += HandleChannelCallbackException;
                 Channel.BasicRecoverOk += HandleChannelBasicRecoverOk;
@@ -309,7 +317,10 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             if (ConsumingConnection != null)
             {
                 ConsumingConnection.CallbackException += HandleConnectionCallbackException;
-                ConsumingConnection.ConnectionRecoveryError += HandleConnectionRecoveryError;
+                if (Connection is IAutorecoveringConnection connection)
+                {
+                    connection.ConnectionRecoveryError += HandleConnectionRecoveryError;
+                }
                 ConsumingChannel = ConsumingConnection.CreateModel();
                 ConsumingChannel.CallbackException += HandleChannelCallbackException;
                 ConsumingChannel.BasicRecoverOk += HandleChannelBasicRecoverOk;

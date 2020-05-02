@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Core.DependencyInjection
 {
@@ -77,7 +78,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// <param name="properties">Message properties.</param>
         /// <param name="exchangeName">Exchange name.</param>
         /// <param name="routingKey">Routing key.</param>
-        void Send(byte[] bytes, IBasicProperties properties, string exchangeName, string routingKey);
+        void Send(ReadOnlyMemory<byte> bytes, IBasicProperties properties, string exchangeName, string routingKey);
 
         /// <summary>
         /// Send a delayed message.
@@ -87,7 +88,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// <param name="exchangeName">Exchange name.</param>
         /// <param name="routingKey">Routing key.</param>
         /// <param name="secondsDelay">Delay time.</param>
-        void Send(byte[] bytes, IBasicProperties properties, string exchangeName, string routingKey, int secondsDelay);
+        void Send(ReadOnlyMemory<byte> bytes, IBasicProperties properties, string exchangeName, string routingKey, int secondsDelay);
 
         /// <summary>
         /// Send a message asynchronously.
@@ -149,7 +150,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// <param name="properties">Message properties.</param>
         /// <param name="exchangeName">Exchange name.</param>
         /// <param name="routingKey">Routing key.</param>
-        Task SendAsync(byte[] bytes, IBasicProperties properties, string exchangeName, string routingKey);
+        Task SendAsync(ReadOnlyMemory<byte> bytes, IBasicProperties properties, string exchangeName, string routingKey);
 
         /// <summary>
         /// Send a delayed message asynchronously.
@@ -159,6 +160,6 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// <param name="exchangeName">Exchange name.</param>
         /// <param name="routingKey">Routing key.</param>
         /// <param name="secondsDelay">Delay time.</param>
-        Task SendAsync(byte[] bytes, IBasicProperties properties, string exchangeName, string routingKey, int secondsDelay);
+        Task SendAsync(ReadOnlyMemory<byte> bytes, IBasicProperties properties, string exchangeName, string routingKey, int secondsDelay);
     }
 }
