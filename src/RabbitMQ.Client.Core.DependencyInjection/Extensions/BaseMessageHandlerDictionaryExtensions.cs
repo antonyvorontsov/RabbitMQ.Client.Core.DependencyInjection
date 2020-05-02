@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using RabbitMQ.Client.Core.DependencyInjection.MessageHandlers;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.Extensions
 {

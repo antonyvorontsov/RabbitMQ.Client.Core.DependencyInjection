@@ -1,4 +1,6 @@
 using System;
+using RabbitMQ.Client.Core.DependencyInjection.MessageHandlers;
+using RabbitMQ.Client.Core.DependencyInjection.Services;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests.Stubs
 {

@@ -1,3 +1,5 @@
+using RabbitMQ.Client.Core.DependencyInjection.Services;
+
 namespace RabbitMQ.Client.Core.DependencyInjection.Configuration
 {
     /// <summary>

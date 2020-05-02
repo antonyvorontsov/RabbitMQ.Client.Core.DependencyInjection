@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 
-namespace RabbitMQ.Client.Core.DependencyInjection
+namespace RabbitMQ.Client.Core.DependencyInjection.Services
 {
     /// <summary>
     /// An interface of the service that contains logic of handling message receiving (consumption) events and passing those messages to the message handlers.

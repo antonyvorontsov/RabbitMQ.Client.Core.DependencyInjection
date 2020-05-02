@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace RabbitMQ.Client.Core.DependencyInjection
+namespace RabbitMQ.Client.Core.DependencyInjection.MessageHandlers
 {
     /// <summary>
     /// Interface of asynchronous message handler.
