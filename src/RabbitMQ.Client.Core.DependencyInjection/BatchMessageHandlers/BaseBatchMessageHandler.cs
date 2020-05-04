@@ -1,7 +1,7 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
@@ -14,21 +14,38 @@ using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
 {
+    /// <summary>
+    /// A message handler that handles messages in batches.
+    /// </summary>
     public abstract class BaseBatchMessageHandler : IHostedService, IDisposable
     {
-        protected virtual TimeSpan DueTo { get; set; } = TimeSpan.Zero;
+        /// <summary>
+        /// A connection which is in use by batch message handler.
+        /// </summary>
+        protected IConnection Connection { get; private set; }
         
-        protected abstract TimeSpan Period { get; set; }
-
+        /// <summary>
+        /// A channel that has been created using the connection.
+        /// </summary>
+        protected IModel Channel { get;  private set; }
+        
+        /// <summary>
+        /// Prefetch size value that can be overriden.
+        /// </summary>
         protected virtual uint PrefetchSize { get; set; } = 0;
         
+        /// <summary>
+        /// Queue name which will be read by that batch message handler.
+        /// </summary>
         protected abstract string QueueName { get; set; }
 
+        /// <summary>
+        /// Prefetch count value (batch size).
+        /// </summary>
         protected abstract ushort PrefetchCount { get; set; }
 
         readonly RabbitMqClientOptions _clientOptions;
         readonly ILogger<BaseBatchMessageHandler> _logger;
-        Timer _timer;
 
         protected BaseBatchMessageHandler(
             IEnumerable<BatchConsumerConnectionOptions> batchConsumerConnectionOptions,
@@ -47,12 +64,28 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
         public Task StartAsync(CancellationToken cancellationToken)
         {
             ValidateProperties();
-            _logger.LogInformation("BatchMessageHandler has been started.");
-            _timer = new Timer(
-                async state => await StartPeriodicJob(cancellationToken),
-                null,
-                DueTo,
-                Period);
+            _logger.LogInformation($"Batch message handler {GetType()} has been started.");
+            Connection = RabbitMqFactoryExtensions.CreateRabbitMqConnection(_clientOptions);
+            Channel = Connection.CreateModel();
+            Channel.BasicQos(PrefetchSize, PrefetchCount, false);
+            
+            var messages = new ConcurrentBag<BasicDeliverEventArgs>();
+            var consumer = new AsyncEventingBasicConsumer(Channel);
+            consumer.Received += async (sender, eventArgs) =>
+            {
+                messages.Add(eventArgs);
+                if (messages.Count < PrefetchCount)
+                {
+                    return;
+                }
+                
+                var byteMessages = messages.Select(x => x.Body).ToList();
+                await HandleMessages(byteMessages, cancellationToken);
+                var latestDeliveryTag = messages.Max(x => x.DeliveryTag);
+                messages.Clear();
+                Channel.BasicAck(latestDeliveryTag, true);
+            };
+            Channel.BasicConsume(queue: QueueName, autoAck: false, consumer: consumer);
             return Task.CompletedTask;
         }
 
@@ -69,40 +102,24 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
             }
         }
 
-        async Task StartPeriodicJob(CancellationToken cancellationToken)
-        {
-            while (!cancellationToken.IsCancellationRequested)
-            {
-                using var connection = RabbitMqFactoryExtensions.CreateRabbitMqConnection(_clientOptions);
-                using var channel = connection.CreateModel();
-            
-                channel.BasicQos(PrefetchSize, PrefetchCount, false);
-            
-                var consumer = new AsyncEventingBasicConsumer(channel);
-                consumer.Received += async (sender, eventArgs) => await HandleMessageReceivingEvent(eventArgs);
-                channel.BasicConsume(queue: QueueName, autoAck: false, consumer: consumer);
-            }
-        }
-        
-        async Task HandleMessageReceivingEvent(BasicDeliverEventArgs eventArgs)
-        {
-            var message = Encoding.UTF8.GetString(eventArgs.Body.ToArray());
-            _logger.LogInformation($"A new message was received with deliveryTag {eventArgs.DeliveryTag}.");
-            _logger.LogInformation(message);
-        }
-
-        protected abstract Task HandleMessages();
+        /// <summary>
+        /// Handle a batch of messages.
+        /// </summary>
+        /// <param name="messages">A collection of messages as bytes.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns></returns>
+        protected abstract Task HandleMessages(IEnumerable<ReadOnlyMemory<byte>> messages, CancellationToken cancellationToken);
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("BatchMessageHandler has been stopped.");
-            _timer?.Change(Timeout.Infinite, 0);
+            _logger.LogInformation($"Batch message handler {GetType()} has been stopped.");
             return Task.CompletedTask;
         }
 
         public void Dispose()
         {
-            _timer?.Dispose();
+            Connection?.Dispose();
+            Channel?.Dispose();
         }
     }
 }

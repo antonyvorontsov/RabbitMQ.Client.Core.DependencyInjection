@@ -23,14 +23,14 @@ namespace Examples.BatchMessageHandler
                     services.AddBatchMessageHandler<CustomBatchMessageHandler>(hostContext.Configuration.GetSection("RabbitMq"));
                     
                     // Second one - passing configuration instance.
-                    //  var rabbitMqConfiguration = new RabbitMqClientOptions
-                    //  {
-                    //      HostName = "127.0.0.1",
-                    //      Port = 5672,
-                    //      UserName = "guest",
-                    //      Password = "guest"
-                    //  };
-                    // services.AddBatchMessageHandler<AnotherCustomBatchMessageHandler>(rabbitMqConfiguration);
+                     var rabbitMqConfiguration = new RabbitMqClientOptions
+                     {
+                         HostName = "127.0.0.1",
+                         Port = 5672,
+                         UserName = "guest",
+                         Password = "guest"
+                     };
+                    services.AddBatchMessageHandler<AnotherCustomBatchMessageHandler>(rabbitMqConfiguration);
                 })
                 .ConfigureLogging((hostingContext, logging) => 
                 {
