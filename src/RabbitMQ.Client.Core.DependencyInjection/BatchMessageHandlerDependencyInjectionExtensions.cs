@@ -30,7 +30,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             services.AddHostedService<TBatchMessageHandler>();
             return services;
         }
-        
+
         /// <summary>
         /// Add batch message handler.
         /// </summary>
@@ -59,7 +59,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             services.Add(serviceDescriptor);
             return services;
         }
-        
+
         static void CheckIfBatchMessageHandlerAlreadyConfigured<TBatchMessageHandler>(this IServiceCollection services)
         {
             var descriptor = services.FirstOrDefault(x => x.ImplementationType == typeof(TBatchMessageHandler));

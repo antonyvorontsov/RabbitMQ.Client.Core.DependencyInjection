@@ -21,7 +21,7 @@ namespace Examples.BatchMessageHandler
                     // Let's configure two different BatchMessageHandlers with different methods.
                     // First - configuring an appsettings.json section.
                     services.AddBatchMessageHandler<CustomBatchMessageHandler>(hostContext.Configuration.GetSection("RabbitMq"));
-                    
+
                     // Second one - passing configuration instance.
                      var rabbitMqConfiguration = new RabbitMqClientOptions
                      {
@@ -32,7 +32,7 @@ namespace Examples.BatchMessageHandler
                      };
                     services.AddBatchMessageHandler<AnotherCustomBatchMessageHandler>(rabbitMqConfiguration);
                 })
-                .ConfigureLogging((hostingContext, logging) => 
+                .ConfigureLogging((hostingContext, logging) =>
                 {
                     logging.AddConsole();
                 });

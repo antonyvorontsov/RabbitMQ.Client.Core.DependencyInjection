@@ -16,11 +16,11 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
     {
         protected BatchMessageHandler(
             IEnumerable<BatchConsumerConnectionOptions> batchConsumerConnectionOptions,
-            ILogger<BatchMessageHandler> logger) 
+            ILogger<BatchMessageHandler> logger)
             : base(batchConsumerConnectionOptions, logger)
         {
         }
-        
+
         /// <summary>
         /// Handle a batch of messages.
         /// </summary>

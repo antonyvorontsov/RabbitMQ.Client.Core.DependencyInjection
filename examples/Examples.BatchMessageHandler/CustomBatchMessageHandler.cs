@@ -12,7 +12,7 @@ namespace Examples.BatchMessageHandler
     public class CustomBatchMessageHandler : BaseBatchMessageHandler
     {
         readonly ILogger<CustomBatchMessageHandler> _logger;
-        
+
         public CustomBatchMessageHandler(
             IEnumerable<BatchConsumerConnectionOptions> batchConsumerConnectionOptions,
             ILogger<CustomBatchMessageHandler> logger)
@@ -20,11 +20,11 @@ namespace Examples.BatchMessageHandler
         {
             _logger = logger;
         }
-        
+
         protected override ushort PrefetchCount { get; set; } = 3;
 
         protected override string QueueName { get; set; } = "queue.name";
-        
+
         protected override Task HandleMessages(IEnumerable<ReadOnlyMemory<byte>> messages, CancellationToken cancellationToken)
         {
             _logger.LogInformation("Handling a batch of messages.");

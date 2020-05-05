@@ -11,7 +11,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Exceptions
         /// Property that contains invalid value.
         /// </summary>
         public string PropertyName { get; set; }
-        
+
         public BatchMessageHandlerInvalidPropertyValueException(string message, string propertyName) : base(message)
         {
             PropertyName = propertyName;

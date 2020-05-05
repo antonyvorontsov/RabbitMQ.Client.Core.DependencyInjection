@@ -23,17 +23,17 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
         /// A connection which is in use by batch message handler.
         /// </summary>
         protected IConnection Connection { get; private set; }
-        
+
         /// <summary>
         /// A channel that has been created using the connection.
         /// </summary>
         protected IModel Channel { get;  private set; }
-        
+
         /// <summary>
-        /// Prefetch size value that can be overriden.
+        /// Prefetch size value that can be overridden.
         /// </summary>
         protected virtual uint PrefetchSize { get; set; } = 0;
-        
+
         /// <summary>
         /// Queue name which will be read by that batch message handler.
         /// </summary>
@@ -68,7 +68,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
             Connection = RabbitMqFactoryExtensions.CreateRabbitMqConnection(_clientOptions);
             Channel = Connection.CreateModel();
             Channel.BasicQos(PrefetchSize, PrefetchCount, false);
-            
+
             var messages = new ConcurrentBag<BasicDeliverEventArgs>();
             var consumer = new AsyncEventingBasicConsumer(Channel);
             consumer.Received += async (sender, eventArgs) =>
@@ -78,7 +78,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
                 {
                     return;
                 }
-                
+
                 var byteMessages = messages.Select(x => x.Body).ToList();
                 await HandleMessages(byteMessages, cancellationToken).ConfigureAwait(false);
                 var latestDeliveryTag = messages.Max(x => x.DeliveryTag);
@@ -115,7 +115,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
             _logger.LogInformation($"Batch message handler {GetType()} has been stopped.");
             return Task.CompletedTask;
         }
-        
+
         protected virtual void Dispose(bool disposing)
         {
             Connection?.Dispose();

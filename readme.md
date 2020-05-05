@@ -247,7 +247,7 @@ You have to set up values for `QueueName` and `PrefetchCount` properties. These 
 public class CustomBatchMessageHandler : BatchMessageHandler
 {
     readonly ILogger<CustomBatchMessageHandler> _logger;
-    
+
     public CustomBatchMessageHandler(
         IEnumerable<BatchConsumerConnectionOptions> batchConsumerConnectionOptions,
         ILogger<CustomBatchMessageHandler> logger)
@@ -257,9 +257,9 @@ public class CustomBatchMessageHandler : BatchMessageHandler
     }
 
     protected override ushort PrefetchCount { get; set; } = 50;
-    
+
     protected override string QueueName { get; set; } = "another.queue.name";
-    
+
     protected override Task HandleMessage(IEnumerable<string> messages, CancellationToken cancellationToken)
     {
         _logger.LogInformation("Handling a batch of messages.");
