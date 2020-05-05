@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using RabbitMQ.Client.Core.DependencyInjection;
 using System.IO;
+using RabbitMQ.Client.Core.DependencyInjection.Services;
 
 namespace Examples.ConsumerConsole
 {

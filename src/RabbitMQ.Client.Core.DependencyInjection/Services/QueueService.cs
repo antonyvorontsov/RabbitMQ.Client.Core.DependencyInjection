@@ -1,18 +1,18 @@
-﻿using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using RabbitMQ.Client.Core.DependencyInjection.Configuration;
-using RabbitMQ.Client.Core.DependencyInjection.Models;
-using RabbitMQ.Client.Events;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using RabbitMQ.Client.Core.DependencyInjection.Configuration;
 using RabbitMQ.Client.Core.DependencyInjection.Exceptions;
-using RabbitMQ.Client.Core.DependencyInjection.Extensions;
+using RabbitMQ.Client.Core.DependencyInjection.InternalExtensions;
+using RabbitMQ.Client.Core.DependencyInjection.Models;
+using RabbitMQ.Client.Events;
 
-namespace RabbitMQ.Client.Core.DependencyInjection
+namespace RabbitMQ.Client.Core.DependencyInjection.Services
 {
     /// <summary>
     /// Implementation of the custom RabbitMQ queue service.
@@ -20,6 +20,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
     internal sealed class QueueService : IQueueService, IDisposable
     {
         public IConnection Connection { get; private set; }
+
         public IModel Channel { get; private set; }
 
         public IConnection ConsumingConnection { get; private set; }

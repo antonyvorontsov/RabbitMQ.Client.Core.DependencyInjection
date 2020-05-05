@@ -1,7 +1,7 @@
 using System.Linq;
 using RabbitMQ.Client.Core.DependencyInjection.Configuration;
 
-namespace RabbitMQ.Client.Core.DependencyInjection.Extensions
+namespace RabbitMQ.Client.Core.DependencyInjection.InternalExtensions
 {
     /// <summary>
     /// Extensions that contain business logic of creating RabbitMQ connections depending on options <see cref="RabbitMqClientOptions"/>.

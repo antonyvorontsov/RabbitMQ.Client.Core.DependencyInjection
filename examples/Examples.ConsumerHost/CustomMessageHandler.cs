@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using RabbitMQ.Client.Core.DependencyInjection;
+using RabbitMQ.Client.Core.DependencyInjection.MessageHandlers;
 
 namespace Examples.ConsumerHost
 {

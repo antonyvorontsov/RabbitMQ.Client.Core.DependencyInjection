@@ -6,7 +6,9 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client.Core.DependencyInjection.Configuration;
 using RabbitMQ.Client.Core.DependencyInjection.Exceptions;
+using RabbitMQ.Client.Core.DependencyInjection.InternalExtensions;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
+using RabbitMQ.Client.Core.DependencyInjection.Services;
 
 namespace RabbitMQ.Client.Core.DependencyInjection
 {
@@ -28,7 +30,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         {
             services.CheckIfQueueingServiceAlreadyConfigured<IQueueService>();
             services.AddRabbitMqClientInfrastructure();
-            var configurationInstance = GetRabbitMqClientOptionsInstance(configuration);
+            var configurationInstance = RabbitMqClientOptionsDependencyInjectionExtensions.GetRabbitMqClientOptionsInstance(configuration);
             var guid = Guid.NewGuid();
             services.ConfigureRabbitMqConnectionOptions(guid, configurationInstance);
             services.ResolveSingletonQueueService(guid);
@@ -67,7 +69,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         {
             services.CheckIfQueueingServiceAlreadyConfigured<IQueueService>();
             services.AddRabbitMqClientInfrastructure();
-            var configurationInstance = GetRabbitMqClientOptionsInstance(configuration);
+            var configurationInstance = RabbitMqClientOptionsDependencyInjectionExtensions.GetRabbitMqClientOptionsInstance(configuration);
             var guid = Guid.NewGuid();
             services.ConfigureRabbitMqConnectionOptions(guid, configurationInstance);
             services.ResolveTransientQueueService(guid);
@@ -103,7 +105,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         {
             services.CheckIfQueueingServiceAlreadyConfigured<IProducingService>();
             services.AddRabbitMqClientInfrastructure();
-            var configurationInstance = GetRabbitMqClientOptionsInstance(configuration);
+            var configurationInstance = RabbitMqClientOptionsDependencyInjectionExtensions.GetRabbitMqClientOptionsInstance(configuration);
             var guid = Guid.NewGuid();
             services.ConfigureRabbitMqProducingClientOptions(guid, configurationInstance);
             services.ResolveSingletonProducingService(guid);
@@ -136,7 +138,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         {
             services.CheckIfQueueingServiceAlreadyConfigured<IProducingService>();
             services.AddRabbitMqClientInfrastructure();
-            var configurationInstance = GetRabbitMqClientOptionsInstance(configuration);
+            var configurationInstance = RabbitMqClientOptionsDependencyInjectionExtensions.GetRabbitMqClientOptionsInstance(configuration);
             var guid = Guid.NewGuid();
             services.ConfigureRabbitMqProducingClientOptions(guid, configurationInstance);
             services.ResolveTransientProducingService(guid);
@@ -169,7 +171,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         {
             services.CheckIfQueueingServiceAlreadyConfigured<IConsumingService>();
             services.AddRabbitMqClientInfrastructure();
-            var configurationInstance = GetRabbitMqClientOptionsInstance(configuration);
+            var configurationInstance = RabbitMqClientOptionsDependencyInjectionExtensions.GetRabbitMqClientOptionsInstance(configuration);
             var guid = Guid.NewGuid();
             services.ConfigureRabbitMqConsumingClientOptions(guid, configurationInstance);
             services.ResolveSingletonConsumingService(guid);
@@ -202,7 +204,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         {
             services.CheckIfQueueingServiceAlreadyConfigured<IConsumingService>();
             services.AddRabbitMqClientInfrastructure();
-            var configurationInstance = GetRabbitMqClientOptionsInstance(configuration);
+            var configurationInstance = RabbitMqClientOptionsDependencyInjectionExtensions.GetRabbitMqClientOptionsInstance(configuration);
             var guid = Guid.NewGuid();
             services.ConfigureRabbitMqConsumingClientOptions(guid, configurationInstance);
             services.ResolveTransientConsumingService(guid);
@@ -231,54 +233,6 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             services.AddLogging(options => options.AddConsole());
             services.TryAddSingleton<IMessageHandlerContainerBuilder, MessageHandlerContainerBuilder>();
             services.TryAddSingleton<IMessageHandlingService, MessageHandlingService>();
-            return services;
-        }
-
-        static RabbitMqClientOptions GetRabbitMqClientOptionsInstance(IConfiguration configuration)
-        {
-            var options = new RabbitMqClientOptions();
-            configuration.Bind(options);
-            return options;
-        }
-
-        static IServiceCollection ConfigureRabbitMqProducingClientOptions(this IServiceCollection services, Guid guid, RabbitMqClientOptions options)
-        {
-            var container = new RabbitMqConnectionOptionsContainer
-            {
-                Guid = guid,
-                Options = new RabbitMqConnectionOptions { ProducerOptions = options }
-            };
-            return services.AddRabbitMqConnectionOptionsContainer(container);
-        }
-
-        static IServiceCollection ConfigureRabbitMqConsumingClientOptions(this IServiceCollection services, Guid guid, RabbitMqClientOptions options)
-        {
-            var container = new RabbitMqConnectionOptionsContainer
-            {
-                Guid = guid,
-                Options = new RabbitMqConnectionOptions { ConsumerOptions = options }
-            };
-            return services.AddRabbitMqConnectionOptionsContainer(container);
-        }
-
-        static IServiceCollection ConfigureRabbitMqConnectionOptions(this IServiceCollection services, Guid guid, RabbitMqClientOptions options)
-        {
-            var container = new RabbitMqConnectionOptionsContainer
-            {
-                Guid = guid,
-                Options = new RabbitMqConnectionOptions
-                {
-                    ProducerOptions = options,
-                    ConsumerOptions = options
-                }
-            };
-            return services.AddRabbitMqConnectionOptionsContainer(container);
-        }
-
-        static IServiceCollection AddRabbitMqConnectionOptionsContainer(this IServiceCollection services, RabbitMqConnectionOptionsContainer container)
-        {
-            var serviceDescriptor = new ServiceDescriptor(typeof(RabbitMqConnectionOptionsContainer), container);
-            services.Add(serviceDescriptor);
             return services;
         }
 
@@ -353,7 +307,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             var descriptor = services.FirstOrDefault(x => x.ServiceType == typeof(T));
             if (descriptor != null)
             {
-                throw new QueueingServiceAlreadyConfiguredException(typeof(T), $"A queuing service of type {typeof(T)} has been already configured.");
+                throw new QueueingServiceAlreadyConfiguredException(typeof(T), $"A queuing service of type {typeof(T)} has already been configured.");
             }
 
             return services;

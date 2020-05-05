@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
+using RabbitMQ.Client.Core.DependencyInjection.Services;
 
-namespace RabbitMQ.Client.Core.DependencyInjection
+namespace RabbitMQ.Client.Core.DependencyInjection.MessageHandlers
 {
     /// <summary>
     /// Interface of a non-cycling async message handler.

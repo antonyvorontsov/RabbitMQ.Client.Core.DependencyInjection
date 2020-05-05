@@ -1,10 +1,10 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using RabbitMQ.Client.Core.DependencyInjection.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
+using RabbitMQ.Client.Core.DependencyInjection.Models;
 
-namespace RabbitMQ.Client.Core.DependencyInjection.Extensions
+namespace RabbitMQ.Client.Core.DependencyInjection.InternalExtensions
 {
     /// <summary>
     /// Base DI extensions for all types of message handlers.
@@ -25,15 +25,16 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Extensions
             where TInterface : class
             where TImplementation : class, TInterface
         {
+            var patterns = routePatterns.ToList();
             services.AddTransient<TInterface, TImplementation>();
             var router = new MessageHandlerRouter
             {
                 Type = typeof(TImplementation),
                 Exchange = exchange,
-                RoutePatterns = routePatterns.ToList()
+                RoutePatterns = patterns
             };
             services.Add(new ServiceDescriptor(typeof(MessageHandlerRouter), router));
-            services.AddMessageHandlerOrderingModel<TImplementation>(routePatterns, exchange, order);
+            services.AddMessageHandlerOrderingModel<TImplementation>(patterns, exchange, order);
             return services;
         }
 
@@ -41,26 +42,28 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Extensions
             where TInterface : class
             where TImplementation : class, TInterface
         {
+            var patterns = routePatterns.ToList();
             services.AddSingleton<TInterface, TImplementation>();
             var router = new MessageHandlerRouter
             {
                 Type = typeof(TImplementation),
                 Exchange = exchange,
-                RoutePatterns = routePatterns.ToList()
+                RoutePatterns = patterns
             };
             services.Add(new ServiceDescriptor(typeof(MessageHandlerRouter), router));
-            services.AddMessageHandlerOrderingModel<TImplementation>(routePatterns, exchange, order);
+            services.AddMessageHandlerOrderingModel<TImplementation>(patterns, exchange, order);
             return services;
         }
 
         static IServiceCollection AddMessageHandlerOrderingModel<TImplementation>(this IServiceCollection services, IEnumerable<string> routePatterns, string exchange, int order)
             where TImplementation : class
         {
-            MessageHandlerOrderingModelExists<TImplementation>(services, routePatterns, exchange, order);
+            var patterns = routePatterns.ToList();
+            MessageHandlerOrderingModelExists<TImplementation>(services, patterns, exchange, order);
             var messageHandlerOrderingModel = new MessageHandlerOrderingModel
             {
                 Exchange = exchange,
-                RoutePatterns = routePatterns,
+                RoutePatterns = patterns,
                 Order = order,
                 MessageHandlerType = typeof(TImplementation)
             };
@@ -70,19 +73,20 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Extensions
 
         static void MessageHandlerOrderingModelExists<TImplementation>(IServiceCollection services, IEnumerable<string> routePatterns, string exchange, int order)
         {
+            var patterns = routePatterns.ToList();
             var messageHandlerOrderingModel = services.FirstOrDefault(x => x.ServiceType == typeof(MessageHandlerOrderingModel)
                 && x.Lifetime == ServiceLifetime.Singleton
                 && ((MessageHandlerOrderingModel)x.ImplementationInstance).MessageHandlerType == typeof(TImplementation)
                 && (string.Equals(((MessageHandlerOrderingModel)x.ImplementationInstance).Exchange, exchange, StringComparison.OrdinalIgnoreCase)
                     || (exchange is null && ((MessageHandlerOrderingModel)x.ImplementationInstance).Exchange is null))
                 && ((MessageHandlerOrderingModel)x.ImplementationInstance).Order != order
-                && routePatterns.Intersect(((MessageHandlerOrderingModel)x.ImplementationInstance).RoutePatterns).Any());
+                && patterns.Intersect(((MessageHandlerOrderingModel)x.ImplementationInstance).RoutePatterns).Any());
             if (messageHandlerOrderingModel is null)
             {
                 return;
             }
 
-            var intersectRoutePatterns = routePatterns.Intersect(((MessageHandlerOrderingModel)messageHandlerOrderingModel.ImplementationInstance).RoutePatterns);
+            var intersectRoutePatterns = patterns.Intersect(((MessageHandlerOrderingModel)messageHandlerOrderingModel.ImplementationInstance).RoutePatterns);
             throw new ArgumentException($"A message handler {nameof(TImplementation)} for an exchange {exchange} has already been configured for route patterns[{string.Join(", ", intersectRoutePatterns)}] with an order {order}.");
         }
     }

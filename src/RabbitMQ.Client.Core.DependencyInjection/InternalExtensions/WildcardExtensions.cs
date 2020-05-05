@@ -2,13 +2,14 @@ using System.Collections.Generic;
 using System.Linq;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
 
-namespace RabbitMQ.Client.Core.DependencyInjection.Extensions
+namespace RabbitMQ.Client.Core.DependencyInjection.InternalExtensions
 {
     /// <summary>
     /// An extension class that contains functionality of pattern (wildcard) matching.
     /// </summary>
     /// <remarks>
     /// Methods of that class allows finding route patterns by which message handlers are "listening" for messages.
+    /// Public access modifier set for this class due to unit testing.
     /// </remarks>
     public static class WildcardExtensions
     {
