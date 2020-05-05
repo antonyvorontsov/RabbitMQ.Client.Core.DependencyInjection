@@ -12,7 +12,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Models
         /// Type of batch message handler.
         /// </summary>
         public Type Type { get; set; }
-        
+
         /// <summary>
         /// Consumer client connection options.
         /// </summary>

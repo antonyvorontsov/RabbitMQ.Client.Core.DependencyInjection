@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using RabbitMQ.Client.Core.DependencyInjection;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Core.DependencyInjection.MessageHandlers;
 

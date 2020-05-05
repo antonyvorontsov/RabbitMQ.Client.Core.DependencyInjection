@@ -12,7 +12,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests.Stubs
     public class StubBatchMessageHandler : BaseBatchMessageHandler
     {
         readonly ILogger<StubBatchMessageHandler> _logger;
-        
+
         public StubBatchMessageHandler(
             IEnumerable<BatchConsumerConnectionOptions> batchConsumerConnectionOptions,
             ILogger<StubBatchMessageHandler> logger)
@@ -20,11 +20,11 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests.Stubs
         {
             _logger = logger;
         }
-        
+
         protected override ushort PrefetchCount { get; set; } = 3;
-        
+
         protected override string QueueName { get; set; } = "queue.name";
-        
+
         protected override Task HandleMessages(IEnumerable<ReadOnlyMemory<byte>> messages, CancellationToken cancellationToken)
         {
             foreach (var message in messages)

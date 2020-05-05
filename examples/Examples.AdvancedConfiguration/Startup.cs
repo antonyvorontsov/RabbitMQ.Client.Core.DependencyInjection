@@ -1,7 +1,6 @@
 using Examples.AdvancedConfiguration.MessageHandlers;
 using Examples.AdvancedConfiguration.Services;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using RabbitMQ.Client.Core.DependencyInjection;

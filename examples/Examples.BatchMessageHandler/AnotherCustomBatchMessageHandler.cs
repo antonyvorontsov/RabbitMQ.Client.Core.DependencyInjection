@@ -9,7 +9,7 @@ namespace Examples.BatchMessageHandler
     public class AnotherCustomBatchMessageHandler : RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers.BatchMessageHandler
     {
         readonly ILogger<AnotherCustomBatchMessageHandler> _logger;
-        
+
         public AnotherCustomBatchMessageHandler(
             IEnumerable<BatchConsumerConnectionOptions> batchConsumerConnectionOptions,
             ILogger<AnotherCustomBatchMessageHandler> logger)
@@ -19,9 +19,9 @@ namespace Examples.BatchMessageHandler
         }
 
         protected override ushort PrefetchCount { get; set; } = 5;
-        
+
         protected override string QueueName { get; set; } = "another.queue.name";
-        
+
         protected override Task HandleMessage(IEnumerable<string> messages, CancellationToken cancellationToken)
         {
             _logger.LogInformation("Handling a batch of messages.");

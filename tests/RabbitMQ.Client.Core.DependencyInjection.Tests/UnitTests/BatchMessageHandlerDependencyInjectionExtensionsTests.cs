@@ -23,7 +23,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                 return Task.CompletedTask;
             });
         }
-        
+
         [Fact]
         public async Task ShouldProperlyThrowExceptionWhenRegisteringSameBatchMessageHandlerTwiceWithOptions()
         {
@@ -35,7 +35,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                 return Task.CompletedTask;
             });
         }
-        
+
         [Fact]
         public async Task ShouldProperlyThrowExceptionWhenRegisteringSameBatchMessageHandlerTwiceWithConfigurationAndOptions()
         {

@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using RabbitMQ.Client.Core.DependencyInjection;
 using RabbitMQ.Client.Core.DependencyInjection.MessageHandlers;
 
 namespace Examples.AdvancedConfiguration.MessageHandlers
