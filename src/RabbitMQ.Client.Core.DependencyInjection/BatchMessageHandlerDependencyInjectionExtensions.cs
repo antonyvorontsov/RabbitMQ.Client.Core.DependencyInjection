@@ -24,7 +24,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         public static IServiceCollection AddBatchMessageHandler<TBatchMessageHandler>(this IServiceCollection services, IConfiguration configuration)
             where TBatchMessageHandler : BaseBatchMessageHandler
         {
-            services.CheckIfBatchMessageHandlerAlreadyConfigured<TBatchMessageHandler>();
+            CheckIfBatchMessageHandlerAlreadyConfigured<TBatchMessageHandler>(services);
             var configurationInstance = RabbitMqClientOptionsDependencyInjectionExtensions.GetRabbitMqClientOptionsInstance(configuration);
             services.ConfigureBatchConsumerConnectionOptions<TBatchMessageHandler>(configurationInstance);
             services.AddHostedService<TBatchMessageHandler>();
@@ -41,7 +41,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         public static IServiceCollection AddBatchMessageHandler<TBatchMessageHandler>(this IServiceCollection services, RabbitMqClientOptions configuration)
             where TBatchMessageHandler : BaseBatchMessageHandler
         {
-            services.CheckIfBatchMessageHandlerAlreadyConfigured<TBatchMessageHandler>();
+            CheckIfBatchMessageHandlerAlreadyConfigured<TBatchMessageHandler>(services);
             services.ConfigureBatchConsumerConnectionOptions<TBatchMessageHandler>(configuration);
             services.AddHostedService<TBatchMessageHandler>();
             return services;
@@ -60,14 +60,13 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             return services;
         }
         
-        static IServiceCollection CheckIfBatchMessageHandlerAlreadyConfigured<TBatchMessageHandler>(this IServiceCollection services)
+        static void CheckIfBatchMessageHandlerAlreadyConfigured<TBatchMessageHandler>(this IServiceCollection services)
         {
-            var descriptor = services.FirstOrDefault(x => x.ServiceType == typeof(TBatchMessageHandler));
+            var descriptor = services.FirstOrDefault(x => x.ImplementationType == typeof(TBatchMessageHandler));
             if (descriptor != null)
             {
                 throw new BatchMessageHandlerAlreadyConfiguredException(typeof(TBatchMessageHandler), $"A batch message handler of type {typeof(TBatchMessageHandler)} has already been configured.");
             }
-            return services;
         }
     }
 }
