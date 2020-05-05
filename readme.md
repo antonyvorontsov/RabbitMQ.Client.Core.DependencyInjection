@@ -237,6 +237,49 @@ Exchange sections define how to bind queues and exchanges with each other using 
 
 For more information about `appsettings.json` and manual configuration features, see [rabbit-configuration](./docs/rabbit-configuration.md) and [exchange-configuration](./docs/exchange-configuration.md) documentation files.
 
+## Batch message handlers
+
+There are also a feature that you can use in case of necessity of handling messages in batches.
+First of all you have to create a class that inherits a `BatchMessageHandler` class.
+You have to set up values for `QueueName` and `PrefetchCount` properties. These values are responsible for the queue that will be read by the message handler, and the size of batches of messages.
+
+```c#
+public class CustomBatchMessageHandler : BatchMessageHandler
+{
+    readonly ILogger<CustomBatchMessageHandler> _logger;
+    
+    public CustomBatchMessageHandler(
+        IEnumerable<BatchConsumerConnectionOptions> batchConsumerConnectionOptions,
+        ILogger<CustomBatchMessageHandler> logger)
+        : base(batchConsumerConnectionOptions, logger)
+    {
+        _logger = logger;
+    }
+
+    protected override ushort PrefetchCount { get; set; } = 50;
+    
+    protected override string QueueName { get; set; } = "another.queue.name";
+    
+    protected override Task HandleMessage(IEnumerable<string> messages, CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Handling a batch of messages.");
+        foreach (var message in messages)
+        {
+            _logger.LogInformation(message);
+        }
+        return Task.CompletedTask;
+    }
+}
+```
+
+After all you have to register that batch message handler via DI.
+```c#
+services.AddBatchMessageHandler<CustomBatchMessageHandler>(Configuration.GetSection("RabbitMq"));
+```
+
+The message handler will create a separate connection and use it for reading messages.
+When the message collection is full to the size of `PrefetchCount` they are passed to the `HandleMessage` method. For more information, see the [message-consuming](./docs/message-consumption.md) documentation file.
+
 ## Advanced usage and nuances
 
 RabbitMQ client implemented in this library (class which implements `IQueueService`) opens two connections to the RabbitMQ server. One connection is used for message production and the other one is for message consumption.

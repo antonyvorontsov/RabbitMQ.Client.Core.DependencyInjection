@@ -80,7 +80,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
                 }
                 
                 var byteMessages = messages.Select(x => x.Body).ToList();
-                await HandleMessages(byteMessages, cancellationToken);
+                await HandleMessages(byteMessages, cancellationToken).ConfigureAwait(false);
                 var latestDeliveryTag = messages.Max(x => x.DeliveryTag);
                 messages.Clear();
                 Channel.BasicAck(latestDeliveryTag, true);
@@ -115,11 +115,17 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
             _logger.LogInformation($"Batch message handler {GetType()} has been stopped.");
             return Task.CompletedTask;
         }
-
-        public void Dispose()
+        
+        protected virtual void Dispose(bool disposing)
         {
             Connection?.Dispose();
             Channel?.Dispose();
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
     }
 }

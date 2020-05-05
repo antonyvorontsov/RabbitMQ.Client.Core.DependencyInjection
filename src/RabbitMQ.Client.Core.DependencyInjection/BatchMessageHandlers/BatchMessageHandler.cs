@@ -30,7 +30,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
         protected override async Task HandleMessages(IEnumerable<ReadOnlyMemory<byte>> messages, CancellationToken cancellationToken)
         {
             var decodedMessages = messages.Select(x => Encoding.UTF8.GetString(x.ToArray()));
-            await HandleMessage(decodedMessages, cancellationToken);
+            await HandleMessage(decodedMessages, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>

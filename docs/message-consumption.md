@@ -311,6 +311,84 @@ The message handling process is organized as follows:
 - If any exception occurs `IMessageHandlingService` acknowledges the message anyway and checks if the message has to be re-send. If exchange option `RequeueFailedMessages` is set `true` then `IMessageHandlingService` adds a header `"requeued"` to the message and sends it again with delay in 60 seconds. Mechanism of sending delayed messages covered in the message production [documentation](message-production.md).
 - If any exception occurs within handling the message that has been already re-sent that message will not be re-send again (re-send happens only once).
 
+### Batch message handlers
+
+There are also a feature that you can use in case of necessity of handling messages in batches.
+First of all you have to create a class that inherits a `BatchMessageHandler` class.
+You have to set up values for `QueueName` and `PrefetchCount` properties. These values are responsible for the queue that will be read by the message handler, and the size of batches of messages.
+
+```c#
+public class CustomBatchMessageHandler : BatchMessageHandler
+{
+    readonly ILogger<CustomBatchMessageHandler> _logger;
+    
+    public CustomBatchMessageHandler(
+        IEnumerable<BatchConsumerConnectionOptions> batchConsumerConnectionOptions,
+        ILogger<CustomBatchMessageHandler> logger)
+        : base(batchConsumerConnectionOptions, logger)
+    {
+        _logger = logger;
+    }
+
+    protected override ushort PrefetchCount { get; set; } = 50;
+    
+    protected override string QueueName { get; set; } = "another.queue.name";
+    
+    protected override Task HandleMessage(IEnumerable<string> messages, CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Handling a batch of messages.");
+        foreach (var message in messages)
+        {
+            _logger.LogInformation(message);
+        }
+        return Task.CompletedTask;
+    }
+}
+```
+
+If you want to get raw messages as `ReadOnlyMemory<byte>` you can inherit base message handler class.
+
+```c#
+public class CustomBatchMessageHandler : BaseBatchMessageHandler
+{
+    readonly ILogger<CustomBatchMessageHandler> _logger;
+    
+    public CustomBatchMessageHandler(
+        IEnumerable<BatchConsumerConnectionOptions> batchConsumerConnectionOptions,
+        ILogger<CustomBatchMessageHandler> logger)
+        : base(batchConsumerConnectionOptions, logger)
+    {
+        _logger = logger;
+    }
+    
+    protected override ushort PrefetchCount { get; set; } = 3;
+
+    protected override string QueueName { get; set; } = "queue.name";
+    
+    protected override Task HandleMessages(IEnumerable<ReadOnlyMemory<byte>> messages, CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Handling a batch of messages.");
+        foreach (var message in messages)
+        {
+            var stringifiedMessage = Encoding.UTF8.GetString(message.ToArray());
+            _logger.LogInformation(stringifiedMessage);
+        }
+        return Task.CompletedTask;
+    }
+}
+```
+
+After all you have to register that batch message handler via DI.
+```c#
+services.AddBatchMessageHandler<CustomBatchMessageHandler>(Configuration.GetSection("RabbitMq"));
+```
+
+The message handler will create a separate connection and use it for reading messages.
+When the message collection is full to the size of `PrefetchCount` they are passed to the `HandleMessage` method.
+Both `BaseBatchMessageHandler` and `BatchMessageHandler` implement `IDisposable` interface, so you can use it for release of resources.
+
+Use this method of getting messages only when you sure that the number of messages that pass through this queue is really huge. Otherwise, messages could stack in the temporary collection of messages waiting to get in full.
+
 For message production features see the [Previous page](message-production.md)
 
 For more information about advanced usage of the RabbitMQ client see the [Next page](advanced-usage.md)
