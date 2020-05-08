@@ -8,7 +8,6 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using RabbitMQ.Client.Core.DependencyInjection.Configuration;
 using RabbitMQ.Client.Core.DependencyInjection.Exceptions;
-using RabbitMQ.Client.Core.DependencyInjection.InternalExtensions;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
 using RabbitMQ.Client.Events;
 
@@ -29,6 +28,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
 
         AsyncEventingBasicConsumer _consumer;
 
+        readonly IRabbitMqConnectionFactory _rabbitMqConnectionFactory;
         readonly IMessageHandlingService _messageHandlingService;
         readonly IEnumerable<RabbitMqExchange> _exchanges;
         readonly ILogger<QueueService> _logger;
@@ -40,6 +40,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
 
         public QueueService(
             Guid guid,
+            IRabbitMqConnectionFactory rabbitMqConnectionFactory,
             IEnumerable<RabbitMqConnectionOptionsContainer> connectionOptionsContainers,
             IMessageHandlingService messageHandlingService,
             IEnumerable<RabbitMqExchange> exchanges,
@@ -51,6 +52,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
                 throw new ArgumentException($"Connection options container for {nameof(QueueService)} with the guid {guid} is not found.", nameof(connectionOptionsContainers));
             }
 
+            _rabbitMqConnectionFactory = rabbitMqConnectionFactory;
             _messageHandlingService = messageHandlingService;
             _exchanges = exchanges;
             _logger = logger;
@@ -301,7 +303,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
 
         void ConfigureConnectionInfrastructure(RabbitMqConnectionOptionsContainer optionsContainer)
         {
-            Connection = RabbitMqFactoryExtensions.CreateRabbitMqConnection(optionsContainer?.Options?.ProducerOptions);
+            Connection = _rabbitMqConnectionFactory.CreateRabbitMqConnection(optionsContainer?.Options?.ProducerOptions);
             if (Connection != null)
             {
                 Connection.CallbackException += HandleConnectionCallbackException;
@@ -314,7 +316,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
                 Channel.BasicRecoverOk += HandleChannelBasicRecoverOk;
             }
 
-            ConsumingConnection = RabbitMqFactoryExtensions.CreateRabbitMqConnection(optionsContainer?.Options?.ConsumerOptions);
+            ConsumingConnection = _rabbitMqConnectionFactory.CreateRabbitMqConnection(optionsContainer?.Options?.ConsumerOptions);
             if (ConsumingConnection != null)
             {
                 ConsumingConnection.CallbackException += HandleConnectionCallbackException;

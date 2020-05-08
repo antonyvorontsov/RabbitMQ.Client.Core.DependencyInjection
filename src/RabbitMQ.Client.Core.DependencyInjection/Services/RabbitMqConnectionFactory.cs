@@ -1,12 +1,12 @@
 using System.Linq;
 using RabbitMQ.Client.Core.DependencyInjection.Configuration;
 
-namespace RabbitMQ.Client.Core.DependencyInjection.InternalExtensions
+namespace RabbitMQ.Client.Core.DependencyInjection.Services
 {
     /// <summary>
-    /// Extensions that contain business logic of creating RabbitMQ connections depending on options <see cref="RabbitMqClientOptions"/>.
+    /// Service that is responsible for creating RabbitMQ connections depending on options <see cref="RabbitMqClientOptions"/>.
     /// </summary>
-    internal static class RabbitMqFactoryExtensions
+    public class RabbitMqConnectionFactory : IRabbitMqConnectionFactory
     {
         /// <summary>
         /// Create a RabbitMQ connection.
@@ -14,7 +14,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.InternalExtensions
         /// <param name="options">An instance of options <see cref="RabbitMqClientOptions"/>.</param>
         /// <returns>An instance of connection <see cref="IConnection"/>.</returns>
         /// <remarks>If options parameter is null the method return null too.</remarks>
-        internal static IConnection CreateRabbitMqConnection(RabbitMqClientOptions options)
+        public IConnection CreateRabbitMqConnection(RabbitMqClientOptions options)
         {
             if (options is null)
             {

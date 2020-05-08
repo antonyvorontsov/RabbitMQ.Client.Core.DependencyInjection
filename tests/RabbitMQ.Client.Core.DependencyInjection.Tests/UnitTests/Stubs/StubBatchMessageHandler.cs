@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
+using RabbitMQ.Client.Core.DependencyInjection.Services;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests.Stubs
 {
@@ -14,9 +15,10 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests.Stubs
         readonly ILogger<StubBatchMessageHandler> _logger;
 
         public StubBatchMessageHandler(
+            IRabbitMqConnectionFactory rabbitMqConnectionFactory,
             IEnumerable<BatchConsumerConnectionOptions> batchConsumerConnectionOptions,
             ILogger<StubBatchMessageHandler> logger)
-            : base(batchConsumerConnectionOptions, logger)
+            : base(rabbitMqConnectionFactory, batchConsumerConnectionOptions, logger)
         {
             _logger = logger;
         }

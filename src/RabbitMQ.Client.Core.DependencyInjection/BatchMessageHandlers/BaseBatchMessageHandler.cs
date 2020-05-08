@@ -8,8 +8,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client.Core.DependencyInjection.Configuration;
 using RabbitMQ.Client.Core.DependencyInjection.Exceptions;
-using RabbitMQ.Client.Core.DependencyInjection.InternalExtensions;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
+using RabbitMQ.Client.Core.DependencyInjection.Services;
 using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
@@ -44,10 +44,12 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
         /// </summary>
         protected abstract ushort PrefetchCount { get; set; }
 
+        readonly IRabbitMqConnectionFactory _rabbitMqConnectionFactory;
         readonly RabbitMqClientOptions _clientOptions;
         readonly ILogger<BaseBatchMessageHandler> _logger;
 
         protected BaseBatchMessageHandler(
+            IRabbitMqConnectionFactory rabbitMqConnectionFactory,
             IEnumerable<BatchConsumerConnectionOptions> batchConsumerConnectionOptions,
             ILogger<BaseBatchMessageHandler> logger)
         {
@@ -58,6 +60,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
             }
 
             _clientOptions = optionsContainer.ClientOptions ?? throw new ArgumentNullException($"Consumer client options is null for {nameof(BaseBatchMessageHandler)}.", nameof(optionsContainer.ClientOptions));
+            _rabbitMqConnectionFactory = rabbitMqConnectionFactory;
             _logger = logger;
         }
 
@@ -65,7 +68,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
         {
             ValidateProperties();
             _logger.LogInformation($"Batch message handler {GetType()} has been started.");
-            Connection = RabbitMqFactoryExtensions.CreateRabbitMqConnection(_clientOptions);
+            Connection = _rabbitMqConnectionFactory.CreateRabbitMqConnection(_clientOptions);
             Channel = Connection.CreateModel();
             Channel.BasicQos(PrefetchSize, PrefetchCount, false);
 

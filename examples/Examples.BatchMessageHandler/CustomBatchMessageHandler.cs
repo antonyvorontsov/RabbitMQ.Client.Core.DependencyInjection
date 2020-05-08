@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
+using RabbitMQ.Client.Core.DependencyInjection.Services;
 
 namespace Examples.BatchMessageHandler
 {
@@ -14,9 +15,10 @@ namespace Examples.BatchMessageHandler
         readonly ILogger<CustomBatchMessageHandler> _logger;
 
         public CustomBatchMessageHandler(
+            IRabbitMqConnectionFactory rabbitMqConnectionFactory,
             IEnumerable<BatchConsumerConnectionOptions> batchConsumerConnectionOptions,
             ILogger<CustomBatchMessageHandler> logger)
-            : base(batchConsumerConnectionOptions, logger)
+            : base(rabbitMqConnectionFactory, batchConsumerConnectionOptions, logger)
         {
             _logger = logger;
         }
