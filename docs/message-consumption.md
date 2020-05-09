@@ -325,7 +325,7 @@ public class CustomBatchMessageHandler : BatchMessageHandler
     public CustomBatchMessageHandler(
         IRabbitMqConnectionFactory rabbitMqConnectionFactory,
         IEnumerable<BatchConsumerConnectionOptions> batchConsumerConnectionOptions,
-        ILogger<AnotherCustomBatchMessageHandler> logger)
+        ILogger<CustomBatchMessageHandler> logger)
         : base(rabbitMqConnectionFactory, batchConsumerConnectionOptions, logger)
     {
         _logger = logger;
@@ -355,9 +355,10 @@ public class CustomBatchMessageHandler : BaseBatchMessageHandler
     readonly ILogger<CustomBatchMessageHandler> _logger;
     
     public CustomBatchMessageHandler(
+        IRabbitMqConnectionFactory rabbitMqConnectionFactory,
         IEnumerable<BatchConsumerConnectionOptions> batchConsumerConnectionOptions,
         ILogger<CustomBatchMessageHandler> logger)
-        : base(batchConsumerConnectionOptions, logger)
+        : base(rabbitMqConnectionFactory, batchConsumerConnectionOptions, logger)
     {
         _logger = logger;
     }
