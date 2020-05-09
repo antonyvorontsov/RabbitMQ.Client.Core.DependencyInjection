@@ -23,11 +23,11 @@ namespace Examples.BatchMessageHandler
             _logger = logger;
         }
 
-        protected override ushort PrefetchCount { get; set; } = 3;
+        public override ushort PrefetchCount { get; set; } = 3;
 
-        protected override string QueueName { get; set; } = "queue.name";
+        public override string QueueName { get; set; } = "queue.name";
 
-        protected override Task HandleMessages(IEnumerable<ReadOnlyMemory<byte>> messages, CancellationToken cancellationToken)
+        public override Task HandleMessages(IEnumerable<ReadOnlyMemory<byte>> messages, CancellationToken cancellationToken)
         {
             _logger.LogInformation("Handling a batch of messages.");
             foreach (var message in messages)

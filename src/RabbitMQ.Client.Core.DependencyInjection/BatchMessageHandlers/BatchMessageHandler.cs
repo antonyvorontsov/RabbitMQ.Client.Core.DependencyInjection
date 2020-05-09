@@ -29,10 +29,10 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
         /// <param name="messages">A collection of messages as bytes.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns></returns>
-        protected override async Task HandleMessages(IEnumerable<ReadOnlyMemory<byte>> messages, CancellationToken cancellationToken)
+        public override async Task HandleMessages(IEnumerable<ReadOnlyMemory<byte>> messages, CancellationToken cancellationToken)
         {
             var decodedMessages = messages.Select(x => Encoding.UTF8.GetString(x.ToArray()));
-            await HandleMessage(decodedMessages, cancellationToken).ConfigureAwait(false);
+            await HandleMessages(decodedMessages, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -41,6 +41,6 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
         /// <param name="messages">A collection of messages.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns></returns>
-        protected abstract Task HandleMessage(IEnumerable<string> messages, CancellationToken cancellationToken);
+        public abstract Task HandleMessages(IEnumerable<string> messages, CancellationToken cancellationToken);
     }
 }

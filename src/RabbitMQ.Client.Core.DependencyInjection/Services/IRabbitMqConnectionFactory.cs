@@ -1,4 +1,5 @@
 using RabbitMQ.Client.Core.DependencyInjection.Configuration;
+using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.Services
 {
@@ -14,5 +15,12 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         /// <returns>An instance of connection <see cref="IConnection"/>.</returns>
         /// <remarks>If options parameter is null the method return null too.</remarks>
         IConnection CreateRabbitMqConnection(RabbitMqClientOptions options);
+
+        /// <summary>
+        /// Create a consumer depending on the connection channel.
+        /// </summary>
+        /// <param name="channel">Connection channel.</param>
+        /// <returns>A consumer instance <see cref="AsyncEventingBasicConsumer"/>.</returns>
+        AsyncEventingBasicConsumer CreateConsumer(IModel channel);
     }
 }

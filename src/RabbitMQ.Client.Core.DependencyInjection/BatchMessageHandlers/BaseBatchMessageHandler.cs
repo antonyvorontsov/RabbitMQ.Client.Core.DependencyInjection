@@ -22,31 +22,33 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
         /// <summary>
         /// A connection which is in use by batch message handler.
         /// </summary>
-        protected IConnection Connection { get; private set; }
+        public IConnection Connection { get; private set; }
 
         /// <summary>
         /// A channel that has been created using the connection.
         /// </summary>
-        protected IModel Channel { get;  private set; }
+        public IModel Channel { get;  private set; }
 
         /// <summary>
         /// Prefetch size value that can be overridden.
         /// </summary>
-        protected virtual uint PrefetchSize { get; set; } = 0;
+        public virtual uint PrefetchSize { get; set; } = 0;
 
         /// <summary>
         /// Queue name which will be read by that batch message handler.
         /// </summary>
-        protected abstract string QueueName { get; set; }
+        public abstract string QueueName { get; set; }
 
         /// <summary>
         /// Prefetch count value (batch size).
         /// </summary>
-        protected abstract ushort PrefetchCount { get; set; }
+        public abstract ushort PrefetchCount { get; set; }
 
         readonly IRabbitMqConnectionFactory _rabbitMqConnectionFactory;
         readonly RabbitMqClientOptions _clientOptions;
         readonly ILogger<BaseBatchMessageHandler> _logger;
+        
+        bool _disposed = false;
 
         protected BaseBatchMessageHandler(
             IRabbitMqConnectionFactory rabbitMqConnectionFactory,
@@ -73,7 +75,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
             Channel.BasicQos(PrefetchSize, PrefetchCount, false);
 
             var messages = new ConcurrentBag<BasicDeliverEventArgs>();
-            var consumer = new AsyncEventingBasicConsumer(Channel);
+            var consumer = _rabbitMqConnectionFactory.CreateConsumer(Channel);
             consumer.Received += async (sender, eventArgs) =>
             {
                 messages.Add(eventArgs);
@@ -111,7 +113,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
         /// <param name="messages">A collection of messages as bytes.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns></returns>
-        protected abstract Task HandleMessages(IEnumerable<ReadOnlyMemory<byte>> messages, CancellationToken cancellationToken);
+        public abstract Task HandleMessages(IEnumerable<ReadOnlyMemory<byte>> messages, CancellationToken cancellationToken);
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
@@ -121,14 +123,29 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
 
         protected virtual void Dispose(bool disposing)
         {
-            Connection?.Dispose();
-            Channel?.Dispose();
+            if (_disposed)
+            {
+                return;
+            }
+
+            if (disposing)
+            {
+                Connection?.Dispose();
+                Channel?.Dispose();
+            }
+
+            _disposed = true;
         }
 
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
+        }
+        
+        ~BaseBatchMessageHandler()
+        {
+            Dispose(false);
         }
     }
 }

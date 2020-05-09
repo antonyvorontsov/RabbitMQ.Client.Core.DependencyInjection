@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -10,29 +9,30 @@ using RabbitMQ.Client.Core.DependencyInjection.Services;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests.Stubs
 {
-    public class StubBatchMessageHandler : BaseBatchMessageHandler
+    public class StubBaseBatchMessageHandler : BaseBatchMessageHandler
     {
-        readonly ILogger<StubBatchMessageHandler> _logger;
+        readonly IStubCaller _caller;
 
-        public StubBatchMessageHandler(
+        public StubBaseBatchMessageHandler(
+            IStubCaller caller,
             IRabbitMqConnectionFactory rabbitMqConnectionFactory,
             IEnumerable<BatchConsumerConnectionOptions> batchConsumerConnectionOptions,
-            ILogger<StubBatchMessageHandler> logger)
+            ILogger<StubBaseBatchMessageHandler> logger)
             : base(rabbitMqConnectionFactory, batchConsumerConnectionOptions, logger)
         {
-            _logger = logger;
+            _caller = caller;
         }
 
-        protected override ushort PrefetchCount { get; set; } = 3;
+        public override ushort PrefetchCount { get; set; }
 
-        protected override string QueueName { get; set; } = "queue.name";
+        public override string QueueName { get; set; }
 
-        protected override Task HandleMessages(IEnumerable<ReadOnlyMemory<byte>> messages, CancellationToken cancellationToken)
+        public override Task HandleMessages(IEnumerable<ReadOnlyMemory<byte>> messages, CancellationToken cancellationToken)
         {
+            _caller.EmptyCall();
             foreach (var message in messages)
             {
-                var stringifiedMessage = Encoding.UTF8.GetString(message.ToArray());
-                _logger.LogInformation(stringifiedMessage);
+                _caller.Call(message);
             }
             return Task.CompletedTask;
         }
