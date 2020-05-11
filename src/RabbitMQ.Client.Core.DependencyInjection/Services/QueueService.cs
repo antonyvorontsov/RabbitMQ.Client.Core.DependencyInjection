@@ -16,7 +16,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
     /// <summary>
     /// Implementation of the custom RabbitMQ queue service.
     /// </summary>
-    internal sealed class QueueService : IQueueService, IDisposable
+    public sealed class QueueService : IQueueService, IDisposable
     {
         public IConnection Connection { get; private set; }
 
@@ -335,7 +335,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         void StartClient()
         {
             var deadLetterExchanges = _exchanges
-                .Where(x => !string.IsNullOrEmpty(x.Options.DeadLetterExchange))
+                .Where(x => !string.IsNullOrEmpty(x.Options?.DeadLetterExchange))
                 .Select(x => x.Options.DeadLetterExchange)
                 .Distinct()
                 .ToList();
