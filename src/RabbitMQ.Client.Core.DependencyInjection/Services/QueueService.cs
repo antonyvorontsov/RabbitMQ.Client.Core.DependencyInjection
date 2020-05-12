@@ -33,7 +33,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         readonly IEnumerable<RabbitMqExchange> _exchanges;
         readonly ILogger<QueueService> _logger;
 
-        IEnumerable<string> _consumerTags;
+        IEnumerable<string> _consumerTags = new List<string>();
         bool _consumingStarted;
         readonly object _lock = new object();
 
