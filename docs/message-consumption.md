@@ -33,7 +33,7 @@ You can register `IHostedService` and inject an instance of `IQueueService` into
 services.AddSingleton<IHostedService, ConsumingService>();
 ```
 
-And then simply call `StartConsuming` so a consumer can work in the background.
+Then simply call `StartConsuming` so a consumer can work in the background. There is also an option which allows you to stop consuming messages - method `StopConsuming` which you can use any time you want to pause a message consumption for any reason.
 
 ```c#
 public class ConsumingService : IHostedService
@@ -59,6 +59,7 @@ public class ConsumingService : IHostedService
     public Task StopAsync(CancellationToken cancellationToken)
     {
         _logger.LogInformation("Stopping consuming.");
+        _queueService.StopConsuming();
         return Task.CompletedTask;
     }
 }

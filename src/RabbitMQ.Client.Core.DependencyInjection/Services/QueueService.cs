@@ -33,6 +33,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         readonly IEnumerable<RabbitMqExchange> _exchanges;
         readonly ILogger<QueueService> _logger;
 
+        IEnumerable<string> _consumerTags = new List<string>();
         bool _consumingStarted;
         readonly object _lock = new object();
 
@@ -131,16 +132,34 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
                 return;
             }
 
-            _consumer.Received += async (sender, eventArgs) => await _messageHandlingService.HandleMessageReceivingEvent(eventArgs, this);
+            _consumer.Received += ConsumerOnReceived;
             _consumingStarted = true;
 
             var consumptionExchanges = _exchanges.Where(x => x.IsConsuming);
-            foreach (var exchange in consumptionExchanges)
+            _consumerTags = consumptionExchanges.SelectMany(
+                    exchange => exchange.Options.Queues.Select(
+                        queue => ConsumingChannel.BasicConsume(queue: queue.Name, autoAck: false, consumer: _consumer)))
+                .Distinct()
+                .ToList();
+        }
+
+        public void StopConsuming()
+        {
+            if (ConsumingChannel is null)
             {
-                foreach (var queue in exchange.Options.Queues)
-                {
-                    ConsumingChannel.BasicConsume(queue: queue.Name, autoAck: false, consumer: _consumer);
-                }
+                throw new ConsumingChannelIsNullException($"Consuming channel is null. Configure {nameof(IConsumingService)} or full functional {nameof(IQueueService)} for consuming messages.");
+            }
+
+            if (!_consumingStarted)
+            {
+                return;
+            }
+
+            _consumer.Received -= ConsumerOnReceived;
+            _consumingStarted = false;
+            foreach (var tag in _consumerTags)
+            {
+                ConsumingChannel.BasicCancel(tag);
             }
         }
 
@@ -479,5 +498,10 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
                 { "x-message-ttl", secondsDelay * 1000 },
                 { "x-expires", secondsDelay * 1000 + QueueExpirationTime }
             };
+        
+        async Task ConsumerOnReceived(object sender, BasicDeliverEventArgs eventArgs)
+        {
+            await _messageHandlingService.HandleMessageReceivingEvent(eventArgs, this);
+        }
     }
 }
