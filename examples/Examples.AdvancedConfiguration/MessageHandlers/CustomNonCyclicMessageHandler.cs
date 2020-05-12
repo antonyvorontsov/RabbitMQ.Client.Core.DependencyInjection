@@ -1,4 +1,5 @@
-using RabbitMQ.Client.Core.DependencyInjection;
+using RabbitMQ.Client.Core.DependencyInjection.MessageHandlers;
+using RabbitMQ.Client.Core.DependencyInjection.Services;
 
 namespace Examples.AdvancedConfiguration.MessageHandlers
 {

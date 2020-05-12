@@ -1,4 +1,4 @@
-﻿namespace RabbitMQ.Client.Core.DependencyInjection
+﻿namespace RabbitMQ.Client.Core.DependencyInjection.Services
 {
     /// <summary>
     /// Custom RabbitMQ consuming service interface.

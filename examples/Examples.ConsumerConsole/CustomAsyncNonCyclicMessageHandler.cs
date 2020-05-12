@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
-using RabbitMQ.Client.Core.DependencyInjection;
 using System.Threading.Tasks;
+using RabbitMQ.Client.Core.DependencyInjection.MessageHandlers;
+using RabbitMQ.Client.Core.DependencyInjection.Services;
 
 namespace Examples.ConsumerConsole
 {

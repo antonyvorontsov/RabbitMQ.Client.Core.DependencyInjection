@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
+namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests.Models
 {
     public class HandleMessageReceivingEventTestDataModel
     {

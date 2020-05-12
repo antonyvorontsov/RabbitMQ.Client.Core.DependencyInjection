@@ -1,23 +1,22 @@
-﻿using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using RabbitMQ.Client.Core.DependencyInjection.Configuration;
-using RabbitMQ.Client.Core.DependencyInjection.Models;
-using RabbitMQ.Client.Events;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using RabbitMQ.Client.Core.DependencyInjection.Configuration;
 using RabbitMQ.Client.Core.DependencyInjection.Exceptions;
-using RabbitMQ.Client.Core.DependencyInjection.Extensions;
+using RabbitMQ.Client.Core.DependencyInjection.Models;
+using RabbitMQ.Client.Events;
 
-namespace RabbitMQ.Client.Core.DependencyInjection
+namespace RabbitMQ.Client.Core.DependencyInjection.Services
 {
     /// <summary>
     /// Implementation of the custom RabbitMQ queue service.
     /// </summary>
-    internal sealed class QueueService : IQueueService, IDisposable
+    public sealed class QueueService : IQueueService, IDisposable
     {
         public IConnection Connection { get; private set; }
 
@@ -29,6 +28,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
 
         AsyncEventingBasicConsumer _consumer;
 
+        readonly IRabbitMqConnectionFactory _rabbitMqConnectionFactory;
         readonly IMessageHandlingService _messageHandlingService;
         readonly IEnumerable<RabbitMqExchange> _exchanges;
         readonly ILogger<QueueService> _logger;
@@ -41,6 +41,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
 
         public QueueService(
             Guid guid,
+            IRabbitMqConnectionFactory rabbitMqConnectionFactory,
             IEnumerable<RabbitMqConnectionOptionsContainer> connectionOptionsContainers,
             IMessageHandlingService messageHandlingService,
             IEnumerable<RabbitMqExchange> exchanges,
@@ -52,6 +53,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                 throw new ArgumentException($"Connection options container for {nameof(QueueService)} with the guid {guid} is not found.", nameof(connectionOptionsContainers));
             }
 
+            _rabbitMqConnectionFactory = rabbitMqConnectionFactory;
             _messageHandlingService = messageHandlingService;
             _exchanges = exchanges;
             _logger = logger;
@@ -65,13 +67,19 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             if (Connection != null)
             {
                 Connection.CallbackException -= HandleConnectionCallbackException;
-                Connection.ConnectionRecoveryError -= HandleConnectionRecoveryError;
+                if (Connection is IAutorecoveringConnection connection)
+                {
+                    connection.ConnectionRecoveryError -= HandleConnectionRecoveryError;
+                }
             }
 
             if (ConsumingConnection != null)
             {
                 ConsumingConnection.CallbackException -= HandleConnectionCallbackException;
-                ConsumingConnection.ConnectionRecoveryError -= HandleConnectionRecoveryError;
+                if (Connection is IAutorecoveringConnection connection)
+                {
+                    connection.ConnectionRecoveryError -= HandleConnectionRecoveryError;
+                }
             }
 
             if (Channel != null)
@@ -209,7 +217,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             SendString(message, deadLetterExchange, delayedQueueName);
         }
 
-        public void Send(byte[] bytes, IBasicProperties properties, string exchangeName, string routingKey)
+        public void Send(ReadOnlyMemory<byte> bytes, IBasicProperties properties, string exchangeName, string routingKey)
         {
             EnsureProducingChannelIsNotNull();
             ValidateArguments(exchangeName, routingKey);
@@ -222,7 +230,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             }
         }
 
-        public void Send(byte[] bytes, IBasicProperties properties, string exchangeName, string routingKey, int secondsDelay)
+        public void Send(ReadOnlyMemory<byte> bytes, IBasicProperties properties, string exchangeName, string routingKey, int secondsDelay)
         {
             EnsureProducingChannelIsNotNull();
             ValidateArguments(exchangeName, routingKey);
@@ -249,10 +257,10 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         public async Task SendStringAsync(string message, string exchangeName, string routingKey, int secondsDelay) =>
             await Task.Run(() => SendString(message, exchangeName, routingKey, secondsDelay)).ConfigureAwait(false);
 
-        public async Task SendAsync(byte[] bytes, IBasicProperties properties, string exchangeName, string routingKey) =>
+        public async Task SendAsync(ReadOnlyMemory<byte> bytes, IBasicProperties properties, string exchangeName, string routingKey) =>
             await Task.Run(() => Send(bytes, properties, exchangeName, routingKey)).ConfigureAwait(false);
 
-        public async Task SendAsync(byte[] bytes, IBasicProperties properties, string exchangeName, string routingKey, int secondsDelay) =>
+        public async Task SendAsync(ReadOnlyMemory<byte> bytes, IBasicProperties properties, string exchangeName, string routingKey, int secondsDelay) =>
             await Task.Run(() => Send(bytes, properties, exchangeName, routingKey, secondsDelay)).ConfigureAwait(false);
 
         IBasicProperties CreateProperties()
@@ -314,33 +322,39 @@ namespace RabbitMQ.Client.Core.DependencyInjection
 
         void ConfigureConnectionInfrastructure(RabbitMqConnectionOptionsContainer optionsContainer)
         {
-            Connection = RabbitMqFactoryExtensions.CreateRabbitMqConnection(optionsContainer?.Options?.ProducerOptions);
+            Connection = _rabbitMqConnectionFactory.CreateRabbitMqConnection(optionsContainer?.Options?.ProducerOptions);
             if (Connection != null)
             {
                 Connection.CallbackException += HandleConnectionCallbackException;
-                Connection.ConnectionRecoveryError += HandleConnectionRecoveryError;
+                if (Connection is IAutorecoveringConnection connection)
+                {
+                    connection.ConnectionRecoveryError += HandleConnectionRecoveryError;
+                }
                 Channel = Connection.CreateModel();
                 Channel.CallbackException += HandleChannelCallbackException;
                 Channel.BasicRecoverOk += HandleChannelBasicRecoverOk;
             }
 
-            ConsumingConnection = RabbitMqFactoryExtensions.CreateRabbitMqConnection(optionsContainer?.Options?.ConsumerOptions);
+            ConsumingConnection = _rabbitMqConnectionFactory.CreateRabbitMqConnection(optionsContainer?.Options?.ConsumerOptions);
             if (ConsumingConnection != null)
             {
                 ConsumingConnection.CallbackException += HandleConnectionCallbackException;
-                ConsumingConnection.ConnectionRecoveryError += HandleConnectionRecoveryError;
+                if (Connection is IAutorecoveringConnection connection)
+                {
+                    connection.ConnectionRecoveryError += HandleConnectionRecoveryError;
+                }
                 ConsumingChannel = ConsumingConnection.CreateModel();
                 ConsumingChannel.CallbackException += HandleChannelCallbackException;
                 ConsumingChannel.BasicRecoverOk += HandleChannelBasicRecoverOk;
-
-                _consumer = new AsyncEventingBasicConsumer(ConsumingChannel);
+                
+                _consumer = _rabbitMqConnectionFactory.CreateConsumer(ConsumingChannel);
             }
         }
 
         void StartClient()
         {
             var deadLetterExchanges = _exchanges
-                .Where(x => !string.IsNullOrEmpty(x.Options.DeadLetterExchange))
+                .Where(x => !string.IsNullOrEmpty(x.Options?.DeadLetterExchange))
                 .Select(x => x.Options.DeadLetterExchange)
                 .Distinct()
                 .ToList();
@@ -449,7 +463,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         string GetDeadLetterExchange(string exchangeName)
         {
             var exchange = _exchanges.FirstOrDefault(x => x.Name == exchangeName);
-            if (string.IsNullOrEmpty(exchange.Options.DeadLetterExchange))
+            if (string.IsNullOrEmpty(exchange?.Options?.DeadLetterExchange))
             {
                 throw new ArgumentException($"Exchange {nameof(exchangeName)} has not been configured with a dead letter exchange.", nameof(exchangeName));
             }

@@ -1,7 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Generic;
 using System.Linq;
-using RabbitMQ.Client.Core.DependencyInjection.Extensions;
+using RabbitMQ.Client.Core.DependencyInjection.InternalExtensions;
+using RabbitMQ.Client.Core.DependencyInjection.MessageHandlers;
 
 namespace RabbitMQ.Client.Core.DependencyInjection
 {

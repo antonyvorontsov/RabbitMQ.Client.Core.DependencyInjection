@@ -4,11 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using RabbitMQ.Client.Core.DependencyInjection.InternalExtensions;
+using RabbitMQ.Client.Core.DependencyInjection.MessageHandlers;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
-using RabbitMQ.Client.Core.DependencyInjection.Extensions;
 using RabbitMQ.Client.Events;
 
-namespace RabbitMQ.Client.Core.DependencyInjection
+namespace RabbitMQ.Client.Core.DependencyInjection.Services
 {
     /// <summary>
     /// An implementation of the service that handles message receiving (consumption) events.
@@ -38,7 +39,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// <param name="queueService">An instance of the queue service <see cref="IQueueService"/>.</param>
         public async Task HandleMessageReceivingEvent(BasicDeliverEventArgs eventArgs, IQueueService queueService)
         {
-            var message = Encoding.UTF8.GetString(eventArgs.Body);
+            var message = Encoding.UTF8.GetString(eventArgs.Body.ToArray());
 
             _logger.LogInformation($"A new message was received with deliveryTag {eventArgs.DeliveryTag}.");
             _logger.LogInformation(message);
@@ -47,7 +48,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             {
                 var matchingRoutes = GetMatchingRoutePatterns(eventArgs.Exchange, eventArgs.RoutingKey);
                 await ProcessMessage(eventArgs.Exchange, message, queueService, matchingRoutes).ConfigureAwait(false);
-                queueService.Channel.BasicAck(eventArgs.DeliveryTag, false);
+                queueService.ConsumingChannel.BasicAck(eventArgs.DeliveryTag, false);
                 _logger.LogInformation(
                     $"Message processing finished successfully. Acknowledge has been sent with deliveryTag {eventArgs.DeliveryTag}.");
             }
@@ -58,7 +59,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                     exception,
                     $"An error occurred while processing received message with the delivery tag {eventArgs.DeliveryTag}.");
 
-                queueService.Channel.BasicAck(eventArgs.DeliveryTag, false);
+                queueService.ConsumingChannel.BasicAck(eventArgs.DeliveryTag, false);
 
                 if (eventArgs.BasicProperties.Headers is null)
                 {

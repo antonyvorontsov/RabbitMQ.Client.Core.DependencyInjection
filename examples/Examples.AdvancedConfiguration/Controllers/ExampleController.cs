@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using RabbitMQ.Client.Core.DependencyInjection;
+using RabbitMQ.Client.Core.DependencyInjection.Services;
 
 namespace Examples.AdvancedConfiguration.Controllers
 {

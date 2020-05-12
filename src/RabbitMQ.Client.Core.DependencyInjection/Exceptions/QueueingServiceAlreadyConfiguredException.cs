@@ -8,7 +8,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Exceptions
     public class QueueingServiceAlreadyConfiguredException : Exception
     {
         /// <summary>
-        /// Type of a queuing service.
+        /// Type of queuing service.
         /// </summary>
         public Type QueueingServiceType { get; }
 

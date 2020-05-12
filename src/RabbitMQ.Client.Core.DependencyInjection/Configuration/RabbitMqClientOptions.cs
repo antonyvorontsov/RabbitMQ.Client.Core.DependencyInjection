@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.Configuration
 {
@@ -76,11 +77,11 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Configuration
         /// <summary>
         /// Timeout for connection attempts.
         /// </summary>
-        public int RequestedConnectionTimeout { get; set; } = 60000;
+        public TimeSpan RequestedConnectionTimeout { get; set; } = TimeSpan.FromMilliseconds(60000);
 
         /// <summary>
         /// Heartbeat timeout.
         /// </summary>
-        public ushort RequestedHeartbeat { get; set; } = 60;
+        public TimeSpan RequestedHeartbeat { get; set; } = TimeSpan.FromSeconds(60);
     }
 }

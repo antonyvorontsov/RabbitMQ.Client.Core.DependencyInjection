@@ -1,6 +1,8 @@
-namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
+using RabbitMQ.Client.Core.DependencyInjection.MessageHandlers;
+
+namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests.Models
 {
-    internal class MessageHandlerOrderingContainerTest
+    internal class MessageHandlerOrderingContainerTestModel
     {
         public IBaseMessageHandler MessageHandler { get; set; }
 

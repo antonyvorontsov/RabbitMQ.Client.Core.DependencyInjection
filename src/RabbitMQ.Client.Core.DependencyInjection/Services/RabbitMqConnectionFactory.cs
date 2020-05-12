@@ -1,12 +1,13 @@
 using System.Linq;
 using RabbitMQ.Client.Core.DependencyInjection.Configuration;
+using RabbitMQ.Client.Events;
 
-namespace RabbitMQ.Client.Core.DependencyInjection.Extensions
+namespace RabbitMQ.Client.Core.DependencyInjection.Services
 {
     /// <summary>
-    /// Extensions that contain business logic of creating RabbitMQ connections depending on options <see cref="RabbitMqClientOptions"/>.
+    /// Service that is responsible for creating RabbitMQ connections depending on options <see cref="RabbitMqClientOptions"/>.
     /// </summary>
-    internal static class RabbitMqFactoryExtensions
+    public class RabbitMqConnectionFactory : IRabbitMqConnectionFactory
     {
         /// <summary>
         /// Create a RabbitMQ connection.
@@ -14,7 +15,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Extensions
         /// <param name="options">An instance of options <see cref="RabbitMqClientOptions"/>.</param>
         /// <returns>An instance of connection <see cref="IConnection"/>.</returns>
         /// <remarks>If options parameter is null the method return null too.</remarks>
-        internal static IConnection CreateRabbitMqConnection(RabbitMqClientOptions options)
+        public IConnection CreateRabbitMqConnection(RabbitMqClientOptions options)
         {
             if (options is null)
             {
@@ -44,6 +45,14 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Extensions
                 ? CreateConnection(options, factory)
                 : CreateNamedConnection(options, factory);
         }
+
+
+        /// <summary>
+        /// Create a consumer depending on the connection channel.
+        /// </summary>
+        /// <param name="channel">Connection channel.</param>
+        /// <returns>A consumer instance <see cref="AsyncEventingBasicConsumer"/>.</returns>
+        public AsyncEventingBasicConsumer CreateConsumer(IModel channel) => new AsyncEventingBasicConsumer(channel);
 
         static IConnection CreateNamedConnection(RabbitMqClientOptions options, ConnectionFactory factory)
         {

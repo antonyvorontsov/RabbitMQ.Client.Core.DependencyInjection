@@ -1,4 +1,6 @@
-﻿namespace RabbitMQ.Client.Core.DependencyInjection
+﻿using RabbitMQ.Client.Core.DependencyInjection.Services;
+
+namespace RabbitMQ.Client.Core.DependencyInjection.MessageHandlers
 {
     /// <summary>
     /// Interface of a non-cycling message handler.

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
 
-namespace RabbitMQ.Client.Core.DependencyInjection
+namespace RabbitMQ.Client.Core.DependencyInjection.Services
 {
     /// <summary>
     /// Interface of the service that build message handler containers collection.

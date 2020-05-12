@@ -1,3 +1,5 @@
+using RabbitMQ.Client.Core.DependencyInjection.MessageHandlers;
+
 namespace RabbitMQ.Client.Core.DependencyInjection.Models
 {
     /// <summary>

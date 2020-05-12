@@ -2,6 +2,29 @@
 
 All notable changes to this library will be documented in this file.
 
+## [4.0.0] - 2020-05-05
+
+### Added
+
+- `BaseBatchMessageHandler` and `BatchMessageHandler` for handling messages in batches via prefetch count feature.
+- Example of basic usages of batch message handlers.
+
+### Updated
+
+- Updated RabbitMQ.Client to the newest version 6.0.0. Made some changes according to the breaking changes that come with the newest version of RabbitMQ.Client.
+- Moved message handlers to the different namespace `RabbitMQ.Client.Core.DependencyInjection.MessageHandlers`.
+- Moved internal DI extensions to the different namespace `RabbitMQ.Client.Core.DependencyInjection.InternalExtensions`.
+
+## [3.2.1] - 2020-03-29
+
+### Fixed
+
+- Fixed message acknowledgement when both `IConsumingService` and `IProducingService` in use.
+
+### Updated
+
+- Updated Microsoft libraries to the newer version (3.1.3).
+
 ## [3.2.0] - 2020-02-14
 
 ### Added
