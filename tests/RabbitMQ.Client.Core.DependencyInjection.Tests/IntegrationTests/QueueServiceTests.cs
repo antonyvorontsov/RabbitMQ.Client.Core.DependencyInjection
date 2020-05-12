@@ -16,7 +16,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
         {
             var clientOptions = new RabbitMqClientOptions
             {
-                HostName = "localhost",
+                HostName = "rabbitmq",
                 Port = 5672,
                 UserName = "guest",
                 Password = "guest",
