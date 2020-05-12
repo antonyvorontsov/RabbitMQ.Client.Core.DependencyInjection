@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
+using RabbitMQ.Client.Core.DependencyInjection.Services;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
 {
@@ -15,9 +16,10 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
     public abstract class BatchMessageHandler : BaseBatchMessageHandler
     {
         protected BatchMessageHandler(
+            IRabbitMqConnectionFactory rabbitMqConnectionFactory,
             IEnumerable<BatchConsumerConnectionOptions> batchConsumerConnectionOptions,
             ILogger<BatchMessageHandler> logger)
-            : base(batchConsumerConnectionOptions, logger)
+            : base(rabbitMqConnectionFactory, batchConsumerConnectionOptions, logger)
         {
         }
 
@@ -27,10 +29,10 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
         /// <param name="messages">A collection of messages as bytes.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns></returns>
-        protected override async Task HandleMessages(IEnumerable<ReadOnlyMemory<byte>> messages, CancellationToken cancellationToken)
+        public override async Task HandleMessages(IEnumerable<ReadOnlyMemory<byte>> messages, CancellationToken cancellationToken)
         {
             var decodedMessages = messages.Select(x => Encoding.UTF8.GetString(x.ToArray()));
-            await HandleMessage(decodedMessages, cancellationToken).ConfigureAwait(false);
+            await HandleMessages(decodedMessages, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -39,6 +41,6 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
         /// <param name="messages">A collection of messages.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns></returns>
-        protected abstract Task HandleMessage(IEnumerable<string> messages, CancellationToken cancellationToken);
+        public abstract Task HandleMessages(IEnumerable<string> messages, CancellationToken cancellationToken);
     }
 }

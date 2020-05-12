@@ -18,8 +18,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             {
                 var configurationMock = new Mock<IConfiguration>();
                 new ServiceCollection()
-                    .AddBatchMessageHandler<StubBatchMessageHandler>(configurationMock.Object)
-                    .AddBatchMessageHandler<StubBatchMessageHandler>(configurationMock.Object);
+                    .AddBatchMessageHandler<StubBaseBatchMessageHandler>(configurationMock.Object)
+                    .AddBatchMessageHandler<StubBaseBatchMessageHandler>(configurationMock.Object);
                 return Task.CompletedTask;
             });
         }
@@ -30,8 +30,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             await Assert.ThrowsAsync<BatchMessageHandlerAlreadyConfiguredException>(() =>
             {
                 new ServiceCollection()
-                    .AddBatchMessageHandler<StubBatchMessageHandler>(new RabbitMqClientOptions())
-                    .AddBatchMessageHandler<StubBatchMessageHandler>(new RabbitMqClientOptions());
+                    .AddBatchMessageHandler<StubBaseBatchMessageHandler>(new RabbitMqClientOptions())
+                    .AddBatchMessageHandler<StubBaseBatchMessageHandler>(new RabbitMqClientOptions());
                 return Task.CompletedTask;
             });
         }
@@ -43,8 +43,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             {
                 var configurationMock = new Mock<IConfiguration>();
                 new ServiceCollection()
-                    .AddBatchMessageHandler<StubBatchMessageHandler>(configurationMock.Object)
-                    .AddBatchMessageHandler<StubBatchMessageHandler>(new RabbitMqClientOptions());
+                    .AddBatchMessageHandler<StubBaseBatchMessageHandler>(configurationMock.Object)
+                    .AddBatchMessageHandler<StubBaseBatchMessageHandler>(new RabbitMqClientOptions());
                 return Task.CompletedTask;
             });
         }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,15 +9,15 @@ using RabbitMQ.Client.Core.DependencyInjection.Services;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests.Stubs
 {
-    public class StubBatchMessageHandler : BatchMessageHandler
+    public class StubBaseBatchMessageHandler : BaseBatchMessageHandler
     {
         readonly IStubCaller _caller;
 
-        public StubBatchMessageHandler(
+        public StubBaseBatchMessageHandler(
             IStubCaller caller,
             IRabbitMqConnectionFactory rabbitMqConnectionFactory,
             IEnumerable<BatchConsumerConnectionOptions> batchConsumerConnectionOptions,
-            ILogger<StubBatchMessageHandler> logger)
+            ILogger<StubBaseBatchMessageHandler> logger)
             : base(rabbitMqConnectionFactory, batchConsumerConnectionOptions, logger)
         {
             _caller = caller;
@@ -26,7 +27,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests.Stubs
 
         public override string QueueName { get; set; }
 
-        public override Task HandleMessages(IEnumerable<string> messages, CancellationToken cancellationToken)
+        public override Task HandleMessages(IEnumerable<ReadOnlyMemory<byte>> messages, CancellationToken cancellationToken)
         {
             _caller.EmptyCall();
             foreach (var message in messages)

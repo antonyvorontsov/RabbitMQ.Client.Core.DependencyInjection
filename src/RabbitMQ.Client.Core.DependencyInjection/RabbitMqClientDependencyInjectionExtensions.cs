@@ -231,6 +231,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         {
             services.AddOptions();
             services.AddLogging(options => options.AddConsole());
+            services.TryAddSingleton<IRabbitMqConnectionFactory, RabbitMqConnectionFactory>();
             services.TryAddSingleton<IMessageHandlerContainerBuilder, MessageHandlerContainerBuilder>();
             services.TryAddSingleton<IMessageHandlingService, MessageHandlingService>();
             return services;
@@ -240,6 +241,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         {
             services.TryAddSingleton<IQueueService>(provider => new QueueService(
                 guid,
+                provider.GetService<IRabbitMqConnectionFactory>(),
                 provider.GetServices<RabbitMqConnectionOptionsContainer>(),
                 provider.GetService<IMessageHandlingService>(),
                 provider.GetServices<RabbitMqExchange>(),
@@ -251,6 +253,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         {
             services.TryAddTransient<IQueueService>(provider => new QueueService(
                 guid,
+                provider.GetService<IRabbitMqConnectionFactory>(),
                 provider.GetServices<RabbitMqConnectionOptionsContainer>(),
                 provider.GetService<IMessageHandlingService>(),
                 provider.GetServices<RabbitMqExchange>(),
@@ -262,6 +265,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         {
             services.TryAddSingleton<IProducingService>(provider => new QueueService(
                 guid,
+                provider.GetService<IRabbitMqConnectionFactory>(),
                 provider.GetServices<RabbitMqConnectionOptionsContainer>(),
                 provider.GetService<IMessageHandlingService>(),
                 provider.GetServices<RabbitMqExchange>(),
@@ -273,6 +277,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         {
             services.TryAddTransient<IProducingService>(provider => new QueueService(
                 guid,
+                provider.GetService<IRabbitMqConnectionFactory>(),
                 provider.GetServices<RabbitMqConnectionOptionsContainer>(),
                 provider.GetService<IMessageHandlingService>(),
                 provider.GetServices<RabbitMqExchange>(),
@@ -284,6 +289,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         {
             services.TryAddSingleton<IConsumingService>(provider => new QueueService(
                 guid,
+                provider.GetService<IRabbitMqConnectionFactory>(),
                 provider.GetServices<RabbitMqConnectionOptionsContainer>(),
                 provider.GetService<IMessageHandlingService>(),
                 provider.GetServices<RabbitMqExchange>(),
@@ -295,6 +301,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         {
             services.TryAddTransient<IConsumingService>(provider => new QueueService(
                 guid,
+                provider.GetService<IRabbitMqConnectionFactory>(),
                 provider.GetServices<RabbitMqConnectionOptionsContainer>(),
                 provider.GetService<IMessageHandlingService>(),
                 provider.GetServices<RabbitMqExchange>(),
