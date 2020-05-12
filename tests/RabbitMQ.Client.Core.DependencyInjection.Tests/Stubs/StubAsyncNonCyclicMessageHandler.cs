@@ -3,9 +3,9 @@ using System.Threading.Tasks;
 using RabbitMQ.Client.Core.DependencyInjection.MessageHandlers;
 using RabbitMQ.Client.Core.DependencyInjection.Services;
 
-namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests.Stubs
+namespace RabbitMQ.Client.Core.DependencyInjection.Tests.Stubs
 {
-    internal class StubAsyncNonCyclicMessageHandler : IAsyncNonCyclicMessageHandler
+    public class StubAsyncNonCyclicMessageHandler : IAsyncNonCyclicMessageHandler
     {
         public Task Handle(string message, string routingKey, IQueueService queueService)
         {

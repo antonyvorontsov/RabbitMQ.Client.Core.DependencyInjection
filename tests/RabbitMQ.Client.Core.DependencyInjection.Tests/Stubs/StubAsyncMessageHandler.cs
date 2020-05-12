@@ -2,9 +2,9 @@ using System;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Core.DependencyInjection.MessageHandlers;
 
-namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests.Stubs
+namespace RabbitMQ.Client.Core.DependencyInjection.Tests.Stubs
 {
-    internal class StubAsyncMessageHandler : IAsyncMessageHandler
+    public class StubAsyncMessageHandler : IAsyncMessageHandler
     {
         public Task Handle(string message, string routingKey)
         {

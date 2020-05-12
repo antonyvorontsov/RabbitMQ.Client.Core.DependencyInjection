@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using RabbitMQ.Client.Core.DependencyInjection.Configuration;
 using RabbitMQ.Client.Core.DependencyInjection.Exceptions;
-using RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests.Stubs;
+using RabbitMQ.Client.Core.DependencyInjection.Tests.Stubs;
 using Xunit;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests

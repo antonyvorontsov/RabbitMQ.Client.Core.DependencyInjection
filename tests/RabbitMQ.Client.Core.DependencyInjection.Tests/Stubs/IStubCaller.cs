@@ -1,6 +1,6 @@
 using System;
 
-namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests.Stubs
+namespace RabbitMQ.Client.Core.DependencyInjection.Tests.Stubs
 {
     public interface IStubCaller
     {
