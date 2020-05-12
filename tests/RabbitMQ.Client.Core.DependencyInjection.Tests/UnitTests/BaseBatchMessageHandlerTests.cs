@@ -66,7 +66,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             await messageHandler.StopAsync(CancellationToken.None);
         }
 
-        BaseBatchMessageHandler CreateBatchMessageHandler(
+        static BaseBatchMessageHandler CreateBatchMessageHandler(
             string queueName,
             ushort prefetchCount,
             IRabbitMqConnectionFactory connectionFactory,
