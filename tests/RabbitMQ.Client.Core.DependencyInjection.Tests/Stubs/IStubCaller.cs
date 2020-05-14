@@ -1,6 +1,7 @@
 using System;
+using System.Threading.Tasks;
 
-namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests.Stubs
+namespace RabbitMQ.Client.Core.DependencyInjection.Tests.Stubs
 {
     public interface IStubCaller
     {
@@ -9,5 +10,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests.Stubs
         void Call(ReadOnlyMemory<byte> message);
 
         void Call(string message);
+        
+        Task CallAsync(string message);
     }
 }

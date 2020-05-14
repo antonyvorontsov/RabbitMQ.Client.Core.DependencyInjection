@@ -1,10 +1,19 @@
-name: .NET Core
+name: Tests
 
 on: [push]
 
 jobs:
   workflow:
     runs-on: ubuntu-latest
+    container: mcr.microsoft.com/dotnet/core/runtime:3.1
+
+    services:
+      rabbitmq:
+        image: rabbitmq:latest
+        ports:
+          - 5672:5672
+        options: --health-cmd "rabbitmqctl node_health_check" --health-interval 10s --health-timeout 5s --health-retries 5
+        
     steps:
     - uses: actions/checkout@v2
     - name: Setup .NET Core

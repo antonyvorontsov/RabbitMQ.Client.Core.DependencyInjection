@@ -8,7 +8,7 @@ using RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers;
 using RabbitMQ.Client.Core.DependencyInjection.Configuration;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
 using RabbitMQ.Client.Core.DependencyInjection.Services;
-using RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests.Stubs;
+using RabbitMQ.Client.Core.DependencyInjection.Tests.Stubs;
 using RabbitMQ.Client.Events;
 using Xunit;
 
