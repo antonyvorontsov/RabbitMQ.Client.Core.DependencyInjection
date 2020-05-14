@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Core.DependencyInjection.MessageHandlers;
 
@@ -6,10 +5,16 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.Stubs
 {
     public class StubAsyncMessageHandler : IAsyncMessageHandler
     {
-        public Task Handle(string message, string routingKey)
+        readonly IStubCaller _caller;
+        
+        public StubAsyncMessageHandler(IStubCaller caller)
         {
-            Console.WriteLine($"{message}:{routingKey}");
-            return Task.CompletedTask;
+            _caller = caller;
+        }
+        
+        public async Task Handle(string message, string routingKey)
+        {
+            await _caller.CallAsync($"{message}:{routingKey}");
         }
     }
 }

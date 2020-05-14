@@ -15,33 +15,14 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
     public class QueueServiceTests
     {
         readonly TimeSpan _globalTestsTimeout = TimeSpan.FromSeconds(60);
+
+        const string DefaultExchangeName = "exchange.name";
+        const string FirstRoutingKey = "first.routing.key";
+        const string SecondRoutingKey = "second.routing.key";
         
         [Fact]
         public async Task ShouldProperlyPublishAndConsumeMessages()
         {
-            var clientOptions = new RabbitMqClientOptions
-            {
-                HostName = "rabbitmq",
-                Port = 5672,
-                UserName = "guest",
-                Password = "guest",
-                VirtualHost = "/"
-            };
-            
-            var exchangeOptions = new RabbitMqExchangeOptions
-            {
-                Type = "direct",
-                DeadLetterExchange = "exchange.dlx",
-                Queues = new List<RabbitMqQueueOptions>
-                {
-                    new RabbitMqQueueOptions
-                    {
-                        Name = "test.queue",
-                        RoutingKeys = new HashSet<string> { "routing.key" }
-                    }
-                }
-            };
-
             var connectionFactoryMock = new Mock<RabbitMqConnectionFactory> { CallBase = true }
                 .As<IRabbitMqConnectionFactory>();
             
@@ -59,23 +40,56 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
             serviceCollection
                 .AddSingleton(connectionFactoryMock.Object)
                 .AddSingleton(callerMock.Object)
-                .AddRabbitMqClient(clientOptions)
-                .AddConsumptionExchange("exchange.name", exchangeOptions)
-                .AddMessageHandlerTransient<StubMessageHandler>("routing.key");
+                .AddRabbitMqClient(GetClientOptions())
+                .AddConsumptionExchange(DefaultExchangeName, GetExchangeOptions())
+                .AddMessageHandlerTransient<StubMessageHandler>(FirstRoutingKey)
+                .AddNonCyclicMessageHandlerTransient<StubNonCyclicMessageHandler>(FirstRoutingKey)
+                .AddAsyncMessageHandlerTransient<StubAsyncMessageHandler>(SecondRoutingKey)
+                .AddAsyncNonCyclicMessageHandlerTransient<StubAsyncNonCyclicMessageHandler>(SecondRoutingKey);
             
             var serviceProvider = serviceCollection.BuildServiceProvider();
             var queueService = serviceProvider.GetRequiredService<IQueueService>();
             queueService.StartConsuming();
             
             var resetEvent = new AutoResetEvent(false);
-            consumer.Received += async (sender, @event) =>
+            consumer.Received += (sender, @event) =>
             {
                 resetEvent.Set();
+                return Task.CompletedTask;
             };
 
-            await queueService.SendAsync("message", "exchange.name", "routing.key");
+            await queueService.SendAsync(new { Message = "message" }, DefaultExchangeName, FirstRoutingKey);
             resetEvent.WaitOne(_globalTestsTimeout);
-            callerMock.Verify(x => x.Call(It.IsAny<string>()), Times.Once);
+            callerMock.Verify(x => x.Call(It.IsAny<string>()), Times.Exactly(2));
+            
+            await queueService.SendAsync(new { Message = "message" }, DefaultExchangeName, SecondRoutingKey);
+            resetEvent.WaitOne(_globalTestsTimeout);
+            callerMock.Verify(x => x.CallAsync(It.IsAny<string>()), Times.Exactly(2));
         }
+
+        RabbitMqClientOptions GetClientOptions() =>
+            new RabbitMqClientOptions
+            {
+                HostName = "rabbitmq",
+                Port = 5672,
+                UserName = "guest",
+                Password = "guest",
+                VirtualHost = "/"
+            };
+
+        RabbitMqExchangeOptions GetExchangeOptions() =>
+            new RabbitMqExchangeOptions
+            {
+                Type = "direct",
+                DeadLetterExchange = "exchange.dlx",
+                Queues = new List<RabbitMqQueueOptions>
+                {
+                    new RabbitMqQueueOptions
+                    {
+                        Name = "test.queue",
+                        RoutingKeys = new HashSet<string> { FirstRoutingKey, SecondRoutingKey }
+                    }
+                }
+            };
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.Tests.Stubs
 {
@@ -9,5 +10,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.Stubs
         void Call(ReadOnlyMemory<byte> message);
 
         void Call(string message);
+        
+        Task CallAsync(string message);
     }
 }
