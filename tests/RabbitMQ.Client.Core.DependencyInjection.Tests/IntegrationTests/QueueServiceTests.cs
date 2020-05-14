@@ -67,7 +67,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
             callerMock.Verify(x => x.CallAsync(It.IsAny<string>()), Times.Exactly(2));
         }
 
-        RabbitMqClientOptions GetClientOptions() =>
+        static RabbitMqClientOptions GetClientOptions() =>
             new RabbitMqClientOptions
             {
                 HostName = "rabbitmq",
@@ -77,7 +77,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
                 VirtualHost = "/"
             };
 
-        RabbitMqExchangeOptions GetExchangeOptions() =>
+        static RabbitMqExchangeOptions GetExchangeOptions() =>
             new RabbitMqExchangeOptions
             {
                 Type = "direct",
