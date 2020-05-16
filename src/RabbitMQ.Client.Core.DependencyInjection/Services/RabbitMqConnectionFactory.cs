@@ -1,6 +1,10 @@
+using System;
 using System.Linq;
+using System.Threading;
 using RabbitMQ.Client.Core.DependencyInjection.Configuration;
+using RabbitMQ.Client.Core.DependencyInjection.Exceptions;
 using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Exceptions;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.Services
 {
@@ -38,14 +42,13 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             if (options.TcpEndpoints?.Any() == true)
             {
                 var clientEndpoints = options.TcpEndpoints.Select(x => new AmqpTcpEndpoint(x.HostName, x.Port)).ToList();
-                return factory.CreateConnection(clientEndpoints);
+                return TryToCreateConnection(() => factory.CreateConnection(clientEndpoints), options.InitialConnectionRetries, options.InitialConnectionRetryTimeoutMilliseconds);
             }
 
             return string.IsNullOrEmpty(options.ClientProvidedName)
                 ? CreateConnection(options, factory)
                 : CreateNamedConnection(options, factory);
         }
-
 
         /// <summary>
         /// Create a consumer depending on the connection channel.
@@ -58,22 +61,65 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         {
             if (options.HostNames?.Any() == true)
             {
-                return factory.CreateConnection(options.HostNames.ToList(), options.ClientProvidedName);
+                return TryToCreateConnection(() => factory.CreateConnection(options.HostNames.ToList(), options.ClientProvidedName), options.InitialConnectionRetries, options.InitialConnectionRetryTimeoutMilliseconds);
             }
 
             factory.HostName = options.HostName;
-            return factory.CreateConnection(options.ClientProvidedName);
+            return TryToCreateConnection(() => factory.CreateConnection(options.ClientProvidedName), options.InitialConnectionRetries, options.InitialConnectionRetryTimeoutMilliseconds);
         }
 
         static IConnection CreateConnection(RabbitMqClientOptions options, ConnectionFactory factory)
         {
             if (options.HostNames?.Any() == true)
             {
-                return factory.CreateConnection(options.HostNames.ToList());
+                return TryToCreateConnection(() => factory.CreateConnection(options.HostNames.ToList()), options.InitialConnectionRetries, options.InitialConnectionRetryTimeoutMilliseconds);
             }
 
             factory.HostName = options.HostName;
-            return factory.CreateConnection();
+            return TryToCreateConnection(factory.CreateConnection, options.InitialConnectionRetries, options.InitialConnectionRetryTimeoutMilliseconds);
+        }
+
+        static IConnection TryToCreateConnection(Func<IConnection> connectionFunction, int numberOfRetries, int timeoutMilliseconds)
+        {
+            ValidateArguments(numberOfRetries, timeoutMilliseconds);
+
+            var attempts = 0;
+            BrokerUnreachableException latestException = null;
+            while (attempts < numberOfRetries)
+            {
+                try
+                {
+                    if (attempts > 0)
+                    {
+                        Thread.Sleep(timeoutMilliseconds);
+                    }
+
+                    return connectionFunction();
+                }
+                catch (BrokerUnreachableException exception)
+                {
+                    attempts++;
+                    latestException = exception;
+                }
+            }
+
+            throw new InitialConnectionException($"Could not establish an initial connection in {numberOfRetries} retries", latestException)
+            {
+                NumberOfRetries = attempts
+            };
+        }
+
+        static void ValidateArguments(int numberOfRetries, int timeoutMilliseconds)
+        {
+            if (numberOfRetries < 1)
+            {
+                throw new ArgumentException("Number of retries should be a positive number.", nameof(numberOfRetries));
+            }
+
+            if (timeoutMilliseconds < 1)
+            {
+                throw new ArgumentException("Initial reconnection timeout should be a positive number.", nameof(timeoutMilliseconds));
+            }
         }
     }
 }
