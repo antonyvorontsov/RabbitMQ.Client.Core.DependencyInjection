@@ -159,14 +159,14 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
             ExecuteSuccessfulConnectionCreationAndAssertResults(connectionOptions);
         }
         
-        void ExecuteUnsuccessfulConnectionCreationAndAssertResults(RabbitMqClientOptions connectionOptions)
+        static void ExecuteUnsuccessfulConnectionCreationAndAssertResults(RabbitMqClientOptions connectionOptions)
         {
             var connectionFactory = new RabbitMqConnectionFactory();
             var exception = Assert.Throws<InitialConnectionException>(() => connectionFactory.CreateRabbitMqConnection(connectionOptions));
             Assert.Equal(connectionOptions.InitialConnectionRetries, exception.NumberOfRetries);
         }
         
-        void ExecuteSuccessfulConnectionCreationAndAssertResults(RabbitMqClientOptions connectionOptions)
+        static void ExecuteSuccessfulConnectionCreationAndAssertResults(RabbitMqClientOptions connectionOptions)
         {
             var connectionFactory = new RabbitMqConnectionFactory();
             using var connection = connectionFactory.CreateRabbitMqConnection(connectionOptions);
