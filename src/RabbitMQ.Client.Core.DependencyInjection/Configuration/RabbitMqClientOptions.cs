@@ -83,5 +83,15 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Configuration
         /// Heartbeat timeout.
         /// </summary>
         public TimeSpan RequestedHeartbeat { get; set; } = TimeSpan.FromSeconds(60);
+
+        /// <summary>
+        /// The number of retries for opening an initial connection.
+        /// </summary>
+        public int InitialConnectionRetries { get; set; } = 5;
+
+        /// <summary>
+        /// Timeout for initial connection opening retries.
+        /// </summary>
+        public int InitialConnectionRetryTimeoutMilliseconds { get; set; } = 200;
     }
 }

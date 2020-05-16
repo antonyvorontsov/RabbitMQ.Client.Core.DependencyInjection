@@ -40,7 +40,9 @@ A RabbitMQ client can be configured via a configuration section located in the `
     "AutomaticRecoveryEnabled": true,
     "TopologyRecoveryEnabled": true,
     "RequestedConnectionTimeout": 60000,
-    "RequestedHeartbeat": 60
+    "RequestedHeartbeat": 60,
+    "InitialConnectionRetries": 5,
+    "InitialConnectionRetryTimeoutMilliseconds": 200
   }
 }
 ```
@@ -53,13 +55,15 @@ A RabbitMQ connection can be configured with properties:
 - `UserName` - user that connects to the server,
 - `Password` - password of the user that connects to the server,
 - `ClientProvidedName` - application-specific connection name that will be displayed in the management UI if RabbitMQ server supports it,
-- `VirtualHost` - default virtual host,
+- `VirtualHost` - the default virtual host,
 - `AutomaticRecoveryEnabled` - automatic connection recovery option,
 - `TopologyRecoveryEnabled` - topology recovery option,
 - `RequestedConnectionTimeout` - timeout for connection attempts,
-- `RequestedHeartbeat` - heartbeat timeout.
+- `RequestedHeartbeat` - heartbeat timeout,
+- `InitialConnectionRetries` - a number of retries which could be attempted while trying to make an initial connection,
+- `InitialConnectionRetryTimeoutMilliseconds` - timeout in milliseconds which could be used while trying to make an initial connection. 
 
-`ClientProvidedName` is optional and can be null. Options `VirtualHost`, `AutomaticRecoveryEnabled`, `TopologyRecoveryEnabled`, `RequestedConnectionTimeout`, `RequestedHeartbeat` are set with default values, so you can leave them.
+`ClientProvidedName` is optional and can be null. Options `VirtualHost`, `AutomaticRecoveryEnabled`, `TopologyRecoveryEnabled`, `RequestedConnectionTimeout`, `RequestedHeartbeat`, `InitialConnectionRetries`, `InitialConnectionRetryTimeoutMilliseconds` are set with default values, so you can leave them.
 
 ```json
 {

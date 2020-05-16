@@ -13,6 +13,6 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Configuration
         /// <summary>
         /// Tcp connection port.
         /// </summary>
-        public int Port { get; set; }
+        public int Port { get; set; } = 5672;
     }
 }
