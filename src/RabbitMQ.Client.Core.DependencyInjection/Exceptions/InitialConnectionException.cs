@@ -11,7 +11,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Exceptions
         /// The number of retries which has been attempted.
         /// </summary>
         public int NumberOfRetries { get; set; }
-        
+
         public InitialConnectionException(string message, Exception innerException) : base(message, innerException)
         {
         }

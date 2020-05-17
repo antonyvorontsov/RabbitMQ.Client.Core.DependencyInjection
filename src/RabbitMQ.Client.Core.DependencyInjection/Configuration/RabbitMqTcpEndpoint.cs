@@ -14,7 +14,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Configuration
         /// Tcp connection port.
         /// </summary>
         public int Port { get; set; } = 5672;
-        
+
         /// <summary>
         /// Ssl option.
         /// </summary>

@@ -22,7 +22,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
             };
             ExecuteUnsuccessfulConnectionCreationAndAssertResults(connectionOptions);
         }
-        
+
         [Theory]
         [InlineData(1)]
         [InlineData(5)]
@@ -38,7 +38,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
             };
             ExecuteUnsuccessfulConnectionCreationAndAssertResults(connectionOptions);
         }
-        
+
         [Theory]
         [InlineData(1)]
         [InlineData(5)]
@@ -59,7 +59,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
             };
             ExecuteUnsuccessfulConnectionCreationAndAssertResults(connectionOptions);
         }
-        
+
         [Theory]
         [InlineData(1)]
         [InlineData(5)]
@@ -74,7 +74,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
             };
             ExecuteUnsuccessfulConnectionCreationAndAssertResults(connectionOptions);
         }
-        
+
         [Theory]
         [InlineData(1)]
         [InlineData(5)]
@@ -102,7 +102,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
             };
             ExecuteSuccessfulConnectionCreationAndAssertResults(connectionOptions);
         }
-        
+
         [Fact]
         public void ShouldProperlyCreateInitialConnectionWithConnectionName()
         {
@@ -115,7 +115,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
             };
             ExecuteSuccessfulConnectionCreationAndAssertResults(connectionOptions);
         }
-        
+
         [Fact]
         public void ShouldProperlyCreateInitialConnectionWithTcpEndpoints()
         {
@@ -133,7 +133,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
             };
             ExecuteSuccessfulConnectionCreationAndAssertResults(connectionOptions);
         }
-        
+
         [Fact]
         public void ShouldProperlyCreateInitialConnectionWithHostNames()
         {
@@ -145,7 +145,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
             };
             ExecuteSuccessfulConnectionCreationAndAssertResults(connectionOptions);
         }
-        
+
         [Fact]
         public void ShouldProperlyCreateInitialConnectionWithHostNamesAndNamedConnection()
         {
@@ -158,14 +158,14 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
             };
             ExecuteSuccessfulConnectionCreationAndAssertResults(connectionOptions);
         }
-        
+
         static void ExecuteUnsuccessfulConnectionCreationAndAssertResults(RabbitMqClientOptions connectionOptions)
         {
             var connectionFactory = new RabbitMqConnectionFactory();
             var exception = Assert.Throws<InitialConnectionException>(() => connectionFactory.CreateRabbitMqConnection(connectionOptions));
             Assert.Equal(connectionOptions.InitialConnectionRetries, exception.NumberOfRetries);
         }
-        
+
         static void ExecuteSuccessfulConnectionCreationAndAssertResults(RabbitMqClientOptions connectionOptions)
         {
             var connectionFactory = new RabbitMqConnectionFactory();

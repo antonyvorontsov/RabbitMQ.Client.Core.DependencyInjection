@@ -19,13 +19,13 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
         const string DefaultExchangeName = "exchange.name";
         const string FirstRoutingKey = "first.routing.key";
         const string SecondRoutingKey = "second.routing.key";
-        
+
         [Fact]
         public async Task ShouldProperlyPublishAndConsumeMessages()
         {
             var connectionFactoryMock = new Mock<RabbitMqConnectionFactory> { CallBase = true }
                 .As<IRabbitMqConnectionFactory>();
-            
+
             AsyncEventingBasicConsumer consumer = null;
             connectionFactoryMock.Setup(x => x.CreateConsumer(It.IsAny<IModel>()))
                 .Returns<IModel>(channel =>
@@ -35,7 +35,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
                 });
 
             var callerMock = new Mock<IStubCaller>();
-            
+
             var serviceCollection = new ServiceCollection();
             serviceCollection
                 .AddSingleton(connectionFactoryMock.Object)
@@ -46,12 +46,12 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
                 .AddNonCyclicMessageHandlerTransient<StubNonCyclicMessageHandler>(FirstRoutingKey)
                 .AddAsyncMessageHandlerTransient<StubAsyncMessageHandler>(SecondRoutingKey)
                 .AddAsyncNonCyclicMessageHandlerTransient<StubAsyncNonCyclicMessageHandler>(SecondRoutingKey);
-            
+
             var serviceProvider = serviceCollection.BuildServiceProvider();
             var queueService = serviceProvider.GetRequiredService<IQueueService>();
             queueService.StartConsuming();
-            
-            var resetEvent = new AutoResetEvent(false);
+
+            using var resetEvent = new AutoResetEvent(false);
             consumer.Received += (sender, @event) =>
             {
                 resetEvent.Set();
@@ -61,7 +61,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
             await queueService.SendAsync(new { Message = "message" }, DefaultExchangeName, FirstRoutingKey);
             resetEvent.WaitOne(_globalTestsTimeout);
             callerMock.Verify(x => x.Call(It.IsAny<string>()), Times.Exactly(2));
-            
+
             await queueService.SendAsync(new { Message = "message" }, DefaultExchangeName, SecondRoutingKey);
             resetEvent.WaitOne(_globalTestsTimeout);
             callerMock.Verify(x => x.CallAsync(It.IsAny<string>()), Times.Exactly(2));
