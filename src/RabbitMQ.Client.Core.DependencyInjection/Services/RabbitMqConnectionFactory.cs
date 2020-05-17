@@ -66,6 +66,16 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
                 if (sslOption != null)
                 {
                     var convertedOption = new SslOption(sslOption.ServerName, sslOption.CertificatePath, sslOption.Enabled);
+                    if (!string.IsNullOrEmpty(sslOption.CertificatePassphrase))
+                    {
+                        convertedOption.CertPassphrase = sslOption.CertificatePassphrase;
+                    }
+
+                    if (sslOption.AcceptablePolicyErrors != null)
+                    {
+                        convertedOption.AcceptablePolicyErrors = sslOption.AcceptablePolicyErrors.Value;
+                    }
+
                     clientEndpoints.Add(new AmqpTcpEndpoint(endpoint.HostName, endpoint.Port, convertedOption));
                 }
                 else
