@@ -16,6 +16,7 @@ All notable changes to this library will be documented in this file.
 
 - `BaseBatchMessageHandler` and `BatchMessageHandler` protected methods and properties are not public (for testing purposes).
 - `RabbitMqConnectionFactory` has been changed from an extension class to the service.
+- Updated Microsoft libraries to the newer version (3.1.4).
 
 ## [4.0.0] - 2020-05-05
 
