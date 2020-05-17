@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using RabbitMQ.Client.Core.DependencyInjection.Configuration;
@@ -41,8 +42,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
 
             if (options.TcpEndpoints?.Any() == true)
             {
-                var clientEndpoints = options.TcpEndpoints.Select(x => new AmqpTcpEndpoint(x.HostName, x.Port)).ToList();
-                return TryToCreateConnection(() => factory.CreateConnection(clientEndpoints), options.InitialConnectionRetries, options.InitialConnectionRetryTimeoutMilliseconds);
+                return CreateConnectionWithTcpEndpoints(options, factory);
             }
 
             return string.IsNullOrEmpty(options.ClientProvidedName)
@@ -56,6 +56,35 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         /// <param name="channel">Connection channel.</param>
         /// <returns>A consumer instance <see cref="AsyncEventingBasicConsumer"/>.</returns>
         public AsyncEventingBasicConsumer CreateConsumer(IModel channel) => new AsyncEventingBasicConsumer(channel);
+
+        static IConnection CreateConnectionWithTcpEndpoints(RabbitMqClientOptions options, ConnectionFactory factory)
+        {
+            var clientEndpoints = new List<AmqpTcpEndpoint>();
+            foreach (var endpoint in options.TcpEndpoints)
+            {
+                var sslOption = endpoint.SslOption;
+                if (sslOption != null)
+                {
+                    var convertedOption = new SslOption(sslOption.ServerName, sslOption.CertificatePath, sslOption.Enabled);
+                    if (!string.IsNullOrEmpty(sslOption.CertificatePassphrase))
+                    {
+                        convertedOption.CertPassphrase = sslOption.CertificatePassphrase;
+                    }
+
+                    if (sslOption.AcceptablePolicyErrors != null)
+                    {
+                        convertedOption.AcceptablePolicyErrors = sslOption.AcceptablePolicyErrors.Value;
+                    }
+
+                    clientEndpoints.Add(new AmqpTcpEndpoint(endpoint.HostName, endpoint.Port, convertedOption));
+                }
+                else
+                {
+                    clientEndpoints.Add(new AmqpTcpEndpoint(endpoint.HostName, endpoint.Port));
+                }
+            }
+            return TryToCreateConnection(() => factory.CreateConnection(clientEndpoints), options.InitialConnectionRetries, options.InitialConnectionRetryTimeoutMilliseconds);
+        }
 
         static IConnection CreateNamedConnection(RabbitMqClientOptions options, ConnectionFactory factory)
         {
