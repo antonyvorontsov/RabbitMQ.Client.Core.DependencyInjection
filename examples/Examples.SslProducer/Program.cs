@@ -46,9 +46,9 @@ namespace Examples.SslProducer
             var rabbitMqConfiguration = Configuration.GetSection("RabbitMq");
             // There are both examples of json and manual configuration.
             //var rabbitMqConfiguration = GetClientOptions();
-            
+
             var exchangeOptions = GetExchangeOptions();
-            
+
             services.AddRabbitMqClient(rabbitMqConfiguration)
                 .AddProductionExchange("exchange.name", exchangeOptions);
         }

@@ -47,7 +47,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
         readonly IRabbitMqConnectionFactory _rabbitMqConnectionFactory;
         readonly RabbitMqClientOptions _clientOptions;
         readonly ILogger<BaseBatchMessageHandler> _logger;
-        
+
         bool _disposed = false;
 
         protected BaseBatchMessageHandler(
@@ -142,7 +142,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-        
+
         ~BaseBatchMessageHandler()
         {
             Dispose(false);

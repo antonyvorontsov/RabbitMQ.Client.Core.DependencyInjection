@@ -31,7 +31,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             var connectionMock = new Mock<IConnection>();
             connectionMock.Setup(x => x.CreateModel())
                 .Returns(channelMock.Object);
-            
+
             var connectionFactoryMock = new Mock<IRabbitMqConnectionFactory>();
             connectionFactoryMock.Setup(x => x.CreateRabbitMqConnection(It.IsAny<RabbitMqClientOptions>()))
                 .Returns(connectionMock.Object);
@@ -39,9 +39,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             var consumer = new AsyncEventingBasicConsumer(channelMock.Object);
             connectionFactoryMock.Setup(x => x.CreateConsumer(It.IsAny<IModel>()))
                 .Returns(consumer);
-            
+
             var callerMock = new Mock<IStubCaller>();
-            
+
             var messageHandler = CreateBatchMessageHandler(queueName, prefetchCount, connectionFactoryMock.Object, callerMock.Object);
             await messageHandler.StartAsync(CancellationToken.None);
 
@@ -62,7 +62,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
 
             var processedMessages = numberOfBatches * prefetchCount;
             callerMock.Verify(x => x.Call(It.IsAny<string>()), Times.Exactly(processedMessages));
-            
+
             await messageHandler.StopAsync(CancellationToken.None);
         }
 

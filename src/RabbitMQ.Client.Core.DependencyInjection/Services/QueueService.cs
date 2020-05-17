@@ -346,7 +346,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
                 ConsumingChannel = ConsumingConnection.CreateModel();
                 ConsumingChannel.CallbackException += HandleChannelCallbackException;
                 ConsumingChannel.BasicRecoverOk += HandleChannelBasicRecoverOk;
-                
+
                 _consumer = _rabbitMqConnectionFactory.CreateConsumer(ConsumingChannel);
             }
         }
@@ -498,7 +498,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
                 { "x-message-ttl", secondsDelay * 1000 },
                 { "x-expires", secondsDelay * 1000 + QueueExpirationTime }
             };
-        
+
         async Task ConsumerOnReceived(object sender, BasicDeliverEventArgs eventArgs)
         {
             await _messageHandlingService.HandleMessageReceivingEvent(eventArgs, this);
