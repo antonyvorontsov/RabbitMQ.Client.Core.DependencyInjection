@@ -2,6 +2,21 @@
 
 All notable changes to this library will be documented in this file.
 
+## [4.1.0] - 2020-05-17
+
+### Added
+
+- Ssl option while opening a RabbitMq connection with `TcpEndpoints`.
+- Example project of a basic ssl usage.
+- `StopConsuming` method for `IConsumingService`.
+- Retrying mechanism while creating an initial RabbitMq connection.  
+- Integration and unit testing.
+
+### Updated
+
+- `BaseBatchMessageHandler` and `BatchMessageHandler` protected methods and properties are not public (for testing purposes).
+- `RabbitMqConnectionFactory` has been changed from an extension class to the service.
+
 ## [4.0.0] - 2020-05-05
 
 ### Added
