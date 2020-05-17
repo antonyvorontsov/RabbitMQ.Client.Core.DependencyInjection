@@ -47,7 +47,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.AdvancedConfigurat
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examples.BatchMessageHandler", "examples\Examples.BatchMessageHandler\Examples.BatchMessageHandler.csproj", "{BC9BE326-AEFE-42F2-B592-80126188514D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example.SslProducer", "examples\Example.SslProducer\Example.SslProducer.csproj", "{863CDE58-B16B-4058-8C48-DB78058DDDC9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examples.SslProducer", "examples\Examples.SslProducer\Examples.SslProducer.csproj", "{863CDE58-B16B-4058-8C48-DB78058DDDC9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

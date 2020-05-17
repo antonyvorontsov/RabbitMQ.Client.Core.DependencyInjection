@@ -8,7 +8,7 @@ using RabbitMQ.Client.Core.DependencyInjection;
 using RabbitMQ.Client.Core.DependencyInjection.Configuration;
 using RabbitMQ.Client.Core.DependencyInjection.Services;
 
-namespace Example.SslProducer
+namespace Examples.SslProducer
 {
     public static class Program
     {
