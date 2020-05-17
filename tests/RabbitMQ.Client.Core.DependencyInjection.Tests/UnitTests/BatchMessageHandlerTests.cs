@@ -42,7 +42,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
 
             var callerMock = new Mock<IStubCaller>();
 
-            var messageHandler = CreateBatchMessageHandler(queueName, prefetchCount, connectionFactoryMock.Object, callerMock.Object);
+            using var messageHandler = CreateBatchMessageHandler(queueName, prefetchCount, connectionFactoryMock.Object, callerMock.Object);
             await messageHandler.StartAsync(CancellationToken.None);
 
             for (var i = 0; i < numberOfMessages; i++)
