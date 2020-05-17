@@ -1,5 +1,7 @@
 # RabbitMQ configuration
 
+## Basic configuration
+
 To connect to a RabbitMQ server, it is necessary to instantiate `IQueueService` and configure it to use a desired endpoint, credentials and other valuable connection settings.
 `IQueueService` allows clients to configure queues to exchange bindings, and to consume and produce messages in different ways (sync or async, with or without delay). To add `IQueueService` in your application simply use the `AddRabbitMqClient` extension method as in the example below.
 
@@ -48,7 +50,7 @@ A RabbitMQ client can be configured via a configuration section located in the `
 ```
 
 A RabbitMQ connection can be configured with properties:
-- `HostName`  - RabbitMQ server,
+- `HostName` - RabbitMQ server,
 - `HostNames` - collection of RabbitMQ hostnames,
 - `TcpEndpoints` - collection of AMPQ TCP endpoints,
 - `Port` - port RabbitMQ running on,
@@ -88,6 +90,8 @@ For high availability RabbitMQ clusters with multiple nodes you can set hosts co
   }
 }
 ```
+
+## Multiple nodes configuration
 
 If nodes are running on different hosts with different ports you have an option of configuring that via `TcpEndpoints`.
 
@@ -148,5 +152,82 @@ public class Startup
 ```
 
 There is also the `AddRabbitMqClientTransient` method which takes `RabbitMqClientOptions`.
+
+## Ssl configuration
+
+In case you want to establish an ssl connection you can use advanced `TcpEndpoints` configuration.
+`RabbitMqTcpEndpoint` has following properties:
+- `HostName` - RabbitMQ server.
+- `Port` - tcp connection port. The default ssl port is 5671.
+- `SslOption` - ssl options model `RabbitMqSslOption`.
+
+Ssl options model `RabbitMqSslOption` consists of:
+- `ServerName` - canonical server name (CA).
+- `CertificatePath` - path to your certificate (a key store).
+- `CertificatePassphrase` - passphrase for client certificate.
+- `Enabled` - flag that defines if certificate should be used. The default value is true.
+- `AcceptablePolicyErrors` - acceptable policy errors. Flags enum `SslPolicyErrors`. The default value is null.
+
+The key part is to make a proper configuration - right `ServerName`, `CertificatePath` (if needed) and `AcceptablePolicyErrors`.
+
+```c#
+var rabbitMqConfiguration = new RabbitMqClientOptions
+{
+    UserName = "guest",
+    Password = "guest",
+    TcpEndpoints = new List<RabbitMqTcpEndpoint>
+    {
+        new RabbitMqTcpEndpoint
+        {
+            HostName = "127.0.0.1",
+            Port = 5671,
+            SslOption = new RabbitMqSslOption
+            {
+                Enabled = true,
+                ServerName = "yourCA",
+                CertificatePath = "/path/tp/client-key-store.p12",
+                CertificatePassphrase = "yourPathPhrase",
+                AcceptablePolicyErrors = SslPolicyErrors.RemoteCertificateChainErrors | SslPolicyErrors.RemoteCertificateNameMismatch
+            }
+        }
+    }
+};
+```
+
+The same configuration can be in appsettings.json file.
+
+```json
+{
+    "RabbitMq": {
+        "TcpEndpoints": [
+            {
+                "HostName": "127.0.0.1",
+                "Port": 5671,
+                "SslOption": {
+                    "Enabled": true,
+                    "ServerName": "yourCA",
+                    "CertificatePath": "/path/tp/client-key-store.p12",
+                    "CertificatePassphrase": "yourPathPhrase",
+                    "AcceptablePolicyErrors": "RemoteCertificateChainErrors, RemoteCertificateNameMismatch"
+                }
+            }
+        ],
+        "UserName": "guest",
+        "Password": "guest"
+    }
+}
+```
+
+Map that configuration using standard `GetSection` method.
+
+```c#
+var rabbitMqConfiguration = Configuration.GetSection("RabbitMq");
+```
+
+And pass it to the `AddRabbitMqClient` extension method as always.
+
+```c#
+services.AddRabbitMqClient(rabbitMqConfiguration);
+```
 
 For the exchange configuration see the [Next page](exchange-configuration.md)
