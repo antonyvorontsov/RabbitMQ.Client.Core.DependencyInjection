@@ -408,11 +408,12 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
 
         static void StartQueue(IModel channel, RabbitMqQueueOptions queue, string exchangeName)
         {
-            channel.QueueDeclare(queue: queue.Name,
-                    durable: queue.Durable,
-                    exclusive: queue.Exclusive,
-                    autoDelete: queue.AutoDelete,
-                    arguments: queue.Arguments);
+            channel.QueueDeclare(
+                queue: queue.Name,
+                durable: queue.Durable,
+                exclusive: queue.Exclusive,
+                autoDelete: queue.AutoDelete,
+                arguments: queue.Arguments);
 
             if (queue.RoutingKeys.Count > 0)
             {
@@ -499,9 +500,6 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
                 { "x-expires", secondsDelay * 1000 + QueueExpirationTime }
             };
 
-        async Task ConsumerOnReceived(object sender, BasicDeliverEventArgs eventArgs)
-        {
-            await _messageHandlingService.HandleMessageReceivingEvent(eventArgs, this);
-        }
+        Task ConsumerOnReceived(object sender, BasicDeliverEventArgs eventArgs) => _messageHandlingService.HandleMessageReceivingEvent(eventArgs, this);
     }
 }

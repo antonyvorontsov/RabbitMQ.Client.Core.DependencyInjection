@@ -28,9 +28,19 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Configuration
         public string DeadLetterExchange { get; set; } = "default.dlx.exchange";
 
         /// <summary>
-        /// Option to re-queue failed messages (once).
+        /// Option to re-queue failed messages.
         /// </summary>
         public bool RequeueFailedMessages { get; set; } = true;
+
+        /// <summary>
+        /// Re-queue message attempts.
+        /// </summary>
+        public int RequeueAttempts { get; set; } = 2;
+        
+        /// <summary>
+        /// Re-queue timeout in milliseconds.
+        /// </summary>
+        public int RequeueTimeoutMilliseconds { get; set; } = 200;
 
         /// <summary>
         /// Additional arguments.

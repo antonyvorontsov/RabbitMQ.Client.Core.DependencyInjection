@@ -39,53 +39,24 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         /// <param name="queueService">An instance of the queue service <see cref="IQueueService"/>.</param>
         public async Task HandleMessageReceivingEvent(BasicDeliverEventArgs eventArgs, IQueueService queueService)
         {
-            var message = Encoding.UTF8.GetString(eventArgs.Body.ToArray());
-
-            _logger.LogInformation($"A new message was received with deliveryTag {eventArgs.DeliveryTag}.");
-            _logger.LogInformation(message);
-
             try
             {
+                var message = Encoding.UTF8.GetString(eventArgs.Body.ToArray());
+                _logger.LogInformation($"A new message received with deliveryTag {eventArgs.DeliveryTag}.");
+                _logger.LogInformation(message);
+                
                 var matchingRoutes = GetMatchingRoutePatterns(eventArgs.Exchange, eventArgs.RoutingKey);
                 await ProcessMessage(eventArgs.Exchange, message, queueService, matchingRoutes).ConfigureAwait(false);
-                queueService.ConsumingChannel.BasicAck(eventArgs.DeliveryTag, false);
-                _logger.LogInformation(
-                    $"Message processing finished successfully. Acknowledge has been sent with deliveryTag {eventArgs.DeliveryTag}.");
+                _logger.LogInformation($"Message processing finished successfully. Acknowledge has been sent with deliveryTag {eventArgs.DeliveryTag}.");
             }
             catch (Exception exception)
             {
-                _logger.LogError(
-                    new EventId(),
-                    exception,
-                    $"An error occurred while processing received message with the delivery tag {eventArgs.DeliveryTag}.");
-
+                _logger.LogError(new EventId(), exception, $"An error occurred while processing received message with the delivery tag {eventArgs.DeliveryTag}.");
+                await HandleFailedMessageProcessing(eventArgs, queueService);
+            }
+            finally
+            {
                 queueService.ConsumingChannel.BasicAck(eventArgs.DeliveryTag, false);
-
-                if (eventArgs.BasicProperties.Headers is null)
-                {
-                    eventArgs.BasicProperties.Headers = new Dictionary<string, object>();
-                }
-
-                var exchange = _exchanges.FirstOrDefault(x => x.Name == eventArgs.Exchange);
-                if (exchange is null)
-                {
-                    _logger.LogError(
-                        $"Could not detect an exchange \"{eventArgs.Exchange}\" to determine the necessity of resending the failed message.");
-                    return;
-                }
-
-                if (exchange.Options.RequeueFailedMessages &&
-                    !string.IsNullOrEmpty(exchange.Options.DeadLetterExchange) &&
-                    !eventArgs.BasicProperties.Headers.ContainsKey("requeued"))
-                {
-                    eventArgs.BasicProperties.Headers.Add("requeued", true);
-                    queueService.Send(eventArgs.Body, eventArgs.BasicProperties, eventArgs.Exchange, eventArgs.RoutingKey, ResendTimeout);
-                    _logger.LogInformation("The failed message has been requeued.");
-                }
-                else
-                {
-                    _logger.LogInformation("The failed message would not be requeued.");
-                }
             }
         }
 
@@ -203,6 +174,54 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             if (messageHandler is null)
             {
                 throw new ArgumentNullException(nameof(messageHandler), "Message handler is null.");
+            }
+        }
+        
+        async Task HandleFailedMessageProcessing(BasicDeliverEventArgs eventArgs, IQueueService queueService)
+        {
+            var exchange = _exchanges.FirstOrDefault(x => x.Name == eventArgs.Exchange);
+            if (exchange is null)
+            {
+                _logger.LogWarning($"Could not detect an exchange \"{eventArgs.Exchange}\" to determine the necessity of resending the failed message. The message won't be re-queued.");
+                return;
+            }
+            
+            if (exchange.Options is null)
+            {
+                _logger.LogWarning($"Options of an exchange \"{eventArgs.Exchange}\" are not configured. The message won't be re-queued.");
+                return;
+            }
+            
+            if (!exchange.Options.RequeueFailedMessages)
+            {
+                _logger.LogWarning($"RequeueFailedMessages option for an exchange \"{eventArgs.Exchange}\" is disabled. The message won't be re-queued.");
+                return;
+            }
+
+            if (string.IsNullOrEmpty(exchange.Options.DeadLetterExchange))
+            {
+                _logger.LogWarning($"DeadLetterExchange has not been configured for an exchange \"{eventArgs.Exchange}\". The message won't be re-queued.");
+                return;
+            }
+            
+            // TODO: Проверять параметры.
+            // TODO: добавить методы расширения для delayed сообщений.
+            // TODO: перепроверить, как будут создаваться очереди для delayed сообщений - переделать на milliseconds в именовании.
+            // TODO: Закинуть это дальше.
+            if (eventArgs.BasicProperties.Headers is null)
+            {
+                eventArgs.BasicProperties.Headers = new Dictionary<string, object>();
+            }
+
+            if (!eventArgs.BasicProperties.Headers.ContainsKey("re-queue-attempts"))
+            {
+                eventArgs.BasicProperties.Headers.Add("re-queue-attempts", true);
+                await queueService.SendAsync(eventArgs.Body, eventArgs.BasicProperties, eventArgs.Exchange, eventArgs.RoutingKey, ResendTimeout);
+                _logger.LogInformation("The failed message has been re-queued.");
+            }
+            else
+            {
+                _logger.LogInformation("The failed message would not be re-queued.");
             }
         }
     }
