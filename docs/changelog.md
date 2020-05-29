@@ -2,6 +2,12 @@
 
 All notable changes to this library will be documented in this file.
 
+## [4.1.1] - 2020-05-30
+
+### Fixed
+
+- Fixed batch message handlers DI registering - the case when handlers are in use without RabbitMqClient.
+
 ## [4.1.0] - 2020-05-17
 
 ### Added
@@ -9,7 +15,7 @@ All notable changes to this library will be documented in this file.
 - Ssl option while opening a RabbitMq connection with `TcpEndpoints`.
 - Example project of a basic ssl usage.
 - `StopConsuming` method for `IConsumingService`.
-- Retrying mechanism while creating an initial RabbitMq connection.  
+- Retrying mechanism while creating an initial RabbitMq connection.
 - Integration and unit testing.
 
 ### Updated

@@ -22,6 +22,7 @@ namespace Examples.BatchMessageHandler
 
         public override ushort PrefetchCount { get; set; } = 5;
 
+        // You have to be aware that BaseBatchMessageHandler does not declare the specified queue. So if it does not exists an exception will be thrown.
         public override string QueueName { get; set; } = "another.queue.name";
 
         public override Task HandleMessages(IEnumerable<string> messages, CancellationToken cancellationToken)
