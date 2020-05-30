@@ -22,7 +22,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Configuration
         /// Collection of RabbitMQ server host names.
         /// It can be used when RabbitMQ HA cluster is running, and you want to connect multiple hosts.
         /// If HostNames collection is null or empty then HostName will be used to create connection.
-        /// Otherwise HostNames collection will be used and HostName property value will be ignored.
+        /// Otherwise, HostNames collection will be used and HostName property value will be ignored.
         /// </summary>
         /// <remarks>
         /// Has the second priority between properties TcpEndpoints, HostNames and HostName.

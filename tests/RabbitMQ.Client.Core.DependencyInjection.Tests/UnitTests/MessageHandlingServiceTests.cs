@@ -228,10 +228,10 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
 
         static IEnumerable<MessageHandlerOrderingContainerTestModel> GetTestingOrderingModels(
             HandleMessageReceivingEventTestDataModel testDataModel,
-            Mock<IMessageHandler> messageHandlerMock,
-            Mock<IAsyncMessageHandler> asyncMessageHandlerMock,
-            Mock<INonCyclicMessageHandler> nonCyclicMessageHandlerMock,
-            Mock<IAsyncNonCyclicMessageHandler> asyncNonCyclicMessageHandlerMock)
+            IMock<IMessageHandler> messageHandlerMock,
+            IMock<IAsyncMessageHandler> asyncMessageHandlerMock,
+            IMock<INonCyclicMessageHandler> nonCyclicMessageHandlerMock,
+            IMock<IAsyncNonCyclicMessageHandler> asyncNonCyclicMessageHandlerMock)
         {
             var collection = new List<MessageHandlerOrderingContainerTestModel>
             {
@@ -265,13 +265,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             var orderedCollection = collection.OrderByDescending(x => x.OrderValue)
                 .ThenByDescending(x => x.MessageHandler.GetHashCode())
                 .ToList();
-            foreach (var item in orderedCollection)
+            foreach (var item in orderedCollection.Where(item => item.ShouldTrigger))
             {
-                if (!item.ShouldTrigger)
-                {
-                    continue;
-                }
-
                 item.CallOrder = callOrder++;
             }
             return orderedCollection;
