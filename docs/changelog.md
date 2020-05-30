@@ -2,6 +2,16 @@
 
 All notable changes to this library will be documented in this file.
 
+## [4.2.0] - will be drafted
+
+### Added
+
+- Options that can allow configuring behaviour of re-queueing messages. New properties `RequeueTimeoutMilliseconds` and `RequeueAttempts` added to `RabbitMqExchangeOptions`.
+
+### Changed
+
+- **Breaking!** Now all `Send` or `SendAsync` methods of `IProducingService` (and `IQueueService`) with delay parameter use milliseconds instead of seconds.
+
 ## [4.1.1] - 2020-05-30
 
 ### Fixed
