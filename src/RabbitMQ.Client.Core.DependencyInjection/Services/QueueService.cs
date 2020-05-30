@@ -173,12 +173,12 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             Send(bytes, properties, exchangeName, routingKey);
         }
 
-        public void Send<T>(T @object, string exchangeName, string routingKey, int secondsDelay) where T : class
+        public void Send<T>(T @object, string exchangeName, string routingKey, int millisecondsDelay) where T : class
         {
             EnsureProducingChannelIsNotNull();
             ValidateArguments(exchangeName, routingKey);
             var deadLetterExchange = GetDeadLetterExchange(exchangeName);
-            var delayedQueueName = DeclareDelayedQueue(exchangeName, deadLetterExchange, routingKey, secondsDelay);
+            var delayedQueueName = DeclareDelayedQueue(exchangeName, deadLetterExchange, routingKey, millisecondsDelay);
             Send(@object, deadLetterExchange, delayedQueueName);
         }
 
@@ -191,12 +191,12 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             Send(bytes, properties, exchangeName, routingKey);
         }
 
-        public void SendJson(string json, string exchangeName, string routingKey, int secondsDelay)
+        public void SendJson(string json, string exchangeName, string routingKey, int millisecondsDelay)
         {
             EnsureProducingChannelIsNotNull();
             ValidateArguments(exchangeName, routingKey);
             var deadLetterExchange = GetDeadLetterExchange(exchangeName);
-            var delayedQueueName = DeclareDelayedQueue(exchangeName, deadLetterExchange, routingKey, secondsDelay);
+            var delayedQueueName = DeclareDelayedQueue(exchangeName, deadLetterExchange, routingKey, millisecondsDelay);
             SendJson(json, deadLetterExchange, delayedQueueName);
         }
 
@@ -208,12 +208,12 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             Send(bytes, CreateProperties(), exchangeName, routingKey);
         }
 
-        public void SendString(string message, string exchangeName, string routingKey, int secondsDelay)
+        public void SendString(string message, string exchangeName, string routingKey, int millisecondsDelay)
         {
             EnsureProducingChannelIsNotNull();
             ValidateArguments(exchangeName, routingKey);
             var deadLetterExchange = GetDeadLetterExchange(exchangeName);
-            var delayedQueueName = DeclareDelayedQueue(exchangeName, deadLetterExchange, routingKey, secondsDelay);
+            var delayedQueueName = DeclareDelayedQueue(exchangeName, deadLetterExchange, routingKey, millisecondsDelay);
             SendString(message, deadLetterExchange, delayedQueueName);
         }
 
@@ -230,38 +230,38 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             }
         }
 
-        public void Send(ReadOnlyMemory<byte> bytes, IBasicProperties properties, string exchangeName, string routingKey, int secondsDelay)
+        public void Send(ReadOnlyMemory<byte> bytes, IBasicProperties properties, string exchangeName, string routingKey, int millisecondsDelay)
         {
             EnsureProducingChannelIsNotNull();
             ValidateArguments(exchangeName, routingKey);
             var deadLetterExchange = GetDeadLetterExchange(exchangeName);
-            var delayedQueueName = DeclareDelayedQueue(exchangeName, deadLetterExchange, routingKey, secondsDelay);
+            var delayedQueueName = DeclareDelayedQueue(exchangeName, deadLetterExchange, routingKey, millisecondsDelay);
             Send(bytes, properties, deadLetterExchange, delayedQueueName);
         }
 
         public async Task SendAsync<T>(T @object, string exchangeName, string routingKey) where T : class =>
             await Task.Run(() => Send(@object, exchangeName, routingKey)).ConfigureAwait(false);
 
-        public async Task SendAsync<T>(T @object, string exchangeName, string routingKey, int secondsDelay) where T : class =>
-            await Task.Run(() => Send(@object, exchangeName, routingKey, secondsDelay)).ConfigureAwait(false);
+        public async Task SendAsync<T>(T @object, string exchangeName, string routingKey, int millisecondsDelay) where T : class =>
+            await Task.Run(() => Send(@object, exchangeName, routingKey, millisecondsDelay)).ConfigureAwait(false);
 
         public async Task SendJsonAsync(string json, string exchangeName, string routingKey) =>
             await Task.Run(() => SendJson(json, exchangeName, routingKey)).ConfigureAwait(false);
 
-        public async Task SendJsonAsync(string json, string exchangeName, string routingKey, int secondsDelay) =>
-            await Task.Run(() => SendJson(json, exchangeName, routingKey, secondsDelay)).ConfigureAwait(false);
+        public async Task SendJsonAsync(string json, string exchangeName, string routingKey, int millisecondsDelay) =>
+            await Task.Run(() => SendJson(json, exchangeName, routingKey, millisecondsDelay)).ConfigureAwait(false);
 
         public async Task SendStringAsync(string message, string exchangeName, string routingKey) =>
             await Task.Run(() => SendString(message, exchangeName, routingKey)).ConfigureAwait(false);
 
-        public async Task SendStringAsync(string message, string exchangeName, string routingKey, int secondsDelay) =>
-            await Task.Run(() => SendString(message, exchangeName, routingKey, secondsDelay)).ConfigureAwait(false);
+        public async Task SendStringAsync(string message, string exchangeName, string routingKey, int millisecondsDelay) =>
+            await Task.Run(() => SendString(message, exchangeName, routingKey, millisecondsDelay)).ConfigureAwait(false);
 
         public async Task SendAsync(ReadOnlyMemory<byte> bytes, IBasicProperties properties, string exchangeName, string routingKey) =>
             await Task.Run(() => Send(bytes, properties, exchangeName, routingKey)).ConfigureAwait(false);
 
-        public async Task SendAsync(ReadOnlyMemory<byte> bytes, IBasicProperties properties, string exchangeName, string routingKey, int secondsDelay) =>
-            await Task.Run(() => Send(bytes, properties, exchangeName, routingKey, secondsDelay)).ConfigureAwait(false);
+        public async Task SendAsync(ReadOnlyMemory<byte> bytes, IBasicProperties properties, string exchangeName, string routingKey, int millisecondsDelay) =>
+            await Task.Run(() => Send(bytes, properties, exchangeName, routingKey, millisecondsDelay)).ConfigureAwait(false);
 
         IBasicProperties CreateProperties()
         {
@@ -472,10 +472,10 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             return exchange.Options.DeadLetterExchange;
         }
 
-        string DeclareDelayedQueue(string exchange, string deadLetterExchange, string routingKey, int secondsDelay)
+        string DeclareDelayedQueue(string exchange, string deadLetterExchange, string routingKey, int millisecondsDelay)
         {
-            var delayedQueueName = $"{routingKey}.delayed.{secondsDelay}";
-            var arguments = CreateArguments(exchange, routingKey, secondsDelay);
+            var delayedQueueName = $"{routingKey}.delayed.{millisecondsDelay}";
+            var arguments = CreateArguments(exchange, routingKey, millisecondsDelay);
 
             Channel.QueueDeclare(
                 queue: delayedQueueName,
@@ -491,13 +491,13 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             return delayedQueueName;
         }
 
-        static Dictionary<string, object> CreateArguments(string exchangeName, string routingKey, int secondsDelay) =>
+        static Dictionary<string, object> CreateArguments(string exchangeName, string routingKey, int millisecondsDelay) =>
             new Dictionary<string, object>
             {
                 { "x-dead-letter-exchange", exchangeName },
                 { "x-dead-letter-routing-key", routingKey },
-                { "x-message-ttl", secondsDelay * 1000 },
-                { "x-expires", secondsDelay * 1000 + QueueExpirationTime }
+                { "x-message-ttl", millisecondsDelay },
+                { "x-expires", millisecondsDelay + QueueExpirationTime }
             };
 
         Task ConsumerOnReceived(object sender, BasicDeliverEventArgs eventArgs) => _messageHandlingService.HandleMessageReceivingEvent(eventArgs, this);

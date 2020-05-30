@@ -16,6 +16,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
     /// </summary>
     public class MessageHandlingService : IMessageHandlingService
     {
+        // TODO: Убрать это.
         const int ResendTimeout = 60;
 
         readonly IEnumerable<RabbitMqExchange> _exchanges;
@@ -52,7 +53,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             catch (Exception exception)
             {
                 _logger.LogError(new EventId(), exception, $"An error occurred while processing received message with the delivery tag {eventArgs.DeliveryTag}.");
-                await HandleFailedMessageProcessing(eventArgs, queueService);
+                await HandleFailedMessageProcessing(eventArgs, queueService).ConfigureAwait(false);
             }
             finally
             {
