@@ -317,12 +317,13 @@ The message handling process is organized as follows:
 There are also a feature that you can use in case of necessity of handling messages in batches.
 First of all you have to create a class that inherits a `BatchMessageHandler` class.
 You have to set up values for `QueueName` and `PrefetchCount` properties. These values are responsible for the queue that will be read by the message handler, and the size of batches of messages.
+You have to be aware that batch message handlers do not declare queues, so if it does not exists an exception will be thrown. Either declare manually or using RabbitMqClient configuration features.
 
 ```c#
 public class CustomBatchMessageHandler : BatchMessageHandler
 {
     readonly ILogger<CustomBatchMessageHandler> _logger;
-    
+
     public CustomBatchMessageHandler(
         IRabbitMqConnectionFactory rabbitMqConnectionFactory,
         IEnumerable<BatchConsumerConnectionOptions> batchConsumerConnectionOptions,
@@ -333,9 +334,9 @@ public class CustomBatchMessageHandler : BatchMessageHandler
     }
 
     public override ushort PrefetchCount { get; set; } = 50;
-    
+
     public override string QueueName { get; set; } = "another.queue.name";
-    
+
     public override Task HandleMessages(IEnumerable<string> messages, CancellationToken cancellationToken)
     {
         _logger.LogInformation("Handling a batch of messages.");
@@ -354,7 +355,7 @@ If you want to get raw messages as `ReadOnlyMemory<byte>` you can inherit base m
 public class CustomBatchMessageHandler : BaseBatchMessageHandler
 {
     readonly ILogger<CustomBatchMessageHandler> _logger;
-    
+
     public CustomBatchMessageHandler(
         IRabbitMqConnectionFactory rabbitMqConnectionFactory,
         IEnumerable<BatchConsumerConnectionOptions> batchConsumerConnectionOptions,
@@ -363,11 +364,11 @@ public class CustomBatchMessageHandler : BaseBatchMessageHandler
     {
         _logger = logger;
     }
-    
+
     public override ushort PrefetchCount { get; set; } = 3;
 
     public override string QueueName { get; set; } = "queue.name";
-    
+
     public override Task HandleMessages(IEnumerable<ReadOnlyMemory<byte>> messages, CancellationToken cancellationToken)
     {
         _logger.LogInformation("Handling a batch of messages.");

@@ -1,11 +1,13 @@
 using System.Linq;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers;
 using RabbitMQ.Client.Core.DependencyInjection.Configuration;
 using RabbitMQ.Client.Core.DependencyInjection.Exceptions;
 using RabbitMQ.Client.Core.DependencyInjection.InternalExtensions;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
+using RabbitMQ.Client.Core.DependencyInjection.Services;
 
 namespace RabbitMQ.Client.Core.DependencyInjection
 {
@@ -25,6 +27,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             where TBatchMessageHandler : BaseBatchMessageHandler
         {
             CheckIfBatchMessageHandlerAlreadyConfigured<TBatchMessageHandler>(services);
+            services.TryAddSingleton<IRabbitMqConnectionFactory, RabbitMqConnectionFactory>();
             var configurationInstance = RabbitMqClientOptionsDependencyInjectionExtensions.GetRabbitMqClientOptionsInstance(configuration);
             services.ConfigureBatchConsumerConnectionOptions<TBatchMessageHandler>(configurationInstance);
             services.AddHostedService<TBatchMessageHandler>();
@@ -42,6 +45,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             where TBatchMessageHandler : BaseBatchMessageHandler
         {
             CheckIfBatchMessageHandlerAlreadyConfigured<TBatchMessageHandler>(services);
+            services.TryAddSingleton<IRabbitMqConnectionFactory, RabbitMqConnectionFactory>();
             services.ConfigureBatchConsumerConnectionOptions<TBatchMessageHandler>(configuration);
             services.AddHostedService<TBatchMessageHandler>();
             return services;
