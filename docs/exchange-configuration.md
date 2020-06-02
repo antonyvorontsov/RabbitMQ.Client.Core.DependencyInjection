@@ -42,6 +42,8 @@ And the `appsettings.json` file will be like this.
     "AutoDelete": false,
     "DeadLetterExchange": "default.dlx.exchange",
     "RequeueFailedMessages": true,
+    "RequeueTimeoutMilliseconds": 200,
+    "RequeueAttempts": 2,
     "Arguments": { "key": "value" },
     "Queues": [
       {
@@ -65,6 +67,8 @@ Exchanges can be configured with properties:
 - `AutoDelete` - an option for exchange auto deleting. The default value is `false`.
 - `Arguments` - a dictionary of additional arguments. The default value is `null`.
 - `RequeueFailedMessages` - an option that specifies behaviour of re-queueing failed messages with certain delay through the dead-letter-exchange. The default value is `true`. The mechanism of sending delayed messages is covered in the [documentation](message-production.md).
+- `RequeueTimeoutMilliseconds` - timeout in milliseconds after which the message will be re-queued. The default value is 200.
+- `RequeueAttempts` - a number of attempts which queueing service will try to re-queue a message. The default value is 2.
 - `DeadLetterExchange` - a value for dead-letter-exchange. The default value for the dead-letter-exchange name is `"default.dlx.exchange"`.
 - `Queues` - a collection of queues bound to the exchange.
 

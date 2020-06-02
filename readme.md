@@ -65,7 +65,7 @@ _queueService.Send(
     @object: messageObject,
     exchangeName: "exchange.name",
     routingKey: "routing.key",
-    secondsDelay: 10);
+    millisecondsDelay: 10);
 ```
 
  The mechanism of sending delayed messages described in the [documentation](./docs/message-production.md). Dive into it for more detailed information.
@@ -283,14 +283,14 @@ When the message collection is full to the size of `PrefetchCount` they are pass
 
 ## Advanced usage and nuances
 
-RabbitMQ client implemented in this library (class which implements `IQueueService`) opens two connections to the RabbitMQ server. One connection is used for message production and the other one is for message consumption.
+RabbitMQ client implemented in this library (class which implements `IQueueService`) opens two connections to the RabbitMQ server. One connection is used for message production, and the other one is for message consumption.
 This behavior covered in the [advanced usage documentation file](./docs/advanced-usage.md), dive into it deeply if you want to control the client behavior tighter.
 
-There is also an [example project](./examples/Examples.AdvancedConfiguration) that demonstrates an advances usage of the RabbitMQ client.
+There is also an [example project](./examples/Examples.AdvancedConfiguration) that demonstrates an advanced usage of the RabbitMQ client.
 
 ## Changelog
 
-All notable changes are being tracked in the [changelog](./docs/changelog.md) file.
+All notable changes covered in the [changelog](./docs/changelog.md) file.
 
 ## License
 
