@@ -84,10 +84,16 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
                     return;
                 }
 
-                var byteMessages = messages.Select(x => x.Body).ToList();
+
+                var batch = new List<BasicDeliverEventArgs>();
+                while (messages.TryTake(out var msg))
+                {
+                    batch.Add(msg);
+                }
+                
+                var byteMessages = batch.Select(x => x.Body).ToList();
                 await HandleMessages(byteMessages, cancellationToken).ConfigureAwait(false);
-                var latestDeliveryTag = messages.Max(x => x.DeliveryTag);
-                messages.Clear();
+                var latestDeliveryTag = batch.Max(x => x.DeliveryTag);
                 Channel.BasicAck(latestDeliveryTag, true);
             };
             Channel.BasicConsume(queue: QueueName, autoAck: false, consumer: consumer);

@@ -65,7 +65,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
                 return Enumerable.Empty<string>();
             }
 
-            var routingKeyParts = routingKey.Split(".");
+            var routingKeyParts = routingKey.Split('.');
             return WildcardExtensions.GetMatchingRoutePatterns(tree, routingKeyParts).ToList();
         }
 

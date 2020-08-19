@@ -33,7 +33,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.InternalExtensions
 
             foreach (var binding in routePatterns)
             {
-                var keyParts = binding.Split(Separator);
+                var keyParts = binding.Split(Separator[0]);
                 TreeNode parentTreeNode = null;
                 var currentTreeNode = tree;
                 for (var index = 0; index < keyParts.Length; index++)
