@@ -267,7 +267,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                 guid,
                 provider.GetService<IRabbitMqConnectionFactory>(),
                 provider.GetServices<RabbitMqConnectionOptionsContainer>(),
-                provider.GetService<IMessageHandlingService>(),
+                new MessageHandlingMock(), 
                 provider.GetServices<RabbitMqExchange>(),
                 provider.GetService<ILogger<QueueService> >()));
             return services;
