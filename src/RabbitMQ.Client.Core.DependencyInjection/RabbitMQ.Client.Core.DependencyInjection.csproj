@@ -6,6 +6,8 @@
     <Version>4.1.1</Version>
     <PackageTags>RabbitMQ</PackageTags>
     <RepositoryUrl>https://github.com/AntonyVorontsov/RabbitMQ.Client.Core.DependencyInjection</RepositoryUrl>
+    <RepositoryType>GIT</RepositoryType>
+    <PackageProjectUrl>https://github.com/AntonyVorontsov/RabbitMQ.Client.Core.DependencyInjection/blob/master/readme.md</PackageProjectUrl>
     <Company />
     <Description>A RabbitMQ.Client wrapper that provides easy, managed, injectable (via standard dependency injection) message queue consume and publish operations.</Description>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
