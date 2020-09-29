@@ -55,6 +55,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
 
         readonly ConcurrentBag<BasicDeliverEventArgs> _messages = new ConcurrentBag<BasicDeliverEventArgs>();
         Timer _timer;
+        object _lock = new object();
         bool _disposed = false;
 
         protected BaseBatchMessageHandler(
@@ -104,16 +105,32 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
 
         async Task ProcessBatchOfMessages(CancellationToken cancellationToken)
         {
-            if (!_messages.Any())
+
+            var messages = GetMessages();
+            if (!messages.Any())
             {
                 return;
             }
 
-            var byteMessages = _messages.Select(x => x.Body).ToList();
+            var byteMessages = messages.Select(x => x.Body).ToList();
             await HandleMessages(byteMessages, cancellationToken).ConfigureAwait(false);
-            var latestDeliveryTag = _messages.Max(x => x.DeliveryTag);
-            _messages.Clear();
+            var latestDeliveryTag = messages.Max(x => x.DeliveryTag);
             Channel.BasicAck(latestDeliveryTag, true);
+        }
+
+        IList<BasicDeliverEventArgs> GetMessages()
+        {
+            lock (_lock)
+            {
+                if (!_messages.Any())
+                {
+                    return new List<BasicDeliverEventArgs>();
+                }
+                
+                var messages = _messages.ToList();
+                _messages.Clear();
+                return messages;
+            }
         }
 
         void ValidateProperties()

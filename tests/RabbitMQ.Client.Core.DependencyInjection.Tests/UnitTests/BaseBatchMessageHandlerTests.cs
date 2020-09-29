@@ -123,10 +123,11 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                 }
                 
                 waitHandle.WaitOne(_globalTestsTimeout);
-                callerMock.Verify(x => x.EmptyCall(), Times.Exactly(b + 1));
-                callerMock.Verify(x => x.Call(It.IsAny<ReadOnlyMemory<byte>>()), Times.Exactly(upperBound));
             }
 
+            callerMock.Verify(x => x.EmptyCall(), Times.Exactly(numberOfSmallBatches));
+            callerMock.Verify(x => x.Call(It.IsAny<ReadOnlyMemory<byte>>()), Times.Exactly(numberOfMessages));
+            
             await messageHandler.StopAsync(CancellationToken.None);
         }
 
