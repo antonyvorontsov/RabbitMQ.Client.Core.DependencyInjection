@@ -99,6 +99,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                 asyncMessageHandlerMock.Object.GetType(),
                 nonCyclicMessageHandlerMock.Object.GetType(),
                 asyncNonCyclicMessageHandlerMock.Object.GetType());
+            
             var testingOrderingModels = GetTestingOrderingModels(
                 testDataModel,
                 messageHandlerMock,

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,6 +26,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.Stubs
         public override ushort PrefetchCount { get; set; }
 
         public override string QueueName { get; set; }
+        
+        public override TimeSpan? MessageHandlingPeriod { get; set; }
 
         public override Task HandleMessages(IEnumerable<string> messages, CancellationToken cancellationToken)
         {
