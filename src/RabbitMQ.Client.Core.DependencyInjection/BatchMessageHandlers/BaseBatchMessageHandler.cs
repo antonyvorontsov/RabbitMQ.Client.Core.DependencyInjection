@@ -55,7 +55,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
 
         readonly ConcurrentBag<BasicDeliverEventArgs> _messages = new ConcurrentBag<BasicDeliverEventArgs>();
         Timer _timer;
-        object _lock = new object();
+        readonly object _lock = new object();
         bool _disposed = false;
 
         protected BaseBatchMessageHandler(
@@ -84,19 +84,22 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
             
             if (MessageHandlingPeriod != null)
             {
-                _timer = new Timer(async _ => await ProcessBatchOfMessages(cancellationToken), null, MessageHandlingPeriod.Value, MessageHandlingPeriod.Value);
+                _timer = new Timer(async _ => await ProcessBatchOfMessages(cancellationToken).ConfigureAwait(false), null, MessageHandlingPeriod.Value, MessageHandlingPeriod.Value);
             }
 
             var consumer = _rabbitMqConnectionFactory.CreateConsumer(Channel);
             consumer.Received += async (sender, eventArgs) =>
             {
-                _messages.Add(eventArgs);
-                if (_messages.Count < PrefetchCount)
+                lock (_lock)
                 {
-                    return;
+                    _messages.Add(eventArgs);
+                    if (_messages.Count < PrefetchCount)
+                    {
+                        return;
+                    }
                 }
 
-                await ProcessBatchOfMessages(cancellationToken);
+                await ProcessBatchOfMessages(cancellationToken).ConfigureAwait(false);
             };
             
             Channel.BasicConsume(queue: QueueName, autoAck: false, consumer: consumer);
