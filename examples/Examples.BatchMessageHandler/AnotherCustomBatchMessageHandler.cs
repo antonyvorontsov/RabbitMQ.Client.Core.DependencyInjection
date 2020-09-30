@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,6 +25,9 @@ namespace Examples.BatchMessageHandler
 
         // You have to be aware that BaseBatchMessageHandler does not declare the specified queue. So if it does not exists an exception will be thrown.
         public override string QueueName { get; set; } = "another.queue.name";
+
+        // This thing will fire message handling if there are not enough messages, but timeout is already off.
+        public override TimeSpan? MessageHandlingPeriod { get; set; } = TimeSpan.FromMilliseconds(500);
 
         public override Task HandleMessages(IEnumerable<string> messages, CancellationToken cancellationToken)
         {
