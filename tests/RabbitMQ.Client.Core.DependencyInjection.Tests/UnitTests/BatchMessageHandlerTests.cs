@@ -14,6 +14,7 @@ using Xunit;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
 {
+    [Collection("Sequential tests")]
     public class BatchMessageHandlerTests
     {
         readonly TimeSpan _globalTestsTimeout = TimeSpan.FromSeconds(60);
