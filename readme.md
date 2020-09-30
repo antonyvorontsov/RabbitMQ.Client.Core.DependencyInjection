@@ -259,7 +259,9 @@ public class CustomBatchMessageHandler : BatchMessageHandler
 
     public override ushort PrefetchCount { get; set; } = 50;
 
-    public override string QueueName { get; set; } = "another.queue.name";
+    public override string QueueName { get; set; } = "queue.name";
+
+    public override TimeSpan? MessageHandlingPeriod { get; set; } = TimeSpan.FromMilliseconds(500);
 
     public override Task HandleMessages(IEnumerable<string> messages, CancellationToken cancellationToken)
     {
@@ -279,7 +281,7 @@ services.AddBatchMessageHandler<CustomBatchMessageHandler>(Configuration.GetSect
 ```
 
 The message handler will create a separate connection and use it for reading messages.
-When the message collection is full to the size of `PrefetchCount` they are passed to the `HandleMessage` method. For more information, see the [message-consuming](./docs/message-consumption.md) documentation file.
+When the message collection is full to the size of `PrefetchCount` they are passed to the `HandleMessage` method. You can also set a `MessageHandlingPeriod` property value and the method `HandleMessage` will be executed repeatedly so messages in unfilled batches could be processed too. For more information, see the [message-consuming](./docs/message-consumption.md) documentation file.
 
 ## Advanced usage and nuances
 

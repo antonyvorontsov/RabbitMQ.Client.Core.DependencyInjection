@@ -26,14 +26,16 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.Stubs
         public override ushort PrefetchCount { get; set; }
 
         public override string QueueName { get; set; }
+        
+        public override TimeSpan? MessageHandlingPeriod { get; set; }
 
         public override Task HandleMessages(IEnumerable<ReadOnlyMemory<byte>> messages, CancellationToken cancellationToken)
         {
-            _caller.EmptyCall();
             foreach (var message in messages)
             {
                 _caller.Call(message);
             }
+            _caller.EmptyCall();
             return Task.CompletedTask;
         }
     }

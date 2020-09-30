@@ -43,11 +43,19 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
         /// Prefetch count value (batch size).
         /// </summary>
         public abstract ushort PrefetchCount { get; set; }
+        
+        /// <summary>
+        /// The TimeSpan period through which messages will be processing.
+        /// </summary>
+        public virtual TimeSpan? MessageHandlingPeriod { get; set; }
 
         readonly IRabbitMqConnectionFactory _rabbitMqConnectionFactory;
         readonly RabbitMqClientOptions _clientOptions;
         readonly ILogger<BaseBatchMessageHandler> _logger;
 
+        readonly ConcurrentBag<BasicDeliverEventArgs> _messages = new ConcurrentBag<BasicDeliverEventArgs>();
+        Timer _timer;
+        readonly object _lock = new object();
         bool _disposed = false;
 
         protected BaseBatchMessageHandler(
@@ -73,25 +81,59 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
             Connection = _rabbitMqConnectionFactory.CreateRabbitMqConnection(_clientOptions);
             Channel = Connection.CreateModel();
             Channel.BasicQos(PrefetchSize, PrefetchCount, false);
+            
+            if (MessageHandlingPeriod != null)
+            {
+                _timer = new Timer(async _ => await ProcessBatchOfMessages(cancellationToken).ConfigureAwait(false), null, MessageHandlingPeriod.Value, MessageHandlingPeriod.Value);
+            }
 
-            var messages = new ConcurrentBag<BasicDeliverEventArgs>();
             var consumer = _rabbitMqConnectionFactory.CreateConsumer(Channel);
             consumer.Received += async (sender, eventArgs) =>
             {
-                messages.Add(eventArgs);
-                if (messages.Count < PrefetchCount)
+                lock (_lock)
                 {
-                    return;
+                    _messages.Add(eventArgs);
+                    if (_messages.Count < PrefetchCount)
+                    {
+                        return;
+                    }
                 }
 
-                var byteMessages = messages.Select(x => x.Body).ToList();
-                await HandleMessages(byteMessages, cancellationToken).ConfigureAwait(false);
-                var latestDeliveryTag = messages.Max(x => x.DeliveryTag);
-                messages.Clear();
-                Channel.BasicAck(latestDeliveryTag, true);
+                await ProcessBatchOfMessages(cancellationToken).ConfigureAwait(false);
             };
+            
             Channel.BasicConsume(queue: QueueName, autoAck: false, consumer: consumer);
             return Task.CompletedTask;
+        }
+
+        async Task ProcessBatchOfMessages(CancellationToken cancellationToken)
+        {
+
+            var messages = GetMessages();
+            if (!messages.Any())
+            {
+                return;
+            }
+
+            var byteMessages = messages.Select(x => x.Body).ToList();
+            await HandleMessages(byteMessages, cancellationToken).ConfigureAwait(false);
+            var latestDeliveryTag = messages.Max(x => x.DeliveryTag);
+            Channel.BasicAck(latestDeliveryTag, true);
+        }
+
+        IList<BasicDeliverEventArgs> GetMessages()
+        {
+            lock (_lock)
+            {
+                if (!_messages.Any())
+                {
+                    return new List<BasicDeliverEventArgs>();
+                }
+                
+                var messages = _messages.ToList();
+                _messages.Clear();
+                return messages;
+            }
         }
 
         void ValidateProperties()
@@ -117,6 +159,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
+            _timer?.Change(Timeout.Infinite, 0);
             _logger.LogInformation($"Batch message handler {GetType()} has been stopped.");
             return Task.CompletedTask;
         }
@@ -130,6 +173,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
 
             if (disposing)
             {
+                _timer?.Dispose();
                 Connection?.Dispose();
                 Channel?.Dispose();
             }
