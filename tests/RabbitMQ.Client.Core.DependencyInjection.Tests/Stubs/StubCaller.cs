@@ -17,8 +17,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.Stubs
 
         public void EmptyCall()
         {
-            WaitHandle.Set();
             Caller.EmptyCall();
+            WaitHandle.Set();
         }
 
         public void Call(ReadOnlyMemory<byte> message)

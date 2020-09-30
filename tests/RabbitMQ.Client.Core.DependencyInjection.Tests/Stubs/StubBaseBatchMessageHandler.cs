@@ -31,11 +31,11 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.Stubs
 
         public override Task HandleMessages(IEnumerable<ReadOnlyMemory<byte>> messages, CancellationToken cancellationToken)
         {
-            _caller.EmptyCall();
             foreach (var message in messages)
             {
                 _caller.Call(message);
             }
+            _caller.EmptyCall();
             return Task.CompletedTask;
         }
     }
