@@ -224,7 +224,7 @@ Map that configuration using standard `GetSection` method.
 var rabbitMqConfiguration = Configuration.GetSection("RabbitMq");
 ```
 
-And pass it to the `AddRabbitMqClient` extension method as always.
+Pass it to the `AddRabbitMqClient` extension method as always.
 
 ```c#
 services.AddRabbitMqClient(rabbitMqConfiguration);

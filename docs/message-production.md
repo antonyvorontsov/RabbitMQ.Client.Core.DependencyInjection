@@ -118,7 +118,7 @@ The image below shows a model of the whole process of passing the message from t
 
 **Prerequisites.** Let's say that producer want to send a message to the exchange **"Exchange B"** with a routing key **"routing.key"**, and a delay in **30 milliseconds**.
  - Message goes to the exchange **"Exchange A"** whose responsibility is to manage delaying (storing) the message.
- - After that a queue with a compound name and special arguments is being created. Name consists of three parts: the routing key of the sent message, a word "delayed", and a number of delay milliseconds .
+ - After that a queue with a compound name and special arguments will be created. Name consists of three parts: the routing key of the message that has been sent, a word "delayed", and a number of delay milliseconds.
 Queue arguments are as follows.
 ```
 x-dead-letter-exchange : Exchange В

@@ -317,7 +317,7 @@ The message handling process organized as follows:
 There are also a feature that you can use in case of necessity of handling messages in batches.
 First of all you have to create a class that inherits a `BatchMessageHandler` class.
 You have to set up values for `QueueName` and `PrefetchCount` properties. These values are responsible for the queue that will be read by the message handler, and the size of batches of messages. You can also set a `MessageHandlingPeriod` property value and the method `HandleMessage` will be executed repeatedly so messages in unfilled batches could be processed too, but keep in mind that this property is optional.
-Be aware that batch message handlers *do not declare queues*, so if it does not exist an exception will be thrown. Either declare manually or using RabbitMqClient configuration features.
+Be aware that batch message handlers **do not declare queues**, so if it does not exist an exception will be thrown. Either declare manually or using RabbitMqClient configuration features.
 
 ```c#
 public class CustomBatchMessageHandler : BatchMessageHandler

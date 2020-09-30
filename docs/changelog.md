@@ -2,11 +2,12 @@
 
 All notable changes to this library will be documented in this file.
 
-## [4.2.0] - will be drafted
+## [4.2.0] - 2020-10-01
 
 ### Added
 
 - Options that can allow configuring behaviour of re-queueing messages. New properties `RequeueTimeoutMilliseconds` and `RequeueAttempts` added to `RabbitMqExchangeOptions`.
+- `MessageHandlingPeriod` property for batch message handlers. That feature allows you to execute even unfilled batches each time period expires.
 
 ### Changed
 
