@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <LangVersion>latest</LangVersion>
-    <Version>4.2.0</Version>
+    <Version>4.3.0</Version>
     <PackageTags>RabbitMQ</PackageTags>
     <RepositoryUrl>https://github.com/AntonyVorontsov/RabbitMQ.Client.Core.DependencyInjection</RepositoryUrl>
     <RepositoryType>GIT</RepositoryType>

@@ -2,6 +2,12 @@
 
 All notable changes to this library will be documented in this file.
 
+## [4.3.0] - Will be drafted
+
+### Changed
+
+- **Breaking!** `BatchMessageHandler` has been removed, `BaseBatchMessageHandler` is now one and only base class for handling messages in batches. `HandleMessages` method of `BaseBatchMessageHandler` gets a collection of messages as `BasicDeliverEventArgs` instead of bytes.
+
 ## [4.2.0] - 2020-10-01
 
 ### Added

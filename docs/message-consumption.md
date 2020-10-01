@@ -314,13 +314,13 @@ The message handling process organized as follows:
 
 ### Batch message handlers
 
-There are also a feature that you can use in case of necessity of handling messages in batches.
-First of all you have to create a class that inherits a `BatchMessageHandler` class.
+There is a feature that you can use in case of necessity of handling messages in batches.
+First of all you have to create a class that inherits `BaseBatchMessageHandler`.
 You have to set up values for `QueueName` and `PrefetchCount` properties. These values are responsible for the queue that will be read by the message handler, and the size of batches of messages. You can also set a `MessageHandlingPeriod` property value and the method `HandleMessage` will be executed repeatedly so messages in unfilled batches could be processed too, but keep in mind that this property is optional.
 Be aware that batch message handlers **do not declare queues**, so if it does not exist an exception will be thrown. Either declare manually or using RabbitMqClient configuration features.
 
 ```c#
-public class CustomBatchMessageHandler : BatchMessageHandler
+public class CustomBatchMessageHandler : BaseBatchMessageHandler
 {
     readonly ILogger<CustomBatchMessageHandler> _logger;
 
@@ -339,45 +339,12 @@ public class CustomBatchMessageHandler : BatchMessageHandler
 
     public override TimeSpan? MessageHandlingPeriod { get; set; } = TimeSpan.FromMilliseconds(500);
 
-    public override Task HandleMessages(IEnumerable<string> messages, CancellationToken cancellationToken)
+    public override Task HandleMessages(IEnumerable<BasicDeliverEventArgs> messages, CancellationToken cancellationToken)
     {
         _logger.LogInformation("Handling a batch of messages.");
         foreach (var message in messages)
         {
-            _logger.LogInformation(message);
-        }
-        return Task.CompletedTask;
-    }
-}
-```
-
-If you want to get raw messages as `ReadOnlyMemory<byte>` you can inherit base message handler class.
-
-```c#
-public class CustomBatchMessageHandler : BaseBatchMessageHandler
-{
-    readonly ILogger<CustomBatchMessageHandler> _logger;
-
-    public CustomBatchMessageHandler(
-        IRabbitMqConnectionFactory rabbitMqConnectionFactory,
-        IEnumerable<BatchConsumerConnectionOptions> batchConsumerConnectionOptions,
-        ILogger<CustomBatchMessageHandler> logger)
-        : base(rabbitMqConnectionFactory, batchConsumerConnectionOptions, logger)
-    {
-        _logger = logger;
-    }
-
-    public override ushort PrefetchCount { get; set; } = 3;
-
-    public override string QueueName { get; set; } = "queue.name";
-
-    public override Task HandleMessages(IEnumerable<ReadOnlyMemory<byte>> messages, CancellationToken cancellationToken)
-    {
-        _logger.LogInformation("Handling a batch of messages.");
-        foreach (var message in messages)
-        {
-            var stringifiedMessage = Encoding.UTF8.GetString(message.ToArray());
-            _logger.LogInformation(stringifiedMessage);
+            _logger.LogInformation(message.GetMessage());
         }
         return Task.CompletedTask;
     }
@@ -385,15 +352,13 @@ public class CustomBatchMessageHandler : BaseBatchMessageHandler
 ```
 
 After all you have to register that batch message handler via DI.
+
 ```c#
 services.AddBatchMessageHandler<CustomBatchMessageHandler>(Configuration.GetSection("RabbitMq"));
 ```
 
 The message handler will create a separate connection and use it for reading messages.
-When the message collection is full to the size of `PrefetchCount` they are passed to the `HandleMessage` method.
-Both `BaseBatchMessageHandler` and `BatchMessageHandler` implement `IDisposable` interface, so you can use it for release of resources.
-
-Use this method of getting messages only when you sure that the number of messages that pass through this queue is really huge. Otherwise, messages could stack in the temporary collection of messages waiting to get in full.
+When the message collection is full to the size of `PrefetchCount` it will be passed to the `HandleMessage` method.
 
 For message production features see the [Previous page](message-production.md)
 
