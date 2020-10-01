@@ -133,7 +133,7 @@ public class CustomMessageHandler : IMessageHandler
         _logger = logger;
     }
 
-    public void Handle(string message, string routingKey)
+    public void Handle(BasicDeliverEventArgs eventArgs, string matchingRoute)
     {
         // Do whatever you want with the message.
         _logger.LogInformation("Hello world");
@@ -152,7 +152,7 @@ public class CustomAsyncMessageHandler : IAsyncMessageHandler
         _logger = logger;
     }
 
-    public async Task Handle(string message, string routingKey)
+    public async Task Handle(BasicDeliverEventArgs eventArgs, string matchingRoute)
     {
 	   // await something.
     }
@@ -172,7 +172,7 @@ public class MyNonCyclicMessageHandler : INonCyclicMessageHandler
         _logger = logger;
     }
 
-    public void Handle(string message, string routingKey, IQueueService queueService)
+    public void Handle(BasicDeliverEventArgs eventArgs, string matchingRoute, IQueueService queueService)
     {
         // Send anything you want using IQueueService instance.
         var anotherMessage = new MyMessage { Foo = "Bar" };
@@ -193,7 +193,7 @@ public class MyAsyncNonCyclicMessageHandler : IAsyncNonCyclicMessageHandler
         _logger = logger;
     }
 
-    public async Task Handle(string message, string routingKey, IQueueService queueService)
+    public async Task Handle(BasicDeliverEventArgs eventArgs, string matchingRoute, IQueueService queueService)
     {
         // Do async stuff.
         var anotherMessage = new MyMessage { Foo = "Bar" };

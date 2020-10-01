@@ -2,10 +2,15 @@
 
 All notable changes to this library will be documented in this file.
 
-## [4.3.0] - Will be drafted
+## [4.3.0] - 2020-10-03
+
+### Added
+
+- `BasicDeliverEventArgs` extensions for parsing messages.
 
 ### Changed
 
+- **Breaking!** `IMessageHandler`, `IAsyncMessageHandler`, `INonCyclicMessageHandler` and `IAsyncNonCyclicMessageHandler` get messages in `Handle` methods as `BasicDeliverEventArgs` instead of string values.
 - **Breaking!** `BatchMessageHandler` has been removed, `BaseBatchMessageHandler` is now one and only base class for handling messages in batches. `HandleMessages` method of `BaseBatchMessageHandler` gets a collection of messages as `BasicDeliverEventArgs` instead of bytes.
 
 ## [4.2.0] - 2020-10-01

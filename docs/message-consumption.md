@@ -109,16 +109,16 @@ The second step is to define classes that will take responsibility of handling r
 
 ### Synchronous message handlers
 
-`IMessageHandler` consists of one method `Handle` that gets a message in a string format. You can deserialize that message (if it is a json message) or handle its raw value.
+`IMessageHandler` consists of one method `Handle` that gets a message. You can deserialize that message with `BasicDeliverEventArgs` extensions (described below).
 Thus, a message handler will look like this.
 
 ```c#
 public class CustomMessageHandler : IMessageHandler
 {
-    public void Handle(string message, string routingKey)
+    public void Handle(BasicDeliverEventArgs eventArgs, string matchingRoute)
     {
         // Do whatever you want.
-        var messageObject = JsonConvert.DeserializeObject<YourClass>(message);
+        var messageObject = eventArgs.GetPayload<YourClass>();
     }
 }
 ```
@@ -134,9 +134,9 @@ public class CustomMessageHandler : IMessageHandler
         _logger = logger;
     }
 
-    public void Handle(string message, string routingKey)
+    public void Handle(BasicDeliverEventArgs eventArgs, string matchingRoute)
     {
-        _logger.LogInformation($"I got a message {message} by routing key {routingKey}");
+        _logger.LogInformation($"I got a message {eventArgs.GetMessage()} by routing key {matchingRoute}");
     }
 }
 ```
@@ -153,10 +153,10 @@ public class CustomNonCyclicMessageHandler : INonCyclicMessageHandler
         _logger = logger;
     }
 
-    public void Handle(string message, string routingKey, IQueueService queueService)
+    public void Handle(BasicDeliverEventArgs eventArgs, string matchingRoute, IQueueService queueService)
     {
         _logger.LogInformation("Got a message. I will send it back to another queue.");
-        var response = new { Message = message };
+        var response = new { Message = eventArgs.GetMessage() };
         queueService.Send(response, "exchange.name", "routing.key");
     }
 }
@@ -171,7 +171,7 @@ public class CustomNonCyclicMessageHandler : INonCyclicMessageHandler
 ```c#
 public class CustomAsyncMessageHandler : IAsyncMessageHandler
 {
-    public async Task Handle(string message, string routingKey)
+    public async Task Handle(BasicDeliverEventArgs eventArgs, string matchingRoute)
     {
         // Do whatever you want asynchronously!
     }
@@ -191,10 +191,10 @@ public class CustomAsyncNonCyclicMessageHandler : IAsyncNonCyclicMessageHandler
         _logger = logger;
     }
 
-    public async Task Handle(string message, string routingKey, IQueueService queueService)
+    public async Task Handle(BasicDeliverEventArgs eventArgs, string matchingRoute, IQueueService queueService)
     {
         _logger.LogInformation("You can do something async, e.g. send message back.");
-        var response = new { Message = message };
+        var response = new { Message = eventArgs.GetMessage() };
         await queueService.SendAsync(response, "exchange.name", "routing.key");
     }
 }
@@ -306,7 +306,7 @@ services.AddRabbitMqClient(clientConfiguration)
 The message handling process organized as follows:
 
 - `IQueueMessage` receives a message and delegates it to `IMessageHandlingService`.
-- `IMessageHandlingService` gets a message (as a byte array) and decodes it to the UTF8 string. It also checks if there are any message handlers in a combined collection of `IMessageHandler`, `IAsyncMessageHandler`, `INonCyclicMessageHandler` and `IAsyncNonCyclicMessageHandler` instances and forwards a message to them.
+- `IMessageHandlingService` gets a message and checks if there are any message handlers in a combined collection of `IMessageHandler`, `IAsyncMessageHandler`, `INonCyclicMessageHandler` and `IAsyncNonCyclicMessageHandler` instances and forwards a message to them.
 - All subscribed message handlers (`IMessageHandler`, `IAsyncMessageHandler`, `INonCyclicMessageHandler`, `IAsyncNonCyclicMessageHandler`) process the given message in a given or a default order.
 - `IMessageHandlingService` acknowledges the message by its `DeliveryTag`.
 - If any exception occurs `IMessageHandlingService` acknowledges the message anyway and checks if the message has to be re-send. If exchange option `RequeueFailedMessages` is set `true` then `IMessageHandlingService` adds a header `"re-queue-attempts"` to the message and sends it again with delay in value of `RequeueTimeoutMilliseconds` (default is 200 milliseconds). The number of attempts is configurable and re-delivery will be made that many times as the value of `RequeueAttempts` property. Mechanism of sending delayed messages covered in the message production [documentation](message-production.md).
@@ -359,6 +359,31 @@ services.AddBatchMessageHandler<CustomBatchMessageHandler>(Configuration.GetSect
 
 The message handler will create a separate connection and use it for reading messages.
 When the message collection is full to the size of `PrefetchCount` it will be passed to the `HandleMessage` method.
+
+### Parsing extensions
+
+There are some simple extensions for `BasicDeliverEventArgs` class that helps to parse messages. You have to use `RabbitMQ.Client.Core.DependencyInjection` namespace to enable those extensions.
+There is an example of using those extensions inside a `Handle` method of `IMessageHandler`.
+
+```c#
+public class CustomMessageHandler : IMessageHandler
+{
+    public void Handle(BasicDeliverEventArgs eventArgs, string matchingRoute)
+    {
+        // You can get string message.
+        var stringifiedMessage = eventArgs.GetMessage();
+
+        // Or object payload.
+        var payload = eventArgs.GetPayload<YourClass>();
+        
+        // Or anonymous object by another example object.
+        var anonymousObject = new { message = string.Empty, number = 0 };
+        var anonymousPayload = eventArgs.GetAnonymousPayload(anonymousObject);
+    }
+}
+```
+
+You can also pass `JsonSerializerSettings` to `GetPayload` or `GetAnonymousPayload` methods as well as collection of `JsonConverter` in case you use custom serialization.
 
 For message production features see the [Previous page](message-production.md)
 
