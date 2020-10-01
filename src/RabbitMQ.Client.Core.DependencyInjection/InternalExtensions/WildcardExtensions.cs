@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
 
+[assembly:InternalsVisibleTo("RabbitMQ.Client.Core.DependencyInjection.Tests")]
 namespace RabbitMQ.Client.Core.DependencyInjection.InternalExtensions
 {
     /// <summary>
@@ -11,7 +13,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.InternalExtensions
     /// Methods of that class allows finding route patterns by which message handlers are "listening" for messages.
     /// Public access modifier set for this class due to unit testing.
     /// </remarks>
-    public static class WildcardExtensions
+    internal static class WildcardExtensions
     {
         const string Separator = ".";
         const string SingleWordPattern = "*";

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client.Core.DependencyInjection.InternalExtensions;
@@ -39,12 +38,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         {
             try
             {
-                var message = Encoding.UTF8.GetString(eventArgs.Body.ToArray());
                 _logger.LogInformation($"A new message received with deliveryTag {eventArgs.DeliveryTag}.");
-                _logger.LogInformation(message);
-                
                 var matchingRoutes = GetMatchingRoutePatterns(eventArgs.Exchange, eventArgs.RoutingKey);
-                await ProcessMessage(eventArgs.Exchange, message, queueService, matchingRoutes).ConfigureAwait(false);
+                await ProcessMessageEvent(eventArgs, queueService, matchingRoutes).ConfigureAwait(false);
                 queueService.ConsumingChannel.BasicAck(eventArgs.DeliveryTag, false);
                 _logger.LogInformation($"Message processing finished successfully. Acknowledge has been sent with deliveryTag {eventArgs.DeliveryTag}.");
             }
@@ -69,9 +65,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             return WildcardExtensions.GetMatchingRoutePatterns(tree, routingKeyParts).ToList();
         }
 
-        async Task ProcessMessage(string exchange, string message, IQueueService queueService, IEnumerable<string> matchingRoutes)
+        async Task ProcessMessageEvent(BasicDeliverEventArgs eventArgs, IQueueService queueService, IEnumerable<string> matchingRoutes)
         {
-            var container = _messageHandlerContainers.FirstOrDefault(x => x.Exchange == exchange) ??
+            var container = _messageHandlerContainers.FirstOrDefault(x => x.Exchange == eventArgs.Exchange) ??
                 _messageHandlerContainers.FirstOrDefault(x => x.IsGeneral);
             if (container is null)
             {
@@ -110,16 +106,16 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
                 switch (orderedContainer.MessageHandler)
                 {
                     case IMessageHandler messageHandler:
-                        RunMessageHandler(messageHandler, message, orderedContainer.MatchingRoute);
+                        RunMessageHandler(messageHandler, eventArgs, orderedContainer.MatchingRoute);
                         break;
                     case IAsyncMessageHandler asyncMessageHandler:
-                        await RunAsyncMessageHandler(asyncMessageHandler, message, orderedContainer.MatchingRoute).ConfigureAwait(false);
+                        await RunAsyncMessageHandler(asyncMessageHandler, eventArgs, orderedContainer.MatchingRoute).ConfigureAwait(false);
                         break;
                     case INonCyclicMessageHandler nonCyclicMessageHandler:
-                        RunNonCyclicMessageHandler(nonCyclicMessageHandler, message, orderedContainer.MatchingRoute, queueService);
+                        RunNonCyclicMessageHandler(nonCyclicMessageHandler, eventArgs, orderedContainer.MatchingRoute, queueService);
                         break;
                     case IAsyncNonCyclicMessageHandler asyncNonCyclicMessageHandler:
-                        await RunAsyncNonCyclicMessageHandler(asyncNonCyclicMessageHandler, message, orderedContainer.MatchingRoute, queueService).ConfigureAwait(false);
+                        await RunAsyncNonCyclicMessageHandler(asyncNonCyclicMessageHandler, eventArgs, orderedContainer.MatchingRoute, queueService).ConfigureAwait(false);
                         break;
                     default:
                         throw new NotSupportedException($"The type {orderedContainer.MessageHandler.GetType()} of message handler is not supported.");
@@ -129,39 +125,39 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             }
         }
 
-        void RunMessageHandler(IMessageHandler handler, string message, string routingKey)
+        void RunMessageHandler(IMessageHandler handler, BasicDeliverEventArgs eventArgs, string matchingRoute)
         {
             ValidateMessageHandler(handler);
             _logger.LogDebug($"Starting processing the message by message handler {handler.GetType().Name}.");
-            handler.Handle(message, routingKey);
+            handler.Handle(eventArgs, matchingRoute);
             _logger.LogDebug($"The message has been processed by message handler {handler.GetType().Name}.");
         }
 
-        void RunNonCyclicMessageHandler(INonCyclicMessageHandler handler, string message, string routingKey, IQueueService queueService)
+        void RunNonCyclicMessageHandler(INonCyclicMessageHandler handler, BasicDeliverEventArgs eventArgs, string matchingRoute, IQueueService queueService)
         {
             ValidateMessageHandler(handler);
             _logger.LogDebug($"Starting processing the message by non-cyclic message handler {handler.GetType().Name}.");
-            handler?.Handle(message, routingKey, queueService);
+            handler?.Handle(eventArgs, matchingRoute, queueService);
             _logger.LogDebug($"The message has been processed by non-cyclic message handler {handler.GetType().Name}.");
         }
 
-        async Task RunAsyncMessageHandler(IAsyncMessageHandler handler, string message, string routingKey)
+        async Task RunAsyncMessageHandler(IAsyncMessageHandler handler, BasicDeliverEventArgs eventArgs, string matchingRoute)
         {
             ValidateMessageHandler(handler);
             _logger.LogDebug($"Starting processing the message by async message handler {handler.GetType().Name}.");
-            await handler.Handle(message, routingKey);
+            await handler.Handle(eventArgs, matchingRoute);
             _logger.LogDebug($"The message has been processed by async message handler {handler.GetType().Name}.");
         }
 
         async Task RunAsyncNonCyclicMessageHandler(
             IAsyncNonCyclicMessageHandler handler,
-            string message,
-            string routingKey,
+            BasicDeliverEventArgs eventArgs,
+            string matchingRoute,
             IQueueService queueService)
         {
             ValidateMessageHandler(handler);
             _logger.LogDebug($"Starting processing the message by async non-cyclic message handler {handler.GetType().Name}.");
-            await handler.Handle(message, routingKey, queueService);
+            await handler.Handle(eventArgs, matchingRoute, queueService);
             _logger.LogDebug($"The message has been processed by async non-cyclic message handler {handler.GetType().Name}.");
         }
 

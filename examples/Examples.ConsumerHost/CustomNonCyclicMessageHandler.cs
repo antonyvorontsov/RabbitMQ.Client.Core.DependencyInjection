@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
+using RabbitMQ.Client.Core.DependencyInjection;
 using RabbitMQ.Client.Core.DependencyInjection.MessageHandlers;
 using RabbitMQ.Client.Core.DependencyInjection.Services;
+using RabbitMQ.Client.Events;
 
 namespace Examples.ConsumerHost
 {
@@ -12,10 +14,10 @@ namespace Examples.ConsumerHost
             _logger = logger;
         }
 
-        public void Handle(string message, string routingKey, IQueueService queueService)
+        public void Handle(BasicDeliverEventArgs eventArgs, string matchingRoute, IQueueService queueService)
         {
             _logger.LogInformation("Handling messages");
-            var response = new { message, routingKey };
+            var response = new { message = eventArgs.GetMessage(), matchingRoute };
             queueService.Send(response, "exchange.name", "routing.key");
         }
     }

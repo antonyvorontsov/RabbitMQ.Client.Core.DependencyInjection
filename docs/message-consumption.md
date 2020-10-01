@@ -91,7 +91,7 @@ public class Program
 
 public class Worker : BackgroundService
 {
-    private readonly IQueueService _queueService;
+    readonly IQueueService _queueService;
 
     public Worker(IQueueService queueService)
     {

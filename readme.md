@@ -35,7 +35,7 @@ Now you can inject an instance of `IQueueService` inside anything you want.
 [Route("api/[controller]")]
 public class HomeController : Controller
 {
-    private readonly IQueueService _queueService;
+    readonly IQueueService _queueService;
     public HomeController(IQueueService queueService)
     {
         _queueService = queueService;

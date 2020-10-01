@@ -9,7 +9,7 @@ namespace Examples.AdvancedConfiguration
 {
     public class Startup
     {
-        private IConfiguration Configuration { get; }
+        IConfiguration Configuration { get; }
 
         public Startup(IConfiguration configuration)
         {

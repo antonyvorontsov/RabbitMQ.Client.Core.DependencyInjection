@@ -1,4 +1,5 @@
 ﻿using RabbitMQ.Client.Core.DependencyInjection.Services;
+using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.MessageHandlers
 {
@@ -10,9 +11,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection.MessageHandlers
         /// <summary>
         /// Handle message from a queue.
         /// </summary>
-        /// <param name="message">Json message.</param>
-        /// <param name="routingKey">Routing key.</param>
+        /// <param name="eventArgs">Message event args.</param>
+        /// <param name="matchingRoute">Matching routing key.</param>
         /// <param name="queueService">Instance of service <see cref="IQueueService"/> that can send messages.</param>
-        void Handle(string message, string routingKey, IQueueService queueService);
+        void Handle(BasicDeliverEventArgs eventArgs, string matchingRoute, IQueueService queueService);
     }
 }
