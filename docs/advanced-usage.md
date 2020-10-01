@@ -11,7 +11,7 @@ Let' say your application is a web API and you want to use both `IConsumingServi
 ```c#
 public class Startup
 {
-    private IConfiguration Configuration { get; }
+    IConfiguration Configuration { get; }
 
     public Startup(IConfiguration configuration)
     {

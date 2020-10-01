@@ -91,7 +91,7 @@ public class Program
 
 public class Worker : BackgroundService
 {
-    private readonly IQueueService _queueService;
+    readonly IQueueService _queueService;
 
     public Worker(IQueueService queueService)
     {
@@ -109,16 +109,16 @@ The second step is to define classes that will take responsibility of handling r
 
 ### Synchronous message handlers
 
-`IMessageHandler` consists of one method `Handle` that gets a message in a string format. You can deserialize that message (if it is a json message) or handle its raw value.
+`IMessageHandler` consists of one method `Handle` that gets a message. You can deserialize that message with `BasicDeliverEventArgs` extensions (described below).
 Thus, a message handler will look like this.
 
 ```c#
 public class CustomMessageHandler : IMessageHandler
 {
-    public void Handle(string message, string routingKey)
+    public void Handle(BasicDeliverEventArgs eventArgs, string matchingRoute)
     {
         // Do whatever you want.
-        var messageObject = JsonConvert.DeserializeObject<YourClass>(message);
+        var messageObject = eventArgs.GetPayload<YourClass>();
     }
 }
 ```
@@ -134,9 +134,9 @@ public class CustomMessageHandler : IMessageHandler
         _logger = logger;
     }
 
-    public void Handle(string message, string routingKey)
+    public void Handle(BasicDeliverEventArgs eventArgs, string matchingRoute)
     {
-        _logger.LogInformation($"I got a message {message} by routing key {routingKey}");
+        _logger.LogInformation($"I got a message {eventArgs.GetMessage()} by routing key {matchingRoute}");
     }
 }
 ```
@@ -153,10 +153,10 @@ public class CustomNonCyclicMessageHandler : INonCyclicMessageHandler
         _logger = logger;
     }
 
-    public void Handle(string message, string routingKey, IQueueService queueService)
+    public void Handle(BasicDeliverEventArgs eventArgs, string matchingRoute, IQueueService queueService)
     {
         _logger.LogInformation("Got a message. I will send it back to another queue.");
-        var response = new { Message = message };
+        var response = new { Message = eventArgs.GetMessage() };
         queueService.Send(response, "exchange.name", "routing.key");
     }
 }
@@ -171,7 +171,7 @@ public class CustomNonCyclicMessageHandler : INonCyclicMessageHandler
 ```c#
 public class CustomAsyncMessageHandler : IAsyncMessageHandler
 {
-    public async Task Handle(string message, string routingKey)
+    public async Task Handle(BasicDeliverEventArgs eventArgs, string matchingRoute)
     {
         // Do whatever you want asynchronously!
     }
@@ -191,10 +191,10 @@ public class CustomAsyncNonCyclicMessageHandler : IAsyncNonCyclicMessageHandler
         _logger = logger;
     }
 
-    public async Task Handle(string message, string routingKey, IQueueService queueService)
+    public async Task Handle(BasicDeliverEventArgs eventArgs, string matchingRoute, IQueueService queueService)
     {
         _logger.LogInformation("You can do something async, e.g. send message back.");
-        var response = new { Message = message };
+        var response = new { Message = eventArgs.GetMessage() };
         await queueService.SendAsync(response, "exchange.name", "routing.key");
     }
 }
@@ -306,7 +306,7 @@ services.AddRabbitMqClient(clientConfiguration)
 The message handling process organized as follows:
 
 - `IQueueMessage` receives a message and delegates it to `IMessageHandlingService`.
-- `IMessageHandlingService` gets a message (as a byte array) and decodes it to the UTF8 string. It also checks if there are any message handlers in a combined collection of `IMessageHandler`, `IAsyncMessageHandler`, `INonCyclicMessageHandler` and `IAsyncNonCyclicMessageHandler` instances and forwards a message to them.
+- `IMessageHandlingService` gets a message and checks if there are any message handlers in a combined collection of `IMessageHandler`, `IAsyncMessageHandler`, `INonCyclicMessageHandler` and `IAsyncNonCyclicMessageHandler` instances and forwards a message to them.
 - All subscribed message handlers (`IMessageHandler`, `IAsyncMessageHandler`, `INonCyclicMessageHandler`, `IAsyncNonCyclicMessageHandler`) process the given message in a given or a default order.
 - `IMessageHandlingService` acknowledges the message by its `DeliveryTag`.
 - If any exception occurs `IMessageHandlingService` acknowledges the message anyway and checks if the message has to be re-send. If exchange option `RequeueFailedMessages` is set `true` then `IMessageHandlingService` adds a header `"re-queue-attempts"` to the message and sends it again with delay in value of `RequeueTimeoutMilliseconds` (default is 200 milliseconds). The number of attempts is configurable and re-delivery will be made that many times as the value of `RequeueAttempts` property. Mechanism of sending delayed messages covered in the message production [documentation](message-production.md).
@@ -314,13 +314,13 @@ The message handling process organized as follows:
 
 ### Batch message handlers
 
-There are also a feature that you can use in case of necessity of handling messages in batches.
-First of all you have to create a class that inherits a `BatchMessageHandler` class.
+There is a feature that you can use in case of necessity of handling messages in batches.
+First of all you have to create a class that inherits `BaseBatchMessageHandler`.
 You have to set up values for `QueueName` and `PrefetchCount` properties. These values are responsible for the queue that will be read by the message handler, and the size of batches of messages. You can also set a `MessageHandlingPeriod` property value and the method `HandleMessage` will be executed repeatedly so messages in unfilled batches could be processed too, but keep in mind that this property is optional.
 Be aware that batch message handlers **do not declare queues**, so if it does not exist an exception will be thrown. Either declare manually or using RabbitMqClient configuration features.
 
 ```c#
-public class CustomBatchMessageHandler : BatchMessageHandler
+public class CustomBatchMessageHandler : BaseBatchMessageHandler
 {
     readonly ILogger<CustomBatchMessageHandler> _logger;
 
@@ -339,45 +339,12 @@ public class CustomBatchMessageHandler : BatchMessageHandler
 
     public override TimeSpan? MessageHandlingPeriod { get; set; } = TimeSpan.FromMilliseconds(500);
 
-    public override Task HandleMessages(IEnumerable<string> messages, CancellationToken cancellationToken)
+    public override Task HandleMessages(IEnumerable<BasicDeliverEventArgs> messages, CancellationToken cancellationToken)
     {
         _logger.LogInformation("Handling a batch of messages.");
         foreach (var message in messages)
         {
-            _logger.LogInformation(message);
-        }
-        return Task.CompletedTask;
-    }
-}
-```
-
-If you want to get raw messages as `ReadOnlyMemory<byte>` you can inherit base message handler class.
-
-```c#
-public class CustomBatchMessageHandler : BaseBatchMessageHandler
-{
-    readonly ILogger<CustomBatchMessageHandler> _logger;
-
-    public CustomBatchMessageHandler(
-        IRabbitMqConnectionFactory rabbitMqConnectionFactory,
-        IEnumerable<BatchConsumerConnectionOptions> batchConsumerConnectionOptions,
-        ILogger<CustomBatchMessageHandler> logger)
-        : base(rabbitMqConnectionFactory, batchConsumerConnectionOptions, logger)
-    {
-        _logger = logger;
-    }
-
-    public override ushort PrefetchCount { get; set; } = 3;
-
-    public override string QueueName { get; set; } = "queue.name";
-
-    public override Task HandleMessages(IEnumerable<ReadOnlyMemory<byte>> messages, CancellationToken cancellationToken)
-    {
-        _logger.LogInformation("Handling a batch of messages.");
-        foreach (var message in messages)
-        {
-            var stringifiedMessage = Encoding.UTF8.GetString(message.ToArray());
-            _logger.LogInformation(stringifiedMessage);
+            _logger.LogInformation(message.GetMessage());
         }
         return Task.CompletedTask;
     }
@@ -385,15 +352,38 @@ public class CustomBatchMessageHandler : BaseBatchMessageHandler
 ```
 
 After all you have to register that batch message handler via DI.
+
 ```c#
 services.AddBatchMessageHandler<CustomBatchMessageHandler>(Configuration.GetSection("RabbitMq"));
 ```
 
 The message handler will create a separate connection and use it for reading messages.
-When the message collection is full to the size of `PrefetchCount` they are passed to the `HandleMessage` method.
-Both `BaseBatchMessageHandler` and `BatchMessageHandler` implement `IDisposable` interface, so you can use it for release of resources.
+When the message collection is full to the size of `PrefetchCount` it will be passed to the `HandleMessage` method.
 
-Use this method of getting messages only when you sure that the number of messages that pass through this queue is really huge. Otherwise, messages could stack in the temporary collection of messages waiting to get in full.
+### Parsing extensions
+
+There are some simple extensions for `BasicDeliverEventArgs` class that helps to parse messages. You have to use `RabbitMQ.Client.Core.DependencyInjection` namespace to enable those extensions.
+There is an example of using those extensions inside a `Handle` method of `IMessageHandler`.
+
+```c#
+public class CustomMessageHandler : IMessageHandler
+{
+    public void Handle(BasicDeliverEventArgs eventArgs, string matchingRoute)
+    {
+        // You can get string message.
+        var stringifiedMessage = eventArgs.GetMessage();
+
+        // Or object payload.
+        var payload = eventArgs.GetPayload<YourClass>();
+        
+        // Or anonymous object by another example object.
+        var anonymousObject = new { message = string.Empty, number = 0 };
+        var anonymousPayload = eventArgs.GetAnonymousPayload(anonymousObject);
+    }
+}
+```
+
+You can also pass `JsonSerializerSettings` to `GetPayload` or `GetAnonymousPayload` methods as well as collection of `JsonConverter` in case you use custom serialization.
 
 For message production features see the [Previous page](message-production.md)
 

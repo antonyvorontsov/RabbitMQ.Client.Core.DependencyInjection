@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
+using RabbitMQ.Client.Core.DependencyInjection;
 using RabbitMQ.Client.Core.DependencyInjection.MessageHandlers;
+using RabbitMQ.Client.Events;
 
 namespace Examples.ConsumerHost
 {
@@ -11,9 +13,9 @@ namespace Examples.ConsumerHost
             _logger = logger;
         }
 
-        public void Handle(string message, string routingKey)
+        public void Handle(BasicDeliverEventArgs eventArgs, string matchingRoute)
         {
-            _logger.LogInformation($"Handling message {message} by routing key {routingKey}");
+            _logger.LogInformation($"Handling message {eventArgs.GetMessage()} by routing key {matchingRoute}");
         }
     }
 }

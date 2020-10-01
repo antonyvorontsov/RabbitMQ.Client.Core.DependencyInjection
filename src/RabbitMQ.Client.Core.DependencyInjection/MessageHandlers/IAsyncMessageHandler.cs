@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.MessageHandlers
 {
@@ -10,8 +11,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection.MessageHandlers
         /// <summary>
         /// Handle message from a queue.
         /// </summary>
-        /// <param name="message">Json message.</param>
-        /// <param name="routingKey">Routing key.</param>
-        Task Handle(string message, string routingKey);
+        /// <param name="eventArgs">Message event args.</param>
+        /// <param name="matchingRoute">Matching routing key.</param>
+        Task Handle(BasicDeliverEventArgs eventArgs, string matchingRoute);
     }
 }

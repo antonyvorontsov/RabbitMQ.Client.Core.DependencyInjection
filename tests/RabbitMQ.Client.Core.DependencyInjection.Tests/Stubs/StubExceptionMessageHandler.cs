@@ -1,5 +1,6 @@
 using System;
 using RabbitMQ.Client.Core.DependencyInjection.MessageHandlers;
+using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.Tests.Stubs
 {
@@ -12,9 +13,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.Stubs
             _caller = caller;
         }
 
-        public void Handle(string message, string routingKey)
+        public void Handle(BasicDeliverEventArgs eventArgs, string matchingRoute)
         {
-            _caller.Call($"{message}:{routingKey}");
+            _caller.Call($"{eventArgs.GetMessage()}:{matchingRoute}");
             throw new Exception();
         }
     }

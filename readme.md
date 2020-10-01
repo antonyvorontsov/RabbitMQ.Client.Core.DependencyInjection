@@ -35,7 +35,7 @@ Now you can inject an instance of `IQueueService` inside anything you want.
 [Route("api/[controller]")]
 public class HomeController : Controller
 {
-    private readonly IQueueService _queueService;
+    readonly IQueueService _queueService;
     public HomeController(IQueueService queueService)
     {
         _queueService = queueService;
@@ -133,7 +133,7 @@ public class CustomMessageHandler : IMessageHandler
         _logger = logger;
     }
 
-    public void Handle(string message, string routingKey)
+    public void Handle(BasicDeliverEventArgs eventArgs, string matchingRoute)
     {
         // Do whatever you want with the message.
         _logger.LogInformation("Hello world");
@@ -152,7 +152,7 @@ public class CustomAsyncMessageHandler : IAsyncMessageHandler
         _logger = logger;
     }
 
-    public async Task Handle(string message, string routingKey)
+    public async Task Handle(BasicDeliverEventArgs eventArgs, string matchingRoute)
     {
 	   // await something.
     }
@@ -172,7 +172,7 @@ public class MyNonCyclicMessageHandler : INonCyclicMessageHandler
         _logger = logger;
     }
 
-    public void Handle(string message, string routingKey, IQueueService queueService)
+    public void Handle(BasicDeliverEventArgs eventArgs, string matchingRoute, IQueueService queueService)
     {
         // Send anything you want using IQueueService instance.
         var anotherMessage = new MyMessage { Foo = "Bar" };
@@ -193,7 +193,7 @@ public class MyAsyncNonCyclicMessageHandler : IAsyncNonCyclicMessageHandler
         _logger = logger;
     }
 
-    public async Task Handle(string message, string routingKey, IQueueService queueService)
+    public async Task Handle(BasicDeliverEventArgs eventArgs, string matchingRoute, IQueueService queueService)
     {
         // Do async stuff.
         var anotherMessage = new MyMessage { Foo = "Bar" };
@@ -240,11 +240,11 @@ For more information about `appsettings.json` and manual configuration features,
 ## Batch message handlers
 
 There are also a feature that you can use in case of necessity of handling messages in batches.
-First of all you have to create a class that inherits a `BatchMessageHandler` class.
+First of all you have to create a class that inherits a `BaseBatchMessageHandler` class.
 You have to set up values for `QueueName` and `PrefetchCount` properties. These values are responsible for the queue that will be read by the message handler, and the size of batches of messages.
 
 ```c#
-public class CustomBatchMessageHandler : BatchMessageHandler
+public class CustomBatchMessageHandler : BaseBatchMessageHandler
 {
     readonly ILogger<CustomBatchMessageHandler> _logger;
 
@@ -263,12 +263,12 @@ public class CustomBatchMessageHandler : BatchMessageHandler
 
     public override TimeSpan? MessageHandlingPeriod { get; set; } = TimeSpan.FromMilliseconds(500);
 
-    public override Task HandleMessages(IEnumerable<string> messages, CancellationToken cancellationToken)
+    public override Task HandleMessages(IEnumerable<BasicDeliverEventArgs> messages, CancellationToken cancellationToken)
     {
         _logger.LogInformation("Handling a batch of messages.");
         foreach (var message in messages)
         {
-            _logger.LogInformation(message);
+            _logger.LogInformation(message.GetMessage());
         }
         return Task.CompletedTask;
     }
@@ -276,6 +276,7 @@ public class CustomBatchMessageHandler : BatchMessageHandler
 ```
 
 After all you have to register that batch message handler via DI.
+
 ```c#
 services.AddBatchMessageHandler<CustomBatchMessageHandler>(Configuration.GetSection("RabbitMq"));
 ```

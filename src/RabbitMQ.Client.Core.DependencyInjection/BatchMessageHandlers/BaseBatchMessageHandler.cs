@@ -108,15 +108,13 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
 
         async Task ProcessBatchOfMessages(CancellationToken cancellationToken)
         {
-
             var messages = GetMessages();
             if (!messages.Any())
             {
                 return;
             }
 
-            var byteMessages = messages.Select(x => x.Body).ToList();
-            await HandleMessages(byteMessages, cancellationToken).ConfigureAwait(false);
+            await HandleMessages(messages, cancellationToken).ConfigureAwait(false);
             var latestDeliveryTag = messages.Max(x => x.DeliveryTag);
             Channel.BasicAck(latestDeliveryTag, true);
         }
@@ -152,11 +150,11 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
         /// <summary>
         /// Handle a batch of messages.
         /// </summary>
-        /// <param name="messages">A collection of messages as bytes.</param>
+        /// <param name="messages">A collection of messages.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns></returns>
-        public abstract Task HandleMessages(IEnumerable<ReadOnlyMemory<byte>> messages, CancellationToken cancellationToken);
-
+        public abstract Task HandleMessages(IEnumerable<BasicDeliverEventArgs> messages, CancellationToken cancellationToken);
+        
         public Task StopAsync(CancellationToken cancellationToken)
         {
             _timer?.Change(Timeout.Infinite, 0);
