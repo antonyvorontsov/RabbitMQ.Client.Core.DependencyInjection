@@ -21,16 +21,18 @@ namespace Examples.BatchMessageHandler
                     // Let's configure two different BatchMessageHandlers with different methods.
                     // First - configuring an appsettings.json section.
                     services.AddBatchMessageHandler<CustomBatchMessageHandler>(hostContext.Configuration.GetSection("RabbitMq"));
-
+                    
                     // Second one - passing configuration instance.
-                     var rabbitMqConfiguration = new RabbitMqClientOptions
-                     {
-                         HostName = "127.0.0.1",
-                         Port = 5672,
-                         UserName = "guest",
-                         Password = "guest"
-                     };
-                    services.AddBatchMessageHandler<AnotherCustomBatchMessageHandler>(rabbitMqConfiguration);
+                    var rabbitMqConfiguration = new RabbitMqClientOptions
+                    {
+                        HostName = "127.0.0.1",
+                        Port = 5672,
+                        UserName = "guest",
+                        Password = "guest"
+                    };
+                    services.AddBatchMessageHandler<CustomBatchMessageHandler>(rabbitMqConfiguration);
+                    
+                    // Use either of them. Do not register batch message handlers multiple times in your real project.
                 })
                 .ConfigureLogging((hostingContext, logging) =>
                 {
