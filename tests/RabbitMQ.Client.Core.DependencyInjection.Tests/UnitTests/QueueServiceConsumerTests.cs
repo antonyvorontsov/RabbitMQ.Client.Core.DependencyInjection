@@ -35,8 +35,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             connectionFactoryMock.Setup(x => x.CreateConsumer(It.IsAny<IModel>()))
                 .Returns(consumer);
 
-            var messageHandlingServiceMock = new Mock<IMessageHandlingService>();
-            var queueService = CreateService(connectionFactoryMock.Object, messageHandlingServiceMock.Object);
+            var messageHandlingPipelineExecutingServiceMock = new Mock<IMessageHandlingPipelineExecutingService>();
+            var queueService = CreateService(connectionFactoryMock.Object, messageHandlingPipelineExecutingServiceMock.Object);
 
             await consumer.HandleBasicDeliver(
                 "1",
@@ -46,7 +46,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                 "routing,key",
                 null,
                 new ReadOnlyMemory<byte>());
-            messageHandlingServiceMock.Verify(x => x.HandleMessageReceivingEvent(It.IsAny<BasicDeliverEventArgs>(), It.IsAny<IQueueService>()), Times.Never);
+            messageHandlingPipelineExecutingServiceMock.Verify(x => x.Execute(It.IsAny<BasicDeliverEventArgs>(), It.IsAny<IQueueService>()), Times.Never);
 
             queueService.StartConsuming();
 
@@ -62,7 +62,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                     new ReadOnlyMemory<byte>());
             }
 
-            messageHandlingServiceMock.Verify(x => x.HandleMessageReceivingEvent(It.IsAny<BasicDeliverEventArgs>(), It.IsAny<IQueueService>()), Times.Exactly(numberOfMessages));
+            messageHandlingPipelineExecutingServiceMock.Verify(x => x.Execute(It.IsAny<BasicDeliverEventArgs>(), It.IsAny<IQueueService>()), Times.Exactly(numberOfMessages));
         }
 
         [Theory]
@@ -87,8 +87,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             connectionFactoryMock.Setup(x => x.CreateConsumer(It.IsAny<IModel>()))
                 .Returns(consumer);
 
-            var messageHandlingServiceMock = new Mock<IMessageHandlingService>();
-            var queueService = CreateService(connectionFactoryMock.Object, messageHandlingServiceMock.Object);
+            var messageHandlingPipelineExecutingServiceMock = new Mock<IMessageHandlingPipelineExecutingService>();
+            var queueService = CreateService(connectionFactoryMock.Object, messageHandlingPipelineExecutingServiceMock.Object);
             queueService.StartConsuming();
             for (var i = 1; i <= numberOfMessages; i++)
             {
@@ -102,7 +102,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                     new ReadOnlyMemory<byte>());
             }
 
-            messageHandlingServiceMock.Verify(x => x.HandleMessageReceivingEvent(It.IsAny<BasicDeliverEventArgs>(), It.IsAny<IQueueService>()), Times.Exactly(numberOfMessages));
+            messageHandlingPipelineExecutingServiceMock.Verify(x => x.Execute(It.IsAny<BasicDeliverEventArgs>(), It.IsAny<IQueueService>()), Times.Exactly(numberOfMessages));
 
             queueService.StopConsuming();
             await consumer.HandleBasicDeliver(
@@ -114,12 +114,12 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                 null,
                 new ReadOnlyMemory<byte>());
 
-            messageHandlingServiceMock.Verify(x => x.HandleMessageReceivingEvent(It.IsAny<BasicDeliverEventArgs>(), It.IsAny<IQueueService>()), Times.Exactly(numberOfMessages));
+            messageHandlingPipelineExecutingServiceMock.Verify(x => x.Execute(It.IsAny<BasicDeliverEventArgs>(), It.IsAny<IQueueService>()), Times.Exactly(numberOfMessages));
         }
 
         static IConsumingService CreateService(
             IRabbitMqConnectionFactory connectionFactory,
-            IMessageHandlingService messageHandlingService)
+            IMessageHandlingPipelineExecutingService messageHandlingPipelineExecutingService)
         {
             var guid = Guid.NewGuid();
             var connectionOptionContainer = new RabbitMqConnectionOptionsContainer
@@ -135,7 +135,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                 guid,
                 connectionFactory,
                 new List<RabbitMqConnectionOptionsContainer> { connectionOptionContainer },
-                messageHandlingService,
+                messageHandlingPipelineExecutingService,
                 new List<RabbitMqExchange>(),
                 loggerMock.Object);
         }

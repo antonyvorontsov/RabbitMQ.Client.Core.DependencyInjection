@@ -233,6 +233,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             services.AddLogging(options => options.AddConsole());
             services.TryAddSingleton<IRabbitMqConnectionFactory, RabbitMqConnectionFactory>();
             services.TryAddSingleton<IMessageHandlerContainerBuilder, MessageHandlerContainerBuilder>();
+            services.TryAddSingleton<IMessageHandlingPipelineExecutingService, MessageHandlingPipelineExecutingService>();
             services.TryAddSingleton<IMessageHandlingService, MessageHandlingService>();
             return services;
         }
@@ -243,9 +244,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                 guid,
                 provider.GetService<IRabbitMqConnectionFactory>(),
                 provider.GetServices<RabbitMqConnectionOptionsContainer>(),
-                provider.GetService<IMessageHandlingService>(),
+                provider.GetService<IMessageHandlingPipelineExecutingService>(),
                 provider.GetServices<RabbitMqExchange>(),
-                provider.GetService<ILogger<QueueService> >()));
+                provider.GetService<ILogger<QueueService>>()));
             return services;
         }
 
@@ -255,9 +256,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                 guid,
                 provider.GetService<IRabbitMqConnectionFactory>(),
                 provider.GetServices<RabbitMqConnectionOptionsContainer>(),
-                provider.GetService<IMessageHandlingService>(),
+                provider.GetService<IMessageHandlingPipelineExecutingService>(),
                 provider.GetServices<RabbitMqExchange>(),
-                provider.GetService<ILogger<QueueService> >()));
+                provider.GetService<ILogger<QueueService>>()));
             return services;
         }
 
@@ -267,9 +268,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                 guid,
                 provider.GetService<IRabbitMqConnectionFactory>(),
                 provider.GetServices<RabbitMqConnectionOptionsContainer>(),
-                provider.GetService<IMessageHandlingService>(),
+                provider.GetService<IMessageHandlingPipelineExecutingService>(),
                 provider.GetServices<RabbitMqExchange>(),
-                provider.GetService<ILogger<QueueService> >()));
+                provider.GetService<ILogger<QueueService>>()));
             return services;
         }
 
@@ -279,9 +280,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                 guid,
                 provider.GetService<IRabbitMqConnectionFactory>(),
                 provider.GetServices<RabbitMqConnectionOptionsContainer>(),
-                provider.GetService<IMessageHandlingService>(),
+                provider.GetService<IMessageHandlingPipelineExecutingService>(),
                 provider.GetServices<RabbitMqExchange>(),
-                provider.GetService<ILogger<QueueService> >()));
+                provider.GetService<ILogger<QueueService>>()));
             return services;
         }
 
@@ -291,9 +292,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                 guid,
                 provider.GetService<IRabbitMqConnectionFactory>(),
                 provider.GetServices<RabbitMqConnectionOptionsContainer>(),
-                provider.GetService<IMessageHandlingService>(),
+                provider.GetService<IMessageHandlingPipelineExecutingService>(),
                 provider.GetServices<RabbitMqExchange>(),
-                provider.GetService<ILogger<QueueService> >()));
+                provider.GetService<ILogger<QueueService>>()));
             return services;
         }
 
@@ -303,9 +304,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection
                 guid,
                 provider.GetService<IRabbitMqConnectionFactory>(),
                 provider.GetServices<RabbitMqConnectionOptionsContainer>(),
-                provider.GetService<IMessageHandlingService>(),
+                provider.GetService<IMessageHandlingPipelineExecutingService>(),
                 provider.GetServices<RabbitMqExchange>(),
-                provider.GetService<ILogger<QueueService> >()));
+                provider.GetService<ILogger<QueueService>>()));
             return services;
         }
 

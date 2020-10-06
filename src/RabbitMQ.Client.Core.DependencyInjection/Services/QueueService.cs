@@ -29,7 +29,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         AsyncEventingBasicConsumer _consumer;
 
         readonly IRabbitMqConnectionFactory _rabbitMqConnectionFactory;
-        readonly IMessageHandlingService _messageHandlingService;
+        readonly IMessageHandlingPipelineExecutingService _messageHandlingPipelineExecutingService;
         readonly IEnumerable<RabbitMqExchange> _exchanges;
         readonly ILogger<QueueService> _logger;
 
@@ -43,7 +43,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             Guid guid,
             IRabbitMqConnectionFactory rabbitMqConnectionFactory,
             IEnumerable<RabbitMqConnectionOptionsContainer> connectionOptionsContainers,
-            IMessageHandlingService messageHandlingService,
+            IMessageHandlingPipelineExecutingService messageHandlingPipelineExecutingService,
             IEnumerable<RabbitMqExchange> exchanges,
             ILogger<QueueService> logger)
         {
@@ -54,7 +54,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             }
 
             _rabbitMqConnectionFactory = rabbitMqConnectionFactory;
-            _messageHandlingService = messageHandlingService;
+            _messageHandlingPipelineExecutingService = messageHandlingPipelineExecutingService;
             _exchanges = exchanges;
             _logger = logger;
 
@@ -500,6 +500,6 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
                 { "x-expires", millisecondsDelay + QueueExpirationTime }
             };
 
-        Task ConsumerOnReceived(object sender, BasicDeliverEventArgs eventArgs) => _messageHandlingService.HandleMessageReceivingEvent(eventArgs, this);
+        Task ConsumerOnReceived(object sender, BasicDeliverEventArgs eventArgs) => _messageHandlingPipelineExecutingService.Execute(eventArgs, this);
     }
 }
