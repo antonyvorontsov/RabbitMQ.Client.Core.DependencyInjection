@@ -230,7 +230,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         static IServiceCollection AddRabbitMqClientInfrastructure(this IServiceCollection services)
         {
             services.AddOptions();
-            services.AddLogging(options => options.AddConsole());
+            services.AddLogging();
             services.TryAddSingleton<IRabbitMqConnectionFactory, RabbitMqConnectionFactory>();
             services.TryAddSingleton<IMessageHandlerContainerBuilder, MessageHandlerContainerBuilder>();
             services.TryAddSingleton<IMessageHandlingService, MessageHandlingService>();
