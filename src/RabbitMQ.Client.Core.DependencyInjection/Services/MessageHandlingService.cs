@@ -36,20 +36,24 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         /// <param name="queueService">An instance of the queue service <see cref="IQueueService"/>.</param>
         public async Task HandleMessageReceivingEvent(BasicDeliverEventArgs eventArgs, IQueueService queueService)
         {
-            try
-            {
-                _logger.LogInformation($"A new message received with deliveryTag {eventArgs.DeliveryTag}.");
-                var matchingRoutes = GetMatchingRoutePatterns(eventArgs.Exchange, eventArgs.RoutingKey);
-                await ProcessMessageEvent(eventArgs, queueService, matchingRoutes).ConfigureAwait(false);
-                queueService.ConsumingChannel.BasicAck(eventArgs.DeliveryTag, false);
-                _logger.LogInformation($"Message processing finished successfully. Acknowledge has been sent with deliveryTag {eventArgs.DeliveryTag}.");
-            }
-            catch (Exception exception)
-            {
-                queueService.ConsumingChannel.BasicAck(eventArgs.DeliveryTag, false);
-                _logger.LogError(new EventId(), exception, $"An error occurred while processing received message with the delivery tag {eventArgs.DeliveryTag}.");
-                await HandleFailedMessageProcessing(eventArgs, queueService).ConfigureAwait(false);
-            }
+            _logger.LogInformation($"A new message received with deliveryTag {eventArgs.DeliveryTag}.");
+            var matchingRoutes = GetMatchingRoutePatterns(eventArgs.Exchange, eventArgs.RoutingKey);
+            await ProcessMessageEvent(eventArgs, queueService, matchingRoutes).ConfigureAwait(false);
+            queueService.ConsumingChannel.BasicAck(eventArgs.DeliveryTag, false);
+            _logger.LogInformation($"Message processing finished successfully. Acknowledge has been sent with deliveryTag {eventArgs.DeliveryTag}.");
+        }
+
+        /// <summary>
+        /// Handle message processing failure.
+        /// </summary>
+        /// <param name="exception">An occured exception.</param>
+        /// <param name="eventArgs">Arguments of message receiving event.</param>
+        /// <param name="queueService">An instance of the queue service <see cref="IQueueService"/>.</param>
+        public async Task HandleMessageProcessingFailure(Exception exception, BasicDeliverEventArgs eventArgs, IQueueService queueService)
+        {
+            queueService.ConsumingChannel.BasicAck(eventArgs.DeliveryTag, false);
+            _logger.LogError(new EventId(), exception, $"An error occurred while processing received message with the delivery tag {eventArgs.DeliveryTag}.");
+            await HandleFailedMessageProcessing(eventArgs, queueService).ConfigureAwait(false);
         }
 
         IEnumerable<string> GetMatchingRoutePatterns(string exchange, string routingKey)
