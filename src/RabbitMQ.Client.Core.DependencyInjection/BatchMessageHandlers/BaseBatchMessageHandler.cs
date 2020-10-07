@@ -74,7 +74,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
             
             _clientOptions = optionsContainer.ClientOptions ?? throw new ArgumentNullException($"Consumer client options is null for {nameof(BaseBatchMessageHandler)}.", nameof(optionsContainer.ClientOptions));
             _rabbitMqConnectionFactory = rabbitMqConnectionFactory;
-            _batchMessageHandlingFilters = batchMessageHandlingFilters;
+            _batchMessageHandlingFilters = batchMessageHandlingFilters ?? Enumerable.Empty<IBatchMessageHandlingFilter>();
             _logger = logger;
         }
 
