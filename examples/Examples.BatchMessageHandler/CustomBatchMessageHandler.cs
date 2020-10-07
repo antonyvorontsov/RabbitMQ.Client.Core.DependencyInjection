@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client.Core.DependencyInjection;
 using RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers;
+using RabbitMQ.Client.Core.DependencyInjection.Filters;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
 using RabbitMQ.Client.Core.DependencyInjection.Services;
 using RabbitMQ.Client.Events;
@@ -17,8 +18,9 @@ namespace Examples.BatchMessageHandler
         public CustomBatchMessageHandler(
             IRabbitMqConnectionFactory rabbitMqConnectionFactory,
             IEnumerable<BatchConsumerConnectionOptions> batchConsumerConnectionOptions,
+            IEnumerable<IBatchMessageHandlingFilter> batchMessageHandlingFilters,
             ILogger<CustomBatchMessageHandler> logger)
-            : base(rabbitMqConnectionFactory, batchConsumerConnectionOptions, logger)
+            : base(rabbitMqConnectionFactory, batchConsumerConnectionOptions, batchMessageHandlingFilters, logger)
         {
             _logger = logger;
         }

@@ -35,11 +35,11 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         {
             try
             {
-                await ExecutePipeline(eventArgs, queueService);
+                await ExecutePipeline(eventArgs, queueService).ConfigureAwait(false);
             }
             catch (Exception exception)
             {
-                await ExecuteFailurePipeline(exception, eventArgs, queueService);
+                await ExecuteFailurePipeline(exception, eventArgs, queueService).ConfigureAwait(false);
             }
         }
 
@@ -51,7 +51,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
                 handle = filter.Execute(handle);
             }
 
-            await handle(eventArgs, queueService);
+            await handle(eventArgs, queueService).ConfigureAwait(false);
         }
 
         async Task ExecuteFailurePipeline(Exception exception, BasicDeliverEventArgs eventArgs, IQueueService queueService)
@@ -62,7 +62,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
                 handle = filter.Execute(handle);
             }
 
-            await handle(exception, eventArgs, queueService);
+            await handle(exception, eventArgs, queueService).ConfigureAwait(false);
         }
     }
 }

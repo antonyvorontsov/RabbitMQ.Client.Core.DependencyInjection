@@ -30,7 +30,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
 
             messageHandlingServiceMock.Verify(x => x.HandleMessageReceivingEvent(argsMock.Object, queueServiceMock.Object), Times.Once);
         }
-        
+
         [Fact]
         public async Task ShouldProperlyExecutePipelineInReverseOrder()
         {
@@ -40,9 +40,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             var messageHandlingServiceMock = new Mock<IMessageHandlingService>();
 
             var handlerOrderMap = new Dictionary<int, int>();
-            var firstFilter = new MessageHandlingFilterStub(1, handlerOrderMap);
-            var secondFilter = new MessageHandlingFilterStub(2, handlerOrderMap);
-            var thirdFilter = new MessageHandlingFilterStub(3, handlerOrderMap);
+            var firstFilter = new StubMessageHandlingFilter(1, handlerOrderMap);
+            var secondFilter = new StubMessageHandlingFilter(2, handlerOrderMap);
+            var thirdFilter = new StubMessageHandlingFilter(3, handlerOrderMap);
             
             var handlingFilters = new List<IMessageHandlingFilter>
             {
@@ -63,7 +63,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             Assert.Equal(2, handlerOrderMap[secondFilter.MessageHandlerNumber]);
             Assert.Equal(3, handlerOrderMap[firstFilter.MessageHandlerNumber]);
         }
-        
+
         [Fact]
         public async Task ShouldProperlyExecuteFailurePipelineInReverseOrderWhenMessageHandlingServiceThrowsException()
         {
@@ -76,9 +76,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                 .ThrowsAsync(exception);
 
             var filterOrderMap = new Dictionary<int, int>();
-            var firstFilter = new MessageHandlingExceptionFilterStub(1, filterOrderMap);
-            var secondFilter = new MessageHandlingExceptionFilterStub(2, filterOrderMap);
-            var thirdFilter = new MessageHandlingExceptionFilterStub(3, filterOrderMap);
+            var firstFilter = new StubMessageHandlingExceptionFilter(1, filterOrderMap);
+            var secondFilter = new StubMessageHandlingExceptionFilter(2, filterOrderMap);
+            var thirdFilter = new StubMessageHandlingExceptionFilter(3, filterOrderMap);
             var exceptionFilters = new List<IMessageHandlingExceptionFilter>
             {
                 firstFilter,
@@ -98,7 +98,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             Assert.Equal(2, filterOrderMap[secondFilter.FilterNumber]);
             Assert.Equal(3, filterOrderMap[firstFilter.FilterNumber]);
         }
-        
+
         [Fact]
         public async Task ShouldProperlyExecuteFailurePipelineInReverseOrderWhenMessageHandlingFilterThrowsException()
         {
@@ -117,9 +117,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             };
             
             var filterOrderMap = new Dictionary<int, int>();
-            var firstFilter = new MessageHandlingExceptionFilterStub(1, filterOrderMap);
-            var secondFilter = new MessageHandlingExceptionFilterStub(2, filterOrderMap);
-            var thirdFilter = new MessageHandlingExceptionFilterStub(3, filterOrderMap);
+            var firstFilter = new StubMessageHandlingExceptionFilter(1, filterOrderMap);
+            var secondFilter = new StubMessageHandlingExceptionFilter(2, filterOrderMap);
+            var thirdFilter = new StubMessageHandlingExceptionFilter(3, filterOrderMap);
             var exceptionFilters = new List<IMessageHandlingExceptionFilter>
             {
                 firstFilter,
@@ -139,7 +139,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             Assert.Equal(2, filterOrderMap[secondFilter.FilterNumber]);
             Assert.Equal(3, filterOrderMap[firstFilter.FilterNumber]);
         }
-        
+
         static IMessageHandlingPipelineExecutingService CreateService(
             IMessageHandlingService messageHandlingService,
             IEnumerable<IMessageHandlingFilter> handlingFilters,

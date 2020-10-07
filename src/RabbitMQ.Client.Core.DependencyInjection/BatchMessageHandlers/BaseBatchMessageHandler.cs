@@ -8,6 +8,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client.Core.DependencyInjection.Configuration;
 using RabbitMQ.Client.Core.DependencyInjection.Exceptions;
+using RabbitMQ.Client.Core.DependencyInjection.Filters;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
 using RabbitMQ.Client.Core.DependencyInjection.Services;
 using RabbitMQ.Client.Events;
@@ -51,6 +52,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
 
         readonly IRabbitMqConnectionFactory _rabbitMqConnectionFactory;
         readonly RabbitMqClientOptions _clientOptions;
+        readonly IEnumerable<IBatchMessageHandlingFilter> _batchMessageHandlingFilters;
         readonly ILogger<BaseBatchMessageHandler> _logger;
 
         readonly ConcurrentBag<BasicDeliverEventArgs> _messages = new ConcurrentBag<BasicDeliverEventArgs>();
@@ -61,6 +63,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
         protected BaseBatchMessageHandler(
             IRabbitMqConnectionFactory rabbitMqConnectionFactory,
             IEnumerable<BatchConsumerConnectionOptions> batchConsumerConnectionOptions,
+            IEnumerable<IBatchMessageHandlingFilter> batchMessageHandlingFilters,
             ILogger<BaseBatchMessageHandler> logger)
         {
             var optionsContainer = batchConsumerConnectionOptions.FirstOrDefault(x => x.Type == GetType());
@@ -68,9 +71,10 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
             {
                 throw new ArgumentNullException($"Client connection options for {nameof(BaseBatchMessageHandler)} has not been found.", nameof(batchConsumerConnectionOptions));
             }
-
+            
             _clientOptions = optionsContainer.ClientOptions ?? throw new ArgumentNullException($"Consumer client options is null for {nameof(BaseBatchMessageHandler)}.", nameof(optionsContainer.ClientOptions));
             _rabbitMqConnectionFactory = rabbitMqConnectionFactory;
+            _batchMessageHandlingFilters = batchMessageHandlingFilters;
             _logger = logger;
         }
 
@@ -114,8 +118,25 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
                 return;
             }
 
-            await HandleMessages(messages, cancellationToken).ConfigureAwait(false);
-            var latestDeliveryTag = messages.Max(x => x.DeliveryTag);
+            await ExecutePipeline(messages, cancellationToken).ConfigureAwait(false);
+        }
+        
+        async Task ExecutePipeline(IEnumerable<BasicDeliverEventArgs> messages, CancellationToken cancellationToken)
+        {
+            Func<IEnumerable<BasicDeliverEventArgs>, CancellationToken, Task> handle = Handle;
+            foreach (var filter in _batchMessageHandlingFilters.Reverse())
+            {
+                handle = filter.Execute(handle);
+            }
+
+            await handle(messages, cancellationToken).ConfigureAwait(false);
+        }
+
+        async Task Handle(IEnumerable<BasicDeliverEventArgs> messages, CancellationToken cancellationToken)
+        {
+            var messagesCollection = messages.ToList();
+            await HandleMessages(messagesCollection, cancellationToken).ConfigureAwait(false);
+            var latestDeliveryTag = messagesCollection.Max(x => x.DeliveryTag);
             Channel.BasicAck(latestDeliveryTag, true);
         }
 

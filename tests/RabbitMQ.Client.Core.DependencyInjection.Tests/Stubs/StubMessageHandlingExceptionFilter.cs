@@ -8,13 +8,13 @@ using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.Tests.Stubs
 {
-    public class MessageHandlingExceptionFilterStub : IMessageHandlingExceptionFilter
+    public class StubMessageHandlingExceptionFilter : IMessageHandlingExceptionFilter
     {
         public int FilterNumber { get; }
             
         private readonly Dictionary<int, int> _filterOrderMap;
             
-        public MessageHandlingExceptionFilterStub(int messageHandlerNumber, Dictionary<int, int> filterOrderMap)
+        public StubMessageHandlingExceptionFilter(int messageHandlerNumber, Dictionary<int, int> filterOrderMap)
         {
             if (!filterOrderMap.ContainsKey(messageHandlerNumber))
             {
@@ -24,6 +24,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.Stubs
             _filterOrderMap = filterOrderMap;
             FilterNumber = messageHandlerNumber;
         }
+        
         public Func<Exception, BasicDeliverEventArgs, IQueueService, Task> Execute(Func<Exception, BasicDeliverEventArgs, IQueueService, Task> next)
         {
             var order = _filterOrderMap.Values.Max();

@@ -8,13 +8,13 @@ using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.Tests.Stubs
 {
-    public class MessageHandlingFilterStub : IMessageHandlingFilter
+    public class StubMessageHandlingFilter : IMessageHandlingFilter
     {
         public int MessageHandlerNumber { get; }
             
         private readonly Dictionary<int, int> _handlerOrderMap;
             
-        public MessageHandlingFilterStub(int messageHandlerNumber, Dictionary<int, int> handlerOrderMap)
+        public StubMessageHandlingFilter(int messageHandlerNumber, Dictionary<int, int> handlerOrderMap)
         {
             if (!handlerOrderMap.ContainsKey(messageHandlerNumber))
             {
