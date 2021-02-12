@@ -18,31 +18,31 @@ namespace RabbitMQ.Client.Core.DependencyInjection.InternalExtensions
             return options;
         }
 
-        internal static IServiceCollection ConfigureRabbitMqProducingClientOptions(this IServiceCollection services, Guid guid, RabbitMqClientOptions options)
+        internal static IServiceCollection ConfigureRabbitMqProducingClientOptions(this IServiceCollection services, Type type, RabbitMqClientOptions options)
         {
             var container = new RabbitMqConnectionOptionsContainer
             {
-                Guid = guid,
+                Type = type,
                 Options = new RabbitMqConnectionOptions { ProducerOptions = options }
             };
             return services.AddRabbitMqConnectionOptionsContainer(container);
         }
 
-        internal static IServiceCollection ConfigureRabbitMqConsumingClientOptions(this IServiceCollection services, Guid guid, RabbitMqClientOptions options)
+        internal static IServiceCollection ConfigureRabbitMqConsumingClientOptions(this IServiceCollection services, Type type, RabbitMqClientOptions options)
         {
             var container = new RabbitMqConnectionOptionsContainer
             {
-                Guid = guid,
+                Type = type,
                 Options = new RabbitMqConnectionOptions { ConsumerOptions = options }
             };
             return services.AddRabbitMqConnectionOptionsContainer(container);
         }
 
-        internal static IServiceCollection ConfigureRabbitMqConnectionOptions(this IServiceCollection services, Guid guid, RabbitMqClientOptions options)
+        internal static IServiceCollection ConfigureRabbitMqConnectionOptions(this IServiceCollection services, Type type, RabbitMqClientOptions options)
         {
             var container = new RabbitMqConnectionOptionsContainer
             {
-                Guid = guid,
+                Type = type,
                 Options = new RabbitMqConnectionOptions
                 {
                     ProducerOptions = options,

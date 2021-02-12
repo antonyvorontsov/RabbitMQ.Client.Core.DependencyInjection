@@ -1,5 +1,3 @@
-using RabbitMQ.Client.Core.DependencyInjection.MessageHandlers;
-using RabbitMQ.Client.Core.DependencyInjection.Services;
 using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.Tests.Stubs

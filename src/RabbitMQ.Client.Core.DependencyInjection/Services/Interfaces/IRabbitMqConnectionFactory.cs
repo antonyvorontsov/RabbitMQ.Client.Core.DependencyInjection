@@ -1,7 +1,7 @@
 using RabbitMQ.Client.Core.DependencyInjection.Configuration;
 using RabbitMQ.Client.Events;
 
-namespace RabbitMQ.Client.Core.DependencyInjection.Services
+namespace RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces
 {
     /// <summary>
     /// Interface of the service that is responsible for creating RabbitMQ connections depending on options <see cref="RabbitMqClientOptions"/>.

@@ -3,12 +3,15 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces;
 
-namespace Examples.AdvancedConfiguration.Services
+namespace RabbitMQ.Client.Core.DependencyInjection.Services
 {
+    /// <summary>
+    /// Hosted service that is responsible for starting the consumer.
+    /// </summary>
     public class ConsumingHostedService : IHostedService
     {
-        readonly IConsumingService _consumingService;
-
+        private readonly IConsumingService _consumingService;
+        
         public ConsumingHostedService(IConsumingService consumingService)
         {
             _consumingService = consumingService;

@@ -8,6 +8,7 @@ using RabbitMQ.Client.Core.DependencyInjection.Exceptions;
 using RabbitMQ.Client.Core.DependencyInjection.InternalExtensions;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
 using RabbitMQ.Client.Core.DependencyInjection.Services;
+using RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces;
 
 namespace RabbitMQ.Client.Core.DependencyInjection
 {

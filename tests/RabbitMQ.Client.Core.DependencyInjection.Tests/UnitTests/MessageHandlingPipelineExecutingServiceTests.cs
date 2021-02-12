@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Moq;
 using RabbitMQ.Client.Core.DependencyInjection.Filters;
 using RabbitMQ.Client.Core.DependencyInjection.Services;
+using RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces;
 using RabbitMQ.Client.Core.DependencyInjection.Tests.Stubs;
 using RabbitMQ.Client.Events;
 using Xunit;

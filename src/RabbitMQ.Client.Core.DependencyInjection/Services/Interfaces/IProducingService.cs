@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace RabbitMQ.Client.Core.DependencyInjection.Services
+namespace RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces
 {
     /// <summary>
     /// Custom RabbitMQ producing service interface.
     /// </summary>
-    public interface IProducingService
+    public interface IProducingService : IRabbitMqService
     {
         /// <summary>
         /// RabbitMQ producing connection.

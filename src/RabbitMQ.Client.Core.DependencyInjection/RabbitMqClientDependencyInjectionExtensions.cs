@@ -9,6 +9,7 @@ using RabbitMQ.Client.Core.DependencyInjection.Exceptions;
 using RabbitMQ.Client.Core.DependencyInjection.InternalExtensions;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
 using RabbitMQ.Client.Core.DependencyInjection.Services;
+using RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces;
 
 namespace RabbitMQ.Client.Core.DependencyInjection
 {
@@ -240,73 +241,73 @@ namespace RabbitMQ.Client.Core.DependencyInjection
 
         static IServiceCollection ResolveSingletonQueueService(this IServiceCollection services, Guid guid)
         {
-            services.TryAddSingleton<IQueueService>(provider => new QueueService(
+            services.TryAddSingleton<IQueueService>(provider => new ProducingService(
                 guid,
                 provider.GetService<IRabbitMqConnectionFactory>(),
                 provider.GetServices<RabbitMqConnectionOptionsContainer>(),
                 provider.GetService<IMessageHandlingPipelineExecutingService>(),
                 provider.GetServices<RabbitMqExchange>(),
-                provider.GetService<ILogger<QueueService>>()));
+                provider.GetService<ILogger<ProducingService>>()));
             return services;
         }
 
         static IServiceCollection ResolveTransientQueueService(this IServiceCollection services, Guid guid)
         {
-            services.TryAddTransient<IQueueService>(provider => new QueueService(
+            services.TryAddTransient<IQueueService>(provider => new ProducingService(
                 guid,
                 provider.GetService<IRabbitMqConnectionFactory>(),
                 provider.GetServices<RabbitMqConnectionOptionsContainer>(),
                 provider.GetService<IMessageHandlingPipelineExecutingService>(),
                 provider.GetServices<RabbitMqExchange>(),
-                provider.GetService<ILogger<QueueService>>()));
+                provider.GetService<ILogger<ProducingService>>()));
             return services;
         }
 
         static IServiceCollection ResolveSingletonProducingService(this IServiceCollection services, Guid guid)
         {
-            services.TryAddSingleton<IProducingService>(provider => new QueueService(
+            services.TryAddSingleton<IProducingService>(provider => new ProducingService(
                 guid,
                 provider.GetService<IRabbitMqConnectionFactory>(),
                 provider.GetServices<RabbitMqConnectionOptionsContainer>(),
                 provider.GetService<IMessageHandlingPipelineExecutingService>(),
                 provider.GetServices<RabbitMqExchange>(),
-                provider.GetService<ILogger<QueueService>>()));
+                provider.GetService<ILogger<ProducingService>>()));
             return services;
         }
 
         static IServiceCollection ResolveTransientProducingService(this IServiceCollection services, Guid guid)
         {
-            services.TryAddTransient<IProducingService>(provider => new QueueService(
+            services.TryAddTransient<IProducingService>(provider => new ProducingService(
                 guid,
                 provider.GetService<IRabbitMqConnectionFactory>(),
                 provider.GetServices<RabbitMqConnectionOptionsContainer>(),
                 provider.GetService<IMessageHandlingPipelineExecutingService>(),
                 provider.GetServices<RabbitMqExchange>(),
-                provider.GetService<ILogger<QueueService>>()));
+                provider.GetService<ILogger<ProducingService>>()));
             return services;
         }
 
         static IServiceCollection ResolveSingletonConsumingService(this IServiceCollection services, Guid guid)
         {
-            services.TryAddSingleton<IConsumingService>(provider => new QueueService(
+            services.TryAddSingleton<IConsumingService>(provider => new ProducingService(
                 guid,
                 provider.GetService<IRabbitMqConnectionFactory>(),
                 provider.GetServices<RabbitMqConnectionOptionsContainer>(),
                 provider.GetService<IMessageHandlingPipelineExecutingService>(),
                 provider.GetServices<RabbitMqExchange>(),
-                provider.GetService<ILogger<QueueService>>()));
+                provider.GetService<ILogger<ProducingService>>()));
             return services;
         }
 
         static IServiceCollection ResolveTransientConsumingService(this IServiceCollection services, Guid guid)
         {
-            services.TryAddTransient<IConsumingService>(provider => new QueueService(
+            services.TryAddTransient<IConsumingService>(provider => new ProducingService(
                 guid,
                 provider.GetService<IRabbitMqConnectionFactory>(),
                 provider.GetServices<RabbitMqConnectionOptionsContainer>(),
                 provider.GetService<IMessageHandlingPipelineExecutingService>(),
                 provider.GetServices<RabbitMqExchange>(),
-                provider.GetService<ILogger<QueueService>>()));
+                provider.GetService<ILogger<ProducingService>>()));
             return services;
         }
 

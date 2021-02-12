@@ -6,6 +6,7 @@ using Moq;
 using RabbitMQ.Client.Core.DependencyInjection.Configuration;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
 using RabbitMQ.Client.Core.DependencyInjection.Services;
+using RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces;
 using RabbitMQ.Client.Events;
 using Xunit;
 
@@ -130,8 +131,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                     ConsumerOptions = new RabbitMqClientOptions()
                 }
             };
-            var loggerMock = new Mock<ILogger<QueueService>>();
-            return new QueueService(
+            var loggerMock = new Mock<ILogger<ProducingService>>();
+            return new ProducingService(
                 guid,
                 connectionFactory,
                 new List<RabbitMqConnectionOptionsContainer> { connectionOptionContainer },

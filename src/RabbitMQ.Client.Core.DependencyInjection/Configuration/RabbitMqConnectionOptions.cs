@@ -1,10 +1,7 @@
-using RabbitMQ.Client.Core.DependencyInjection.Services;
-
 namespace RabbitMQ.Client.Core.DependencyInjection.Configuration
 {
     /// <summary>
-    /// An options model that "contains" sections for producing and consuming connections of a RabbitMQ clients
-    /// <see cref="IQueueService"/>, <see cref="IConsumingService"/> and <see cref="IProducingService"/>.
+    /// An options model that "contains" sections for producing and consuming connections of a RabbitMQ clients.
     /// </summary>
     public class RabbitMqConnectionOptions
     {

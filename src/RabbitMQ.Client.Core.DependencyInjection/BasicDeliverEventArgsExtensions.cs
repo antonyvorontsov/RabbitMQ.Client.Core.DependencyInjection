@@ -75,7 +75,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         {
             eventArgs.EnsureIsNotNull();
             var messageString = Encoding.UTF8.GetString(eventArgs.Body.ToArray());
-            return JsonConvert.DeserializeAnonymousType<T>(messageString, anonymousTypeObject);
+            return JsonConvert.DeserializeAnonymousType(messageString, anonymousTypeObject);
         }
         
         /// <summary>
@@ -90,7 +90,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         {
             eventArgs.EnsureIsNotNull();
             var messageString = Encoding.UTF8.GetString(eventArgs.Body.ToArray());
-            return JsonConvert.DeserializeAnonymousType<T>(messageString, anonymousTypeObject, settings);
+            return JsonConvert.DeserializeAnonymousType(messageString, anonymousTypeObject, settings);
         }
         
         static void EnsureIsNotNull(this BasicDeliverEventArgs eventArgs)

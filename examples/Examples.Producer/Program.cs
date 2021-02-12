@@ -3,7 +3,6 @@ using RabbitMQ.Client.Core.DependencyInjection;
 using RabbitMQ.Client.Core.DependencyInjection.Configuration;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using RabbitMQ.Client.Core.DependencyInjection.Services;
 
 namespace Examples.Producer
 {

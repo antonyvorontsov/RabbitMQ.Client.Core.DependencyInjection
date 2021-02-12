@@ -34,8 +34,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.InternalExtensions
                 RoutePatterns = patterns
             };
             services.Add(new ServiceDescriptor(typeof(MessageHandlerRouter), router));
-            services.AddMessageHandlerOrderingModel<TImplementation>(patterns, exchange, order);
-            return services;
+            return services.AddMessageHandlerOrderingModel<TImplementation>(patterns, exchange, order);
         }
 
         internal static IServiceCollection AddInstanceSingleton<TInterface, TImplementation>(this IServiceCollection services, IEnumerable<string> routePatterns, string exchange, int order)
@@ -51,8 +50,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.InternalExtensions
                 RoutePatterns = patterns
             };
             services.Add(new ServiceDescriptor(typeof(MessageHandlerRouter), router));
-            services.AddMessageHandlerOrderingModel<TImplementation>(patterns, exchange, order);
-            return services;
+            return services.AddMessageHandlerOrderingModel<TImplementation>(patterns, exchange, order);
         }
 
         static IServiceCollection AddMessageHandlerOrderingModel<TImplementation>(this IServiceCollection services, IEnumerable<string> routePatterns, string exchange, int order)

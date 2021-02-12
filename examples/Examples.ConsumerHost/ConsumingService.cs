@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Logging;
 using System.Threading;
 using System.Threading.Tasks;
-using RabbitMQ.Client.Core.DependencyInjection.Services;
 
 namespace Examples.ConsumerHost
 {

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Core.DependencyInjection.Filters;
-using RabbitMQ.Client.Core.DependencyInjection.Services;
 using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.Tests.Stubs

@@ -7,6 +7,7 @@ using Moq;
 using RabbitMQ.Client.Core.DependencyInjection.MessageHandlers;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
 using RabbitMQ.Client.Core.DependencyInjection.Services;
+using RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces;
 using RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests.Models;
 using RabbitMQ.Client.Events;
 using Xunit;

@@ -6,7 +6,7 @@ using RabbitMQ.Client.Core.DependencyInjection;
 using RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers;
 using RabbitMQ.Client.Core.DependencyInjection.Filters;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
-using RabbitMQ.Client.Core.DependencyInjection.Services;
+using RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces;
 using RabbitMQ.Client.Events;
 
 namespace Examples.BatchMessageHandler
