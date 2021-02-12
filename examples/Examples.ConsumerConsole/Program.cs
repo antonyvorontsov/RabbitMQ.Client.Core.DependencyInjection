@@ -25,7 +25,7 @@ namespace Examples.ConsumerConsole
             consumingService.StartConsuming();
         }
 
-        static void ConfigureServices(IServiceCollection services)
+        private static void ConfigureServices(IServiceCollection services)
         {
             var rabbitMqSection = Configuration.GetSection("RabbitMq");
             var exchangeSection = Configuration.GetSection("RabbitMqExchange");

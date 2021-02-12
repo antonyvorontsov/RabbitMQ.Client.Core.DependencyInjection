@@ -15,10 +15,10 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
     /// </summary>
     public class MessageHandlerContainerBuilder : IMessageHandlerContainerBuilder
     {
-        readonly IEnumerable<MessageHandlerRouter> _routers;
-        readonly IEnumerable<MessageHandlerOrderingModel> _orderingModels;
-        readonly IEnumerable<IMessageHandler> _messageHandlers;
-        readonly IEnumerable<IAsyncMessageHandler> _asyncMessageHandlers;
+        private readonly IEnumerable<MessageHandlerRouter> _routers;
+        private readonly IEnumerable<MessageHandlerOrderingModel> _orderingModels;
+        private readonly IEnumerable<IMessageHandler> _messageHandlers;
+        private readonly IEnumerable<IAsyncMessageHandler> _asyncMessageHandlers;
 
         public MessageHandlerContainerBuilder(
             IEnumerable<MessageHandlerRouter> routers,
@@ -56,7 +56,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             return containers;
         }
 
-        MessageHandlerContainer CreateContainer(string exchange, IList<MessageHandlerRouter> selectedRouters)
+        private MessageHandlerContainer CreateContainer(string exchange, IList<MessageHandlerRouter> selectedRouters)
         {
             var routersDictionary = TransformMessageHandlerRoutersToDictionary(selectedRouters);
             var boundMessageHandlers = _messageHandlers.Where(x => routersDictionary.Keys.Contains(x.GetType())).ToList();
@@ -80,7 +80,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             };
         }
 
-        static IDictionary<Type, List<string>> TransformMessageHandlerRoutersToDictionary(IEnumerable<MessageHandlerRouter> routers)
+        private static IDictionary<Type, List<string>> TransformMessageHandlerRoutersToDictionary(IEnumerable<MessageHandlerRouter> routers)
         {
             var dictionary = new Dictionary<Type, List<string>>();
             foreach (var router in routers)
@@ -97,7 +97,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             return dictionary;
         }
 
-        static IEnumerable<MessageHandlerOrderingModel> GetMessageHandlerOrderingModels(
+        private static IEnumerable<MessageHandlerOrderingModel> GetMessageHandlerOrderingModels(
             string exchange,
             IEnumerable<IMessageHandler> messageHandlers,
             IEnumerable<IAsyncMessageHandler> asyncMessageHandlers,
@@ -110,7 +110,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             return orderingModels.Where(x => messageHandlerTypes.Contains(x.MessageHandlerType) && x.Exchange == exchange);
         }
 
-        static IDictionary<string, IList<IBaseMessageHandler>> TransformMessageHandlersCollectionsToDictionary(
+        private static IDictionary<string, IList<IBaseMessageHandler>> TransformMessageHandlersCollectionsToDictionary(
             IEnumerable<IMessageHandler> messageHandlers,
             IEnumerable<IAsyncMessageHandler> asyncMessageHandlers,
             IDictionary<Type, List<string>> routersDictionary)
@@ -120,7 +120,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             return transformedMessageHandlers.UnionKeysAndValues(transformedAsyncMessageHandlers);
         }
 
-        static IDictionary<string, IList<IBaseMessageHandler>> TransformMessageHandlersCollectionToDictionary<T>(
+        private static IDictionary<string, IList<IBaseMessageHandler>> TransformMessageHandlersCollectionToDictionary<T>(
             IEnumerable<T> messageHandlers,
             IDictionary<Type, List<string>> routersDictionary)
             where T : class, IBaseMessageHandler

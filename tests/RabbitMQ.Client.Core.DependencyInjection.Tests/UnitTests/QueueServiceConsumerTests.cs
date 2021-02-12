@@ -118,7 +118,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             messageHandlingPipelineExecutingServiceMock.Verify(x => x.Execute(It.IsAny<BasicDeliverEventArgs>(), It.IsAny<IQueueService>()), Times.Exactly(numberOfMessages));
         }
 
-        static IConsumingService CreateService(
+        private static IConsumingService CreateService(
             IRabbitMqConnectionFactory connectionFactory,
             IMessageHandlingPipelineExecutingService messageHandlingPipelineExecutingService)
         {

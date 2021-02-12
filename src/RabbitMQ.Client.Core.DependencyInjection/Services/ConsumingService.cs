@@ -18,14 +18,14 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         public IConnection Connection { get; private set; }
 
         public IModel Channel { get; private set; }
-        
-        bool _consumingStarted;
-        AsyncEventingBasicConsumer _consumer;
 
-        readonly IMessageHandlingPipelineExecutingService _messageHandlingPipelineExecutingService;
-        readonly IEnumerable<RabbitMqExchange> _exchanges;
+        private bool _consumingStarted;
+        private AsyncEventingBasicConsumer _consumer;
 
-        IEnumerable<string> _consumerTags = new List<string>();
+        private readonly IMessageHandlingPipelineExecutingService _messageHandlingPipelineExecutingService;
+        private readonly IEnumerable<RabbitMqExchange> _exchanges;
+
+        private IEnumerable<string> _consumerTags = new List<string>();
 
         public ConsumingService(
             IMessageHandlingPipelineExecutingService messageHandlingPipelineExecutingService,
@@ -110,6 +110,6 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         }
 
         // TODO: take a look at _messageHandlingPipelineExecutingService and its paradigm.
-        Task ConsumerOnReceived(object sender, BasicDeliverEventArgs eventArgs) => _messageHandlingPipelineExecutingService.Execute(eventArgs, this);
+        private Task ConsumerOnReceived(object sender, BasicDeliverEventArgs eventArgs) => _messageHandlingPipelineExecutingService.Execute(eventArgs, this);
     }
 }

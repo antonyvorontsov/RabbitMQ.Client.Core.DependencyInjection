@@ -29,7 +29,7 @@ namespace Examples.Producer
             }
         }
 
-        static void ConfigureServices(IServiceCollection services)
+        private static void ConfigureServices(IServiceCollection services)
         {
             var rabbitMqConfiguration = new RabbitMqClientOptions
             {

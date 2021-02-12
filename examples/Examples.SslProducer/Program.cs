@@ -39,7 +39,7 @@ namespace Examples.SslProducer
             }
         }
 
-        static void ConfigureServices(IServiceCollection services)
+        private static void ConfigureServices(IServiceCollection services)
         {
             // You can either use a json configuration or bind options by yourself.
             var rabbitMqConfiguration = Configuration.GetSection("RabbitMq");
@@ -52,7 +52,7 @@ namespace Examples.SslProducer
                 .AddProductionExchange("exchange.name", exchangeOptions);
         }
 
-        static RabbitMqClientOptions GetClientOptions() =>
+        private static RabbitMqClientOptions GetClientOptions() =>
             new RabbitMqClientOptions
             {
                 UserName = "guest",
@@ -75,7 +75,7 @@ namespace Examples.SslProducer
                 }
             };
 
-        static RabbitMqExchangeOptions GetExchangeOptions() =>
+        private static RabbitMqExchangeOptions GetExchangeOptions() =>
             new RabbitMqExchangeOptions
             {
                 Queues = new List<RabbitMqQueueOptions>

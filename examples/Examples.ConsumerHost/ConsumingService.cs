@@ -7,8 +7,8 @@ namespace Examples.ConsumerHost
 {
     public class ConsumingService : IHostedService
     {
-        readonly IQueueService _queueService;
-        readonly ILogger<ConsumingService> _logger;
+        private readonly IQueueService _queueService;
+        private readonly ILogger<ConsumingService> _logger;
 
         public ConsumingService(
             IQueueService queueService,

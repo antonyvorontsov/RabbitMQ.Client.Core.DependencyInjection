@@ -13,9 +13,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
     /// </summary>
     public class MessageHandlingPipelineExecutingService : IMessageHandlingPipelineExecutingService
     {
-        readonly IMessageHandlingService _messageHandlingService;
-        readonly IEnumerable<IMessageHandlingFilter> _handlingFilters;
-        readonly IEnumerable<IMessageHandlingExceptionFilter> _exceptionFilters;
+        private readonly IMessageHandlingService _messageHandlingService;
+        private readonly IEnumerable<IMessageHandlingFilter> _handlingFilters;
+        private readonly IEnumerable<IMessageHandlingExceptionFilter> _exceptionFilters;
 
         public MessageHandlingPipelineExecutingService(
             IMessageHandlingService messageHandlingService,
@@ -39,7 +39,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             }
         }
 
-        async Task ExecutePipeline(BasicDeliverEventArgs eventArgs, IConsumingService consumingService)
+        private async Task ExecutePipeline(BasicDeliverEventArgs eventArgs, IConsumingService consumingService)
         {
             Func<BasicDeliverEventArgs, IConsumingService, Task> handle = _messageHandlingService.HandleMessageReceivingEvent;
             foreach (var filter in _handlingFilters.Reverse())
@@ -50,7 +50,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             await handle(eventArgs, consumingService).ConfigureAwait(false);
         }
 
-        async Task ExecuteFailurePipeline(Exception exception, BasicDeliverEventArgs eventArgs, IConsumingService consumingService)
+        private async Task ExecuteFailurePipeline(Exception exception, BasicDeliverEventArgs eventArgs, IConsumingService consumingService)
         {
             Func<Exception, BasicDeliverEventArgs, IConsumingService, Task> handle = _messageHandlingService.HandleMessageProcessingFailure;
             foreach (var filter in _exceptionFilters.Reverse())

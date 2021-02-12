@@ -20,10 +20,10 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
 
         public IModel Channel { get; private set; }
 
-        readonly IEnumerable<RabbitMqExchange> _exchanges;
-        readonly object _lock = new object();
+        private readonly IEnumerable<RabbitMqExchange> _exchanges;
+        private readonly object _lock = new object();
 
-        const int QueueExpirationTime = 60000;
+        private const int QueueExpirationTime = 60000;
 
         public ProducingService(IEnumerable<RabbitMqExchange> exchanges)
         {
@@ -156,14 +156,14 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         public async Task SendAsync(ReadOnlyMemory<byte> bytes, IBasicProperties properties, string exchangeName, string routingKey, int millisecondsDelay) =>
             await Task.Run(() => Send(bytes, properties, exchangeName, routingKey, millisecondsDelay)).ConfigureAwait(false);
 
-        IBasicProperties CreateProperties()
+        private IBasicProperties CreateProperties()
         {
             var properties = Channel.CreateBasicProperties();
             properties.Persistent = true;
             return properties;
         }
 
-        IBasicProperties CreateJsonProperties()
+        private IBasicProperties CreateJsonProperties()
         {
             var properties = Channel.CreateBasicProperties();
             properties.Persistent = true;
@@ -171,7 +171,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             return properties;
         }
 
-        void EnsureProducingChannelIsNotNull()
+        private void EnsureProducingChannelIsNotNull()
         {
             if (Channel is null)
             {
@@ -179,7 +179,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             }
         }
 
-        void ValidateArguments(string exchangeName, string routingKey)
+        private void ValidateArguments(string exchangeName, string routingKey)
         {
             if (string.IsNullOrEmpty(exchangeName))
             {
@@ -197,7 +197,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             }
         }
 
-        string GetDeadLetterExchange(string exchangeName)
+        private string GetDeadLetterExchange(string exchangeName)
         {
             var exchange = _exchanges.FirstOrDefault(x => x.Name == exchangeName);
             if (string.IsNullOrEmpty(exchange?.Options?.DeadLetterExchange))
@@ -208,7 +208,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             return exchange.Options.DeadLetterExchange;
         }
 
-        string DeclareDelayedQueue(string exchange, string deadLetterExchange, string routingKey, int millisecondsDelay)
+        private string DeclareDelayedQueue(string exchange, string deadLetterExchange, string routingKey, int millisecondsDelay)
         {
             var delayedQueueName = $"{routingKey}.delayed.{millisecondsDelay}";
             var arguments = CreateArguments(exchange, routingKey, millisecondsDelay);
@@ -227,7 +227,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             return delayedQueueName;
         }
 
-        static Dictionary<string, object> CreateArguments(string exchangeName, string routingKey, int millisecondsDelay) =>
+        private static Dictionary<string, object> CreateArguments(string exchangeName, string routingKey, int millisecondsDelay) =>
             new Dictionary<string, object>
             {
                 { "x-dead-letter-exchange", exchangeName },

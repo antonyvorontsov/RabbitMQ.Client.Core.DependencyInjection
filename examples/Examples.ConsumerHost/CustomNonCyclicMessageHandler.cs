@@ -6,7 +6,7 @@ namespace Examples.ConsumerHost
 {
     public class CustomNonCyclicMessageHandler : INonCyclicMessageHandler
     {
-        readonly ILogger<CustomNonCyclicMessageHandler> _logger;
+        private readonly ILogger<CustomNonCyclicMessageHandler> _logger;
         public CustomNonCyclicMessageHandler(ILogger<CustomNonCyclicMessageHandler> logger)
         {
             _logger = logger;

@@ -58,7 +58,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         /// <returns>A consumer instance <see cref="AsyncEventingBasicConsumer"/>.</returns>
         public AsyncEventingBasicConsumer CreateConsumer(IModel channel) => new AsyncEventingBasicConsumer(channel);
 
-        static IConnection CreateConnectionWithTcpEndpoints(RabbitMqClientOptions options, ConnectionFactory factory)
+        private static IConnection CreateConnectionWithTcpEndpoints(RabbitMqClientOptions options, ConnectionFactory factory)
         {
             var clientEndpoints = new List<AmqpTcpEndpoint>();
             foreach (var endpoint in options.TcpEndpoints)
@@ -87,7 +87,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             return TryToCreateConnection(() => factory.CreateConnection(clientEndpoints), options.InitialConnectionRetries, options.InitialConnectionRetryTimeoutMilliseconds);
         }
 
-        static IConnection CreateNamedConnection(RabbitMqClientOptions options, ConnectionFactory factory)
+        private static IConnection CreateNamedConnection(RabbitMqClientOptions options, ConnectionFactory factory)
         {
             if (options.HostNames?.Any() == true)
             {
@@ -98,7 +98,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             return TryToCreateConnection(() => factory.CreateConnection(options.ClientProvidedName), options.InitialConnectionRetries, options.InitialConnectionRetryTimeoutMilliseconds);
         }
 
-        static IConnection CreateConnection(RabbitMqClientOptions options, ConnectionFactory factory)
+        private static IConnection CreateConnection(RabbitMqClientOptions options, ConnectionFactory factory)
         {
             if (options.HostNames?.Any() == true)
             {
@@ -109,7 +109,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             return TryToCreateConnection(factory.CreateConnection, options.InitialConnectionRetries, options.InitialConnectionRetryTimeoutMilliseconds);
         }
 
-        static IConnection TryToCreateConnection(Func<IConnection> connectionFunction, int numberOfRetries, int timeoutMilliseconds)
+        private static IConnection TryToCreateConnection(Func<IConnection> connectionFunction, int numberOfRetries, int timeoutMilliseconds)
         {
             ValidateArguments(numberOfRetries, timeoutMilliseconds);
 
@@ -139,7 +139,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             };
         }
 
-        static void ValidateArguments(int numberOfRetries, int timeoutMilliseconds)
+        private static void ValidateArguments(int numberOfRetries, int timeoutMilliseconds)
         {
             if (numberOfRetries < 1)
             {

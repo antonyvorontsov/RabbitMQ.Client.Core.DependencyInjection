@@ -7,7 +7,7 @@ namespace Examples.ConsumerConsole
 {
     public class CustomAsyncNonCyclicMessageHandler : IAsyncNonCyclicMessageHandler
     {
-        readonly ILogger<CustomAsyncNonCyclicMessageHandler> _logger;
+        private readonly ILogger<CustomAsyncNonCyclicMessageHandler> _logger;
 
         public CustomAsyncNonCyclicMessageHandler(ILogger<CustomAsyncNonCyclicMessageHandler> logger)
         {

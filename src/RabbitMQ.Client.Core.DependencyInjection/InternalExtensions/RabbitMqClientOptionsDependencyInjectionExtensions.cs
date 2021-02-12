@@ -52,7 +52,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.InternalExtensions
             return services.AddRabbitMqConnectionOptionsContainer(container);
         }
 
-        static IServiceCollection AddRabbitMqConnectionOptionsContainer(this IServiceCollection services, RabbitMqConnectionOptionsContainer container)
+        private static IServiceCollection AddRabbitMqConnectionOptionsContainer(this IServiceCollection services, RabbitMqConnectionOptionsContainer container)
         {
             var serviceDescriptor = new ServiceDescriptor(typeof(RabbitMqConnectionOptionsContainer), container);
             services.Add(serviceDescriptor);

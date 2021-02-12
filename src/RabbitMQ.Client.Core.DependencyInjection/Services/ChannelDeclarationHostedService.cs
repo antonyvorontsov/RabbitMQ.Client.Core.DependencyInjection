@@ -17,13 +17,13 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
     /// </summary>
     public class ChannelDeclarationHostedService : IHostedService
     {
-        readonly RabbitMqConnectionOptionsContainer _producerOptions;
-        readonly RabbitMqConnectionOptionsContainer _consumerOptions;
+        private readonly RabbitMqConnectionOptionsContainer _producerOptions;
+        private readonly RabbitMqConnectionOptionsContainer _consumerOptions;
         private readonly IProducingService _producingService;
         private readonly IConsumingService _consumingService;
-        readonly IRabbitMqConnectionFactory _rabbitMqConnectionFactory;
-        readonly IEnumerable<RabbitMqExchange> _exchanges;
-        readonly ILogger<ChannelDeclarationHostedService> _logger;
+        private readonly IRabbitMqConnectionFactory _rabbitMqConnectionFactory;
+        private readonly IEnumerable<RabbitMqExchange> _exchanges;
+        private readonly ILogger<ChannelDeclarationHostedService> _logger;
         
         public ChannelDeclarationHostedService(
             IProducingService _producingService,
@@ -74,9 +74,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             return Task.CompletedTask;
         }
 
-        IConnection CreateConnection(RabbitMqConnectionOptionsContainer optionsContainer) => _rabbitMqConnectionFactory.CreateRabbitMqConnection(optionsContainer.Options?.ConsumerOptions);
+        private IConnection CreateConnection(RabbitMqConnectionOptionsContainer optionsContainer) => _rabbitMqConnectionFactory.CreateRabbitMqConnection(optionsContainer.Options?.ConsumerOptions);
 
-        IModel CreateChannel(IConnection connection)
+        private IModel CreateChannel(IConnection connection)
         {
             connection.CallbackException += HandleConnectionCallbackException;
             if (connection is IAutorecoveringConnection recoveringConnection)
@@ -90,7 +90,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             return channel;
         }
 
-        void StartClient(IModel channel)
+        private void StartClient(IModel channel)
         {
             var deadLetterExchanges = _exchanges
                 .Where(x => !string.IsNullOrEmpty(x.Options?.DeadLetterExchange))
@@ -100,8 +100,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
 
             StartChannel(channel, _exchanges, deadLetterExchanges);
         }
-        
-        static void StartChannel(IModel channel, IEnumerable<RabbitMqExchange> exchanges, IEnumerable<string> deadLetterExchanges)
+
+        private static void StartChannel(IModel channel, IEnumerable<RabbitMqExchange> exchanges, IEnumerable<string> deadLetterExchanges)
         {
             if (channel is null)
             {
@@ -119,7 +119,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             }
         }
 
-        static void StartDeadLetterExchange(IModel channel, string exchangeName)
+        private static void StartDeadLetterExchange(IModel channel, string exchangeName)
         {
             channel.ExchangeDeclare(
                 exchange: exchangeName,
@@ -129,7 +129,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
                 arguments: null);
         }
 
-        static void StartExchange(IModel channel, RabbitMqExchange exchange)
+        private static void StartExchange(IModel channel, RabbitMqExchange exchange)
         {
             channel.ExchangeDeclare(
                 exchange: exchange.Name,
@@ -144,7 +144,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             }
         }
 
-        static void StartQueue(IModel channel, RabbitMqQueueOptions queue, string exchangeName)
+        private static void StartQueue(IModel channel, RabbitMqQueueOptions queue, string exchangeName)
         {
             channel.QueueDeclare(
                 queue: queue.Name,
@@ -172,8 +172,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
                     routingKey: queue.Name);
             }
         }
-        
-        void HandleConnectionCallbackException(object sender, CallbackExceptionEventArgs @event)
+
+        private void HandleConnectionCallbackException(object sender, CallbackExceptionEventArgs @event)
         {
             if (@event is null)
             {
@@ -184,7 +184,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             throw @event.Exception;
         }
 
-        void HandleConnectionRecoveryError(object sender, ConnectionRecoveryErrorEventArgs @event)
+        private void HandleConnectionRecoveryError(object sender, ConnectionRecoveryErrorEventArgs @event)
         {
             if (@event is null)
             {
@@ -195,7 +195,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             throw @event.Exception;
         }
 
-        void HandleChannelBasicRecoverOk(object sender, EventArgs @event)
+        private void HandleChannelBasicRecoverOk(object sender, EventArgs @event)
         {
             if (@event is null)
             {
@@ -205,7 +205,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             _logger.LogInformation("Connection has been reestablished");
         }
 
-        void HandleChannelCallbackException(object sender, CallbackExceptionEventArgs @event)
+        private void HandleChannelCallbackException(object sender, CallbackExceptionEventArgs @event)
         {
             if (@event is null)
             {

@@ -18,7 +18,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
 {
     public class BaseBatchMessageHandlerTests
     {
-        readonly TimeSpan _globalTestsTimeout = TimeSpan.FromSeconds(60);
+        private readonly TimeSpan _globalTestsTimeout = TimeSpan.FromSeconds(60);
         
         [Theory]
         [InlineData(1, 10)]
@@ -207,7 +207,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             await messageHandler.StopAsync(CancellationToken.None);
         }
 
-        static BaseBatchMessageHandler CreateBatchMessageHandler(
+        private static BaseBatchMessageHandler CreateBatchMessageHandler(
             string queueName,
             ushort prefetchCount,
             TimeSpan? handlingPeriod,

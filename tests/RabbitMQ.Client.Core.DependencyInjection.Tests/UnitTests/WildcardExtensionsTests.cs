@@ -8,7 +8,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
 {
     public class WildcardExtensionsTests
     {
-        readonly string[] _routes;
+        private readonly string[] _routes;
 
         public WildcardExtensionsTests()
         {
@@ -92,7 +92,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             }
         }
 
-        static int CountNodes(IEnumerable<TreeNode> nodes)
+        private static int CountNodes(IEnumerable<TreeNode> nodes)
         {
             var count = nodes.Count();
             foreach (var node in nodes)

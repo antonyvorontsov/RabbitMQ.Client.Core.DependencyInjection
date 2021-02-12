@@ -148,7 +148,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             Assert.Equal(asyncNonCyclicMessageHandlerCallOrder, asyncNonCyclicMessageHandlerOrder);
         }
 
-        static IQueueService CreateQueueService()
+        private static IQueueService CreateQueueService()
         {
             var channelMock = new Mock<IModel>();
             var queueServiceMock = new Mock<IQueueService>();
@@ -157,7 +157,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             return queueServiceMock.Object;
         }
 
-        static IMessageHandlingService CreateService(
+        private static IMessageHandlingService CreateService(
             IEnumerable<RabbitMqExchange> exchanges,
             IEnumerable<MessageHandlerRouter> routers,
             IEnumerable<MessageHandlerOrderingModel> orderingModels,
@@ -177,7 +177,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             return new MessageHandlingService(messageHandlerContainerBuilder, exchanges, loggerMock.Object);
         }
 
-        static IEnumerable<MessageHandlerOrderingModel> GetMessageHandlerOrderingModels(
+        private static IEnumerable<MessageHandlerOrderingModel> GetMessageHandlerOrderingModels(
             HandleMessageReceivingEventTestDataModel testDataModel,
             Type messageHandlerType,
             Type asyncMessageHandlerType,
@@ -228,7 +228,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             return orderingModels;
         }
 
-        static IEnumerable<MessageHandlerOrderingContainerTestModel> GetTestingOrderingModels(
+        private static IEnumerable<MessageHandlerOrderingContainerTestModel> GetTestingOrderingModels(
             HandleMessageReceivingEventTestDataModel testDataModel,
             IMock<IMessageHandler> messageHandlerMock,
             IMock<IAsyncMessageHandler> asyncMessageHandlerMock,

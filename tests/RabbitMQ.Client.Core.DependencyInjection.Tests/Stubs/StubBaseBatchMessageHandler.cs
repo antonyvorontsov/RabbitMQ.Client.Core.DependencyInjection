@@ -13,7 +13,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.Stubs
 {
     public class StubBaseBatchMessageHandler : BaseBatchMessageHandler
     {
-        readonly IStubCaller _caller;
+        private readonly IStubCaller _caller;
 
         public StubBaseBatchMessageHandler(
             IStubCaller caller,

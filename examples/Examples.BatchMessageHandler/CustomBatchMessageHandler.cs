@@ -13,7 +13,7 @@ namespace Examples.BatchMessageHandler
 {
     public class CustomBatchMessageHandler : BaseBatchMessageHandler
     {
-        readonly ILogger<CustomBatchMessageHandler> _logger;
+        private readonly ILogger<CustomBatchMessageHandler> _logger;
 
         public CustomBatchMessageHandler(
             IRabbitMqConnectionFactory rabbitMqConnectionFactory,

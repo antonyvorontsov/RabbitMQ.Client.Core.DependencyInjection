@@ -15,12 +15,12 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
 {
     public class QueueServiceTests
     {
-        readonly TimeSpan _globalTestsTimeout = TimeSpan.FromSeconds(60);
+        private readonly TimeSpan _globalTestsTimeout = TimeSpan.FromSeconds(60);
 
-        const string DefaultExchangeName = "exchange.name";
-        const string FirstRoutingKey = "first.routing.key";
-        const string SecondRoutingKey = "second.routing.key";
-        const int RequeueAttempts = 4;
+        private const string DefaultExchangeName = "exchange.name";
+        private const string FirstRoutingKey = "first.routing.key";
+        private const string SecondRoutingKey = "second.routing.key";
+        private const int RequeueAttempts = 4;
 
         [Fact]
         public async Task ShouldProperlyPublishAndConsumeMessages()
@@ -113,7 +113,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
             callerMock.Verify(x => x.Call(It.IsAny<string>()), Times.Exactly(RequeueAttempts + 1));
         }
 
-        static RabbitMqClientOptions GetClientOptions() =>
+        private static RabbitMqClientOptions GetClientOptions() =>
             new RabbitMqClientOptions
             {
                 HostName = "rabbitmq",
@@ -123,7 +123,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
                 VirtualHost = "/"
             };
 
-        static RabbitMqExchangeOptions GetExchangeOptions() =>
+        private static RabbitMqExchangeOptions GetExchangeOptions() =>
             new RabbitMqExchangeOptions
             {
                 Type = "direct",

@@ -228,7 +228,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             return services;
         }
 
-        static IServiceCollection AddRabbitMqClientInfrastructure(this IServiceCollection services)
+        private static IServiceCollection AddRabbitMqClientInfrastructure(this IServiceCollection services)
         {
             services.AddOptions();
             services.AddLogging();
@@ -239,7 +239,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             return services;
         }
 
-        static IServiceCollection ResolveSingletonQueueService(this IServiceCollection services, Guid guid)
+        private static IServiceCollection ResolveSingletonQueueService(this IServiceCollection services, Guid guid)
         {
             services.TryAddSingleton<IQueueService>(provider => new ProducingService(
                 guid,
@@ -251,7 +251,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             return services;
         }
 
-        static IServiceCollection ResolveTransientQueueService(this IServiceCollection services, Guid guid)
+        private static IServiceCollection ResolveTransientQueueService(this IServiceCollection services, Guid guid)
         {
             services.TryAddTransient<IQueueService>(provider => new ProducingService(
                 guid,
@@ -263,7 +263,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             return services;
         }
 
-        static IServiceCollection ResolveSingletonProducingService(this IServiceCollection services, Guid guid)
+        private static IServiceCollection ResolveSingletonProducingService(this IServiceCollection services, Guid guid)
         {
             services.TryAddSingleton<IProducingService>(provider => new ProducingService(
                 guid,
@@ -275,7 +275,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             return services;
         }
 
-        static IServiceCollection ResolveTransientProducingService(this IServiceCollection services, Guid guid)
+        private static IServiceCollection ResolveTransientProducingService(this IServiceCollection services, Guid guid)
         {
             services.TryAddTransient<IProducingService>(provider => new ProducingService(
                 guid,
@@ -287,7 +287,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             return services;
         }
 
-        static IServiceCollection ResolveSingletonConsumingService(this IServiceCollection services, Guid guid)
+        private static IServiceCollection ResolveSingletonConsumingService(this IServiceCollection services, Guid guid)
         {
             services.TryAddSingleton<IConsumingService>(provider => new ProducingService(
                 guid,
@@ -299,7 +299,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             return services;
         }
 
-        static IServiceCollection ResolveTransientConsumingService(this IServiceCollection services, Guid guid)
+        private static IServiceCollection ResolveTransientConsumingService(this IServiceCollection services, Guid guid)
         {
             services.TryAddTransient<IConsumingService>(provider => new ProducingService(
                 guid,
@@ -311,7 +311,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             return services;
         }
 
-        static IServiceCollection CheckIfQueueingServiceAlreadyConfigured<T>(this IServiceCollection services)
+        private static IServiceCollection CheckIfQueueingServiceAlreadyConfigured<T>(this IServiceCollection services)
         {
             var descriptor = services.FirstOrDefault(x => x.ServiceType == typeof(T));
             if (descriptor != null)

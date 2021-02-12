@@ -50,15 +50,15 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
         /// </summary>
         public virtual TimeSpan? MessageHandlingPeriod { get; set; }
 
-        readonly IRabbitMqConnectionFactory _rabbitMqConnectionFactory;
-        readonly RabbitMqClientOptions _clientOptions;
-        readonly IEnumerable<IBatchMessageHandlingFilter> _batchMessageHandlingFilters;
-        readonly ILogger<BaseBatchMessageHandler> _logger;
+        private readonly IRabbitMqConnectionFactory _rabbitMqConnectionFactory;
+        private readonly RabbitMqClientOptions _clientOptions;
+        private readonly IEnumerable<IBatchMessageHandlingFilter> _batchMessageHandlingFilters;
+        private readonly ILogger<BaseBatchMessageHandler> _logger;
 
-        readonly ConcurrentBag<BasicDeliverEventArgs> _messages = new ConcurrentBag<BasicDeliverEventArgs>();
-        Timer _timer;
-        readonly object _lock = new object();
-        bool _disposed = false;
+        private readonly ConcurrentBag<BasicDeliverEventArgs> _messages = new ConcurrentBag<BasicDeliverEventArgs>();
+        private Timer _timer;
+        private readonly object _lock = new object();
+        private bool _disposed = false;
 
         protected BaseBatchMessageHandler(
             IRabbitMqConnectionFactory rabbitMqConnectionFactory,
@@ -110,7 +110,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
             return Task.CompletedTask;
         }
 
-        async Task ProcessBatchOfMessages(CancellationToken cancellationToken)
+        private async Task ProcessBatchOfMessages(CancellationToken cancellationToken)
         {
             var messages = GetMessages();
             if (!messages.Any())
@@ -120,8 +120,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
 
             await ExecutePipeline(messages, cancellationToken).ConfigureAwait(false);
         }
-        
-        async Task ExecutePipeline(IEnumerable<BasicDeliverEventArgs> messages, CancellationToken cancellationToken)
+
+        private async Task ExecutePipeline(IEnumerable<BasicDeliverEventArgs> messages, CancellationToken cancellationToken)
         {
             Func<IEnumerable<BasicDeliverEventArgs>, CancellationToken, Task> handle = Handle;
             foreach (var filter in _batchMessageHandlingFilters.Reverse())
@@ -132,7 +132,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
             await handle(messages, cancellationToken).ConfigureAwait(false);
         }
 
-        async Task Handle(IEnumerable<BasicDeliverEventArgs> messages, CancellationToken cancellationToken)
+        private async Task Handle(IEnumerable<BasicDeliverEventArgs> messages, CancellationToken cancellationToken)
         {
             var messagesCollection = messages.ToList();
             await HandleMessages(messagesCollection, cancellationToken).ConfigureAwait(false);
@@ -140,7 +140,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
             Channel.BasicAck(latestDeliveryTag, true);
         }
 
-        IList<BasicDeliverEventArgs> GetMessages()
+        private IList<BasicDeliverEventArgs> GetMessages()
         {
             lock (_lock)
             {
@@ -155,7 +155,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
             }
         }
 
-        void ValidateProperties()
+        private void ValidateProperties()
         {
             if (string.IsNullOrEmpty(QueueName))
             {

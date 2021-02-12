@@ -17,9 +17,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
     public class MessageHandlingService : IMessageHandlingService
     {
         private readonly IProducingService _producingService;
-        readonly IEnumerable<RabbitMqExchange> _exchanges;
-        readonly IEnumerable<MessageHandlerContainer> _messageHandlerContainers;
-        readonly ILogger<MessageHandlingService> _logger;
+        private readonly IEnumerable<RabbitMqExchange> _exchanges;
+        private readonly IEnumerable<MessageHandlerContainer> _messageHandlerContainers;
+        private readonly ILogger<MessageHandlingService> _logger;
 
         public MessageHandlingService(
             IProducingService producingService,
@@ -51,7 +51,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             await HandleFailedMessageProcessing(eventArgs).ConfigureAwait(false);
         }
 
-        IEnumerable<string> GetMatchingRoutePatterns(string exchange, string routingKey)
+        private IEnumerable<string> GetMatchingRoutePatterns(string exchange, string routingKey)
         {
             var tree = _messageHandlerContainers.FirstOrDefault(x => x.Exchange == exchange)?.Tree ??
                 _messageHandlerContainers.FirstOrDefault(x => x.IsGeneral)?.Tree;
@@ -64,7 +64,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             return WildcardExtensions.GetMatchingRoutePatterns(tree, routingKeyParts).ToList();
         }
 
-        async Task ProcessMessageEvent(BasicDeliverEventArgs eventArgs, IEnumerable<string> matchingRoutes)
+        private async Task ProcessMessageEvent(BasicDeliverEventArgs eventArgs, IEnumerable<string> matchingRoutes)
         {
             var container = _messageHandlerContainers.FirstOrDefault(x => x.Exchange == eventArgs.Exchange) ??
                 _messageHandlerContainers.FirstOrDefault(x => x.IsGeneral);
@@ -118,7 +118,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             }
         }
 
-        void RunMessageHandler(IMessageHandler handler, BasicDeliverEventArgs eventArgs, string matchingRoute)
+        private void RunMessageHandler(IMessageHandler handler, BasicDeliverEventArgs eventArgs, string matchingRoute)
         {
             ValidateMessageHandler(handler);
             _logger.LogDebug($"Starting processing the message by message handler {handler.GetType().Name}");
@@ -126,7 +126,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             _logger.LogDebug($"The message has been processed by message handler {handler.GetType().Name}");
         }
 
-        async Task RunAsyncMessageHandler(IAsyncMessageHandler handler, BasicDeliverEventArgs eventArgs, string matchingRoute)
+        private async Task RunAsyncMessageHandler(IAsyncMessageHandler handler, BasicDeliverEventArgs eventArgs, string matchingRoute)
         {
             ValidateMessageHandler(handler);
             _logger.LogDebug($"Starting processing the message by async message handler {handler.GetType().Name}");
@@ -134,15 +134,15 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             _logger.LogDebug($"The message has been processed by async message handler {handler.GetType().Name}");
         }
 
-        static void ValidateMessageHandler<T>(T messageHandler)
+        private static void ValidateMessageHandler<T>(T messageHandler)
         {
             if (messageHandler is null)
             {
                 throw new ArgumentNullException(nameof(messageHandler), "Message handler is null.");
             }
         }
-        
-        async Task HandleFailedMessageProcessing(BasicDeliverEventArgs eventArgs)
+
+        private async Task HandleFailedMessageProcessing(BasicDeliverEventArgs eventArgs)
         {
             var exchange = _exchanges.FirstOrDefault(x => x.Name == eventArgs.Exchange);
             if (exchange is null)
@@ -205,7 +205,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             }
         }
 
-        async Task RequeueMessage(BasicDeliverEventArgs eventArgs, int timeoutMilliseconds)
+        private async Task RequeueMessage(BasicDeliverEventArgs eventArgs, int timeoutMilliseconds)
         {
             await _producingService.SendAsync(eventArgs.Body, eventArgs.BasicProperties, eventArgs.Exchange, eventArgs.RoutingKey, timeoutMilliseconds);
             _logger.LogInformation("The failed message has been re-queued");

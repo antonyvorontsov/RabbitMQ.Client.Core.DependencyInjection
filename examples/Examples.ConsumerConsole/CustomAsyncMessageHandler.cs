@@ -8,7 +8,7 @@ namespace Examples.ConsumerConsole
 {
     public class CustomAsyncMessageHandler : IAsyncMessageHandler
     {
-        readonly ILogger<CustomAsyncMessageHandler> _logger;
+        private readonly ILogger<CustomAsyncMessageHandler> _logger;
 
         public CustomAsyncMessageHandler(ILogger<CustomAsyncMessageHandler> logger)
         {

@@ -141,7 +141,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             Assert.Equal(3, filterOrderMap[firstFilter.FilterNumber]);
         }
 
-        static IMessageHandlingPipelineExecutingService CreateService(
+        private static IMessageHandlingPipelineExecutingService CreateService(
             IMessageHandlingService messageHandlingService,
             IEnumerable<IMessageHandlingFilter> handlingFilters,
             IEnumerable<IMessageHandlingExceptionFilter> exceptionFilters)

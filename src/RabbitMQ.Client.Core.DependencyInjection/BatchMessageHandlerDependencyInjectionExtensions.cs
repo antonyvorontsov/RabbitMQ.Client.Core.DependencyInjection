@@ -52,7 +52,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             return services;
         }
 
-        static IServiceCollection ConfigureBatchConsumerConnectionOptions<TBatchMessageHandler>(this IServiceCollection services, RabbitMqClientOptions clientOptions)
+        private static IServiceCollection ConfigureBatchConsumerConnectionOptions<TBatchMessageHandler>(this IServiceCollection services, RabbitMqClientOptions clientOptions)
             where TBatchMessageHandler : BaseBatchMessageHandler
         {
             var options = new BatchConsumerConnectionOptions
@@ -65,7 +65,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             return services;
         }
 
-        static void CheckIfBatchMessageHandlerAlreadyConfigured<TBatchMessageHandler>(this IServiceCollection services)
+        private static void CheckIfBatchMessageHandlerAlreadyConfigured<TBatchMessageHandler>(this IServiceCollection services)
         {
             var descriptor = services.FirstOrDefault(x => x.ImplementationType == typeof(TBatchMessageHandler));
             if (descriptor != null)

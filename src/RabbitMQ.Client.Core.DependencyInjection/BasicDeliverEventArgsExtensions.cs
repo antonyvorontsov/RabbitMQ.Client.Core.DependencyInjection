@@ -92,8 +92,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             var messageString = Encoding.UTF8.GetString(eventArgs.Body.ToArray());
             return JsonConvert.DeserializeAnonymousType(messageString, anonymousTypeObject, settings);
         }
-        
-        static void EnsureIsNotNull(this BasicDeliverEventArgs eventArgs)
+
+        private static void EnsureIsNotNull(this BasicDeliverEventArgs eventArgs)
         {
             if (eventArgs is null)
             {

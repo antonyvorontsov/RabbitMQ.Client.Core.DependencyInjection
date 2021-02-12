@@ -5,7 +5,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.Stubs
 {
     public class StubAsyncNonCyclicMessageHandler : IAsyncNonCyclicMessageHandler
     {
-        readonly IStubCaller _caller;
+        private readonly IStubCaller _caller;
 
         public StubAsyncNonCyclicMessageHandler(IStubCaller caller)
         {
