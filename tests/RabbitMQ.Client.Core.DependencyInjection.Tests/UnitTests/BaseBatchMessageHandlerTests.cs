@@ -5,10 +5,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
-using RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers;
 using RabbitMQ.Client.Core.DependencyInjection.Configuration;
 using RabbitMQ.Client.Core.DependencyInjection.Filters;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
+using RabbitMQ.Client.Core.DependencyInjection.Services;
 using RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces;
 using RabbitMQ.Client.Core.DependencyInjection.Tests.Stubs;
 using RabbitMQ.Client.Events;
@@ -37,7 +37,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                 .Returns(channelMock.Object);
 
             var connectionFactoryMock = new Mock<IRabbitMqConnectionFactory>();
-            connectionFactoryMock.Setup(x => x.CreateRabbitMqConnection(It.IsAny<RabbitMqClientOptions>()))
+            connectionFactoryMock.Setup(x => x.CreateRabbitMqConnection(It.IsAny<RabbitMqServiceOptions>()))
                 .Returns(connectionMock.Object);
 
             var consumer = new AsyncEventingBasicConsumer(channelMock.Object);
@@ -95,7 +95,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                 .Returns(channelMock.Object);
 
             var connectionFactoryMock = new Mock<IRabbitMqConnectionFactory>();
-            connectionFactoryMock.Setup(x => x.CreateRabbitMqConnection(It.IsAny<RabbitMqClientOptions>()))
+            connectionFactoryMock.Setup(x => x.CreateRabbitMqConnection(It.IsAny<RabbitMqServiceOptions>()))
                 .Returns(connectionMock.Object);
 
             var consumer = new AsyncEventingBasicConsumer(channelMock.Object);
@@ -157,7 +157,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                 .Returns(channelMock.Object);
 
             var connectionFactoryMock = new Mock<IRabbitMqConnectionFactory>();
-            connectionFactoryMock.Setup(x => x.CreateRabbitMqConnection(It.IsAny<RabbitMqClientOptions>()))
+            connectionFactoryMock.Setup(x => x.CreateRabbitMqConnection(It.IsAny<RabbitMqServiceOptions>()))
                 .Returns(connectionMock.Object);
 
             var consumer = new AsyncEventingBasicConsumer(channelMock.Object);
@@ -218,7 +218,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             var connectionOptions = new BatchConsumerConnectionOptions
             {
                 Type = typeof(StubBaseBatchMessageHandler),
-                ClientOptions = new RabbitMqClientOptions()
+                ServiceOptions = new RabbitMqServiceOptions()
             };
             var loggerMock = new Mock<ILogger<StubBaseBatchMessageHandler>>();
             return new StubBaseBatchMessageHandler(

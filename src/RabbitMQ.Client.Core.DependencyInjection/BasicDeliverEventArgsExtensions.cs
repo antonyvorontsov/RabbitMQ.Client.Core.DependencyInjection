@@ -93,12 +93,14 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             return JsonConvert.DeserializeAnonymousType(messageString, anonymousTypeObject, settings);
         }
 
-        private static void EnsureIsNotNull(this BasicDeliverEventArgs eventArgs)
+        private static BasicDeliverEventArgs EnsureIsNotNull(this BasicDeliverEventArgs eventArgs)
         {
             if (eventArgs is null)
             {
                 throw new ArgumentNullException(nameof(eventArgs), "BasicDeliverEventArgs have to be not null to parse a message");
             }
+
+            return eventArgs;
         }
     }
 }

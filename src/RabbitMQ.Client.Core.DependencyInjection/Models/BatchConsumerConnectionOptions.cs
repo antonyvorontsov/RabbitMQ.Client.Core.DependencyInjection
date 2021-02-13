@@ -16,6 +16,6 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Models
         /// <summary>
         /// Consumer client connection options.
         /// </summary>
-        public RabbitMqClientOptions ClientOptions { get; set; }
+        public RabbitMqServiceOptions ServiceOptions { get; set; }
     }
 }

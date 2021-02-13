@@ -13,7 +13,7 @@ using RabbitMQ.Client.Core.DependencyInjection.Models;
 using RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces;
 using RabbitMQ.Client.Events;
 
-namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
+namespace RabbitMQ.Client.Core.DependencyInjection.Services
 {
     /// <summary>
     /// A message handler that handles messages in batches.
@@ -51,7 +51,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
         public virtual TimeSpan? MessageHandlingPeriod { get; set; }
 
         private readonly IRabbitMqConnectionFactory _rabbitMqConnectionFactory;
-        private readonly RabbitMqClientOptions _clientOptions;
+        private readonly RabbitMqServiceOptions _serviceOptions;
         private readonly IEnumerable<IBatchMessageHandlingFilter> _batchMessageHandlingFilters;
         private readonly ILogger<BaseBatchMessageHandler> _logger;
 
@@ -72,7 +72,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
                 throw new ArgumentNullException($"Client connection options for {nameof(BaseBatchMessageHandler)} has not been found.", nameof(batchConsumerConnectionOptions));
             }
             
-            _clientOptions = optionsContainer.ClientOptions ?? throw new ArgumentNullException($"Consumer client options is null for {nameof(BaseBatchMessageHandler)}.", nameof(optionsContainer.ClientOptions));
+            _serviceOptions = optionsContainer.ServiceOptions ?? throw new ArgumentNullException($"Consumer client options is null for {nameof(BaseBatchMessageHandler)}.", nameof(optionsContainer.ServiceOptions));
             _rabbitMqConnectionFactory = rabbitMqConnectionFactory;
             _batchMessageHandlingFilters = batchMessageHandlingFilters ?? Enumerable.Empty<IBatchMessageHandlingFilter>();
             _logger = logger;
@@ -82,7 +82,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.BatchMessageHandlers
         {
             ValidateProperties();
             _logger.LogInformation($"Batch message handler {GetType()} has been started.");
-            Connection = _rabbitMqConnectionFactory.CreateRabbitMqConnection(_clientOptions);
+            Connection = _rabbitMqConnectionFactory.CreateRabbitMqConnection(_serviceOptions);
             Channel = Connection.CreateModel();
             Channel.BasicQos(PrefetchSize, PrefetchCount, false);
             

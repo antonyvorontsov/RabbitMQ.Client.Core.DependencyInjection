@@ -30,8 +30,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             await Assert.ThrowsAsync<BatchMessageHandlerAlreadyConfiguredException>(() =>
             {
                 new ServiceCollection()
-                    .AddBatchMessageHandler<StubBaseBatchMessageHandler>(new RabbitMqClientOptions())
-                    .AddBatchMessageHandler<StubBaseBatchMessageHandler>(new RabbitMqClientOptions());
+                    .AddBatchMessageHandler<StubBaseBatchMessageHandler>(new RabbitMqServiceOptions())
+                    .AddBatchMessageHandler<StubBaseBatchMessageHandler>(new RabbitMqServiceOptions());
                 return Task.CompletedTask;
             });
         }
@@ -44,7 +44,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                 var configurationMock = new Mock<IConfiguration>();
                 new ServiceCollection()
                     .AddBatchMessageHandler<StubBaseBatchMessageHandler>(configurationMock.Object)
-                    .AddBatchMessageHandler<StubBaseBatchMessageHandler>(new RabbitMqClientOptions());
+                    .AddBatchMessageHandler<StubBaseBatchMessageHandler>(new RabbitMqServiceOptions());
                 return Task.CompletedTask;
             });
         }

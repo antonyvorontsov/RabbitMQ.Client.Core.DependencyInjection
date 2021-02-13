@@ -29,7 +29,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                 .Returns(channelMock.Object);
 
             var connectionFactoryMock = new Mock<IRabbitMqConnectionFactory>();
-            connectionFactoryMock.Setup(x => x.CreateRabbitMqConnection(It.IsAny<RabbitMqClientOptions>()))
+            connectionFactoryMock.Setup(x => x.CreateRabbitMqConnection(It.IsAny<RabbitMqServiceOptions>()))
                 .Returns(connectionMock.Object);
 
             var consumer = new AsyncEventingBasicConsumer(channelMock.Object);
@@ -81,7 +81,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                 .Returns(channelMock.Object);
 
             var connectionFactoryMock = new Mock<IRabbitMqConnectionFactory>();
-            connectionFactoryMock.Setup(x => x.CreateRabbitMqConnection(It.IsAny<RabbitMqClientOptions>()))
+            connectionFactoryMock.Setup(x => x.CreateRabbitMqConnection(It.IsAny<RabbitMqServiceOptions>()))
                 .Returns(connectionMock.Object);
 
             var consumer = new AsyncEventingBasicConsumer(channelMock.Object);
@@ -128,7 +128,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                 Guid = guid,
                 Options = new RabbitMqConnectionOptions
                 {
-                    ConsumerOptions = new RabbitMqClientOptions()
+                    ConsumerOptions = new RabbitMqServiceOptions()
                 }
             };
             var loggerMock = new Mock<ILogger<ProducingService>>();

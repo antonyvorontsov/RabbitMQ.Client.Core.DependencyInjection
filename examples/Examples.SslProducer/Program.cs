@@ -52,8 +52,8 @@ namespace Examples.SslProducer
                 .AddProductionExchange("exchange.name", exchangeOptions);
         }
 
-        private static RabbitMqClientOptions GetClientOptions() =>
-            new RabbitMqClientOptions
+        private static RabbitMqServiceOptions GetClientOptions() =>
+            new RabbitMqServiceOptions
             {
                 UserName = "guest",
                 Password = "guest",

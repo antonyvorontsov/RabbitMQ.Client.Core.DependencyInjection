@@ -113,8 +113,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
             callerMock.Verify(x => x.Call(It.IsAny<string>()), Times.Exactly(RequeueAttempts + 1));
         }
 
-        private static RabbitMqClientOptions GetClientOptions() =>
-            new RabbitMqClientOptions
+        private static RabbitMqServiceOptions GetClientOptions() =>
+            new RabbitMqServiceOptions
             {
                 HostName = "rabbitmq",
                 Port = 5672,

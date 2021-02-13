@@ -31,7 +31,7 @@ namespace Examples.Producer
 
         private static void ConfigureServices(IServiceCollection services)
         {
-            var rabbitMqConfiguration = new RabbitMqClientOptions
+            var rabbitMqConfiguration = new RabbitMqServiceOptions
             {
                 HostName = "127.0.0.1",
                 Port = 5672,

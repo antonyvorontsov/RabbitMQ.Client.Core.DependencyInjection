@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using RabbitMQ.Client.Core.DependencyInjection.Configuration;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
 using RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces;
@@ -17,8 +18,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
     /// </summary>
     public class ChannelDeclarationHostedService : IHostedService
     {
-        private readonly RabbitMqConnectionOptionsContainer _producerOptions;
-        private readonly RabbitMqConnectionOptionsContainer _consumerOptions;
+        private readonly RabbitMqConnectionOptions _connectionOptions;
         private readonly IProducingService _producingService;
         private readonly IConsumingService _consumingService;
         private readonly IRabbitMqConnectionFactory _rabbitMqConnectionFactory;
@@ -29,16 +29,14 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             IProducingService _producingService,
             IConsumingService _consumingService,
             IRabbitMqConnectionFactory rabbitMqConnectionFactory,
-            IEnumerable<RabbitMqConnectionOptionsContainer> connectionOptionsContainers,
+            IOptions<RabbitMqConnectionOptions> connectionOptions,
             IEnumerable<RabbitMqExchange> exchanges,
             ILogger<ChannelDeclarationHostedService> logger)
         {
             this._producingService = _producingService;
             this._consumingService = _consumingService;
             _rabbitMqConnectionFactory = rabbitMqConnectionFactory;
-            var options = connectionOptionsContainers.ToList();
-            _producerOptions = options.FirstOrDefault(x => x.Type == typeof(IProducingService));
-            _consumerOptions = options.FirstOrDefault(x => x.Type == typeof(IConsumingService));
+            _connectionOptions = connectionOptions.Value;
             _exchanges = exchanges;
             _logger = logger;
         }
@@ -46,18 +44,18 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         // TODO: Add a channel + connection container?
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            if (_producerOptions != null)
+            if (_connectionOptions.ProducerOptions != null)
             {
-                var connection = CreateConnection(_producerOptions);
+                var connection = CreateConnection(_connectionOptions.ProducerOptions);
                 var channel = CreateChannel(connection);
                 StartClient(channel);
                 _producingService.UseConnection(connection);
                 _producingService.UseChannel(channel);
             }
 
-            if (_consumerOptions != null)
+            if (_connectionOptions.ConsumerOptions != null)
             {
-                var connection = CreateConnection(_consumerOptions);
+                var connection = CreateConnection(_connectionOptions.ConsumerOptions);
                 var channel = CreateChannel(connection);
                 StartClient(channel);
                 var consumer = _rabbitMqConnectionFactory.CreateConsumer(channel);
@@ -74,7 +72,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             return Task.CompletedTask;
         }
 
-        private IConnection CreateConnection(RabbitMqConnectionOptionsContainer optionsContainer) => _rabbitMqConnectionFactory.CreateRabbitMqConnection(optionsContainer.Options?.ConsumerOptions);
+        private IConnection CreateConnection(RabbitMqServiceOptions options) => _rabbitMqConnectionFactory.CreateRabbitMqConnection(options);
 
         private IModel CreateChannel(IConnection connection)
         {

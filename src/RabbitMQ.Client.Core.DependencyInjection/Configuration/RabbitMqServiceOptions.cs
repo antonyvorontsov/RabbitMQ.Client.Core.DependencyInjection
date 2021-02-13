@@ -6,7 +6,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Configuration
     /// <summary>
     /// RabbitMQ configuration model.
     /// </summary>
-    public class RabbitMqClientOptions
+    public class RabbitMqServiceOptions
     {
         /// <summary>
         /// Collection of AMPQ TCP endpoints.

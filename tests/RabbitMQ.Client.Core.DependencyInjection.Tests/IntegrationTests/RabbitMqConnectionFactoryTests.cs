@@ -14,7 +14,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
         [InlineData(10)]
         public void ShouldProperlyRetryCreatingInitialConnection(int retries)
         {
-            var connectionOptions = new RabbitMqClientOptions
+            var connectionOptions = new RabbitMqServiceOptions
             {
                 HostName = "anotherHost",
                 InitialConnectionRetries = retries,
@@ -29,7 +29,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
         [InlineData(10)]
         public void ShouldProperlyRetryCreatingInitialConnectionWithConnectionName(int retries)
         {
-            var connectionOptions = new RabbitMqClientOptions
+            var connectionOptions = new RabbitMqServiceOptions
             {
                 HostName = "anotherHost",
                 ClientProvidedName = "connectionName",
@@ -45,7 +45,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
         [InlineData(10)]
         public void ShouldProperlyRetryCreatingInitialConnectionWithTcpEndpoints(int retries)
         {
-            var connectionOptions = new RabbitMqClientOptions
+            var connectionOptions = new RabbitMqServiceOptions
             {
                 TcpEndpoints = new List<RabbitMqTcpEndpoint>
                 {
@@ -66,7 +66,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
         [InlineData(10)]
         public void ShouldProperlyRetryCreatingInitialConnectionWithHostNames(int retries)
         {
-            var connectionOptions = new RabbitMqClientOptions
+            var connectionOptions = new RabbitMqServiceOptions
             {
                 HostNames = new List<string> { "anotherHost" },
                 InitialConnectionRetries = retries,
@@ -81,7 +81,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
         [InlineData(10)]
         public void ShouldProperlyRetryCreatingInitialConnectionWithHostNamesAndNamedConnection(int retries)
         {
-            var connectionOptions = new RabbitMqClientOptions
+            var connectionOptions = new RabbitMqServiceOptions
             {
                 HostNames = new List<string> { "anotherHost" },
                 ClientProvidedName = "connectionName",
@@ -94,7 +94,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
         [Fact]
         public void ShouldProperlyCreateInitialConnection()
         {
-            var connectionOptions = new RabbitMqClientOptions
+            var connectionOptions = new RabbitMqServiceOptions
             {
                 HostName = "rabbitmq",
                 InitialConnectionRetries = 1,
@@ -106,7 +106,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
         [Fact]
         public void ShouldProperlyCreateInitialConnectionWithConnectionName()
         {
-            var connectionOptions = new RabbitMqClientOptions
+            var connectionOptions = new RabbitMqServiceOptions
             {
                 HostName = "rabbitmq",
                 ClientProvidedName = "connectionName",
@@ -119,7 +119,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
         [Fact]
         public void ShouldProperlyCreateInitialConnectionWithTcpEndpoints()
         {
-            var connectionOptions = new RabbitMqClientOptions
+            var connectionOptions = new RabbitMqServiceOptions
             {
                 TcpEndpoints = new List<RabbitMqTcpEndpoint>
                 {
@@ -137,7 +137,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
         [Fact]
         public void ShouldProperlyCreateInitialConnectionWithHostNames()
         {
-            var connectionOptions = new RabbitMqClientOptions
+            var connectionOptions = new RabbitMqServiceOptions
             {
                 HostNames = new List<string> { "rabbitmq" },
                 InitialConnectionRetries = 3,
@@ -149,7 +149,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
         [Fact]
         public void ShouldProperlyCreateInitialConnectionWithHostNamesAndNamedConnection()
         {
-            var connectionOptions = new RabbitMqClientOptions
+            var connectionOptions = new RabbitMqServiceOptions
             {
                 HostNames = new List<string> { "rabbitmq" },
                 ClientProvidedName = "connectionName",
@@ -159,14 +159,14 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
             ExecuteSuccessfulConnectionCreationAndAssertResults(connectionOptions);
         }
 
-        private static void ExecuteUnsuccessfulConnectionCreationAndAssertResults(RabbitMqClientOptions connectionOptions)
+        private static void ExecuteUnsuccessfulConnectionCreationAndAssertResults(RabbitMqServiceOptions connectionOptions)
         {
             var connectionFactory = new RabbitMqConnectionFactory();
             var exception = Assert.Throws<InitialConnectionException>(() => connectionFactory.CreateRabbitMqConnection(connectionOptions));
             Assert.Equal(connectionOptions.InitialConnectionRetries, exception.NumberOfRetries);
         }
 
-        private static void ExecuteSuccessfulConnectionCreationAndAssertResults(RabbitMqClientOptions connectionOptions)
+        private static void ExecuteSuccessfulConnectionCreationAndAssertResults(RabbitMqServiceOptions connectionOptions)
         {
             var connectionFactory = new RabbitMqConnectionFactory();
             using var connection = connectionFactory.CreateRabbitMqConnection(connectionOptions);
