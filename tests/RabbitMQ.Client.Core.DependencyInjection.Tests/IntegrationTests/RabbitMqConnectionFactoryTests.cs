@@ -49,7 +49,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
             {
                 TcpEndpoints = new List<RabbitMqTcpEndpoint>
                 {
-                    new RabbitMqTcpEndpoint
+                    new()
                     {
                         HostName = "anotherHost"
                     }
@@ -123,7 +123,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
             {
                 TcpEndpoints = new List<RabbitMqTcpEndpoint>
                 {
-                    new RabbitMqTcpEndpoint
+                    new()
                     {
                         HostName = "rabbitmq"
                     }

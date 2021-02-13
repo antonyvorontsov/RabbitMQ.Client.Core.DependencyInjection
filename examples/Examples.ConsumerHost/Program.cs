@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
+using RabbitMQ.Client.Core.DependencyInjection;
 
 namespace Examples.ConsumerHost
 {
@@ -24,12 +24,9 @@ namespace Examples.ConsumerHost
                   var rabbitMqSection = hostContext.Configuration.GetSection("RabbitMq");
                   var exchangeSection = hostContext.Configuration.GetSection("RabbitMqExchange");
 
-                  services.AddRabbitMqClient(rabbitMqSection)
+                  services.AddRabbitMqServices(rabbitMqSection)
                       .AddConsumptionExchange("exchange.name", exchangeSection)
                       .AddMessageHandlerTransient<CustomMessageHandler>("routing.key");
-                      //.AddNonCyclicMessageHandlerSingleton<CustomNonCyclicMessageHandler>("routing.key");
-
-                  services.AddSingleton<IHostedService, ConsumingService>();
               });
             await builder.RunConsoleAsync();
         }

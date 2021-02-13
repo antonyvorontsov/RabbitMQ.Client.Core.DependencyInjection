@@ -2,26 +2,26 @@ using System.Collections.Generic;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.Tests.Models
 {
-    public class HandleMessageReceivingEventTestDataModel
+    public record HandleMessageReceivingEventTestDataModel
     {
-        public string MessageRoutingKey { get; set; }
+        public string MessageRoutingKey { get; init; }
 
-        public string MessageExchange { get; set; }
+        public string MessageExchange { get; init; }
 
-        public string MessageHandlerExchange { get; set; }
+        public string MessageHandlerExchange { get; init; }
 
-        public List<string> MessageHandlerPatterns { get; set; }
+        public List<string> MessageHandlerPatterns { get; init; }
 
-        public bool MessageHandlerShouldTrigger { get; set; }
+        public bool MessageHandlerShouldTrigger { get; init; }
 
-        public int? MessageHandlerOrder { get; set; }
+        public int? MessageHandlerOrder { get; init; }
 
-        public string AsyncMessageHandlerExchange { get; set; }
+        public string AsyncMessageHandlerExchange { get; init; }
 
-        public List<string> AsyncMessageHandlerPatterns { get; set; }
+        public List<string> AsyncMessageHandlerPatterns { get; init; }
 
-        public bool AsyncMessageHandlerShouldTrigger { get; set; }
+        public bool AsyncMessageHandlerShouldTrigger { get; init; }
 
-        public int? AsyncMessageHandlerOrder { get; set; }
+        public int? AsyncMessageHandlerOrder { get; init; }
     }
 }

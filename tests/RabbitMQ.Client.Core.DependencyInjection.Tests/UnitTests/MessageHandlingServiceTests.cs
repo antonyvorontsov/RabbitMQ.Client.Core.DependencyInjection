@@ -22,7 +22,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
         {
             var exchanges = new List<RabbitMqExchange>
             {
-                new RabbitMqExchange { Name = testDataModel.MessageExchange }
+                new() { Name = testDataModel.MessageExchange }
             };
 
             var callOrder = 0;
@@ -48,13 +48,13 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
 
             var routers = new List<MessageHandlerRouter>
             {
-                new MessageHandlerRouter
+                new()
                 {
                     Type = messageHandlerMock.Object.GetType(),
                     Exchange = testDataModel.MessageHandlerExchange,
                     RoutePatterns = testDataModel.MessageHandlerPatterns
                 },
-                new MessageHandlerRouter
+                new()
                 {
                     Type = asyncMessageHandlerMock.Object.GetType(),
                     Exchange = testDataModel.AsyncMessageHandlerExchange,
@@ -167,13 +167,13 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
         {
             var collection = new List<MessageHandlerOrderingContainerTestModel>
             {
-                new MessageHandlerOrderingContainerTestModel
+                new()
                 {
                     MessageHandler = messageHandlerMock.Object,
                     ShouldTrigger = testDataModel.MessageHandlerShouldTrigger,
                     OrderValue = testDataModel.MessageHandlerOrder
                 },
-                new MessageHandlerOrderingContainerTestModel
+                new()
                 {
                     MessageHandler = asyncMessageHandlerMock.Object,
                     ShouldTrigger = testDataModel.AsyncMessageHandlerShouldTrigger,

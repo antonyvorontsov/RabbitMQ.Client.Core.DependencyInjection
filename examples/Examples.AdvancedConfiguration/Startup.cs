@@ -3,6 +3,7 @@ using Examples.AdvancedConfiguration.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using RabbitMQ.Client.Core.DependencyInjection;
 
 namespace Examples.AdvancedConfiguration
 {
@@ -30,14 +31,12 @@ namespace Examples.AdvancedConfiguration
             // You can set collection of routing keys or specify the exact exchange that will be listened by giver routing keys (or route patterns) by message handlers.
             // You can also register singleton or transient RabbitMQ clients (IConsumer and IProducer) and message handlers.
             // There are a lot of different extension methods that is better take a closer look to.
-            services.AddRabbitMqConsumingClientSingleton(rabbitMqConsumerSection)
-                .AddRabbitMqProducingClientSingleton(rabbitMqProducerSection)
+            services.AddRabbitMqConsumer(rabbitMqConsumerSection)
+                .AddRabbitMqProducer(rabbitMqProducerSection)
                 .AddProductionExchange("exchange.to.send.messages.only", producingExchangeSection)
                 .AddConsumptionExchange("consumption.exchange", consumingExchangeSection)
                 .AddMessageHandlerTransient<CustomMessageHandler>("routing.key")
-                .AddAsyncMessageHandlerTransient<CustomAsyncMessageHandler>(new[] { "routing.key", "another.routing.key" })
-                .AddNonCyclicMessageHandlerSingleton<CustomNonCyclicMessageHandler>("*.*", "consumption.exchange")
-                .AddAsyncNonCyclicMessageHandlerSingleton<CustomAsyncNonCyclicMessageHandler>("#", "consumption.exchange");
+                .AddAsyncMessageHandlerTransient<CustomAsyncMessageHandler>(new[] { "routing.key", "another.routing.key" });
 
             services.AddHostedService<ConsumingHostedService>();
         }

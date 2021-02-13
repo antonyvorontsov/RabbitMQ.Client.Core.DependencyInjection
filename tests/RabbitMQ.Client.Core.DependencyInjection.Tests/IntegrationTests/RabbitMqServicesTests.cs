@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,6 +14,7 @@ using Xunit;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
 {
+    [SuppressMessage("ReSharper", "AccessToDisposedClosure")]
     public class RabbitMqServicesTests
     {
         private readonly TimeSpan _globalTestsTimeout = TimeSpan.FromSeconds(60);
@@ -53,7 +55,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
             consumingService.StartConsuming();
 
             using var resetEvent = new AutoResetEvent(false);
-            consumer.Received += (sender, @event) =>
+            consumer.Received += (_, _) =>
             {
                 resetEvent.Set();
                 return Task.CompletedTask;
@@ -99,7 +101,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
             consumingService.StartConsuming();
 
             using var resetEvent = new AutoResetEvent(false);
-            consumer.Received += (sender, @event) =>
+            consumer.Received += (_, _) =>
             {
                 resetEvent.Set();
                 return Task.CompletedTask;
@@ -115,7 +117,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
         }
 
         private static RabbitMqServiceOptions GetClientOptions() =>
-            new RabbitMqServiceOptions
+            new()
             {
                 HostName = "rabbitmq",
                 Port = 5672,
@@ -125,7 +127,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
             };
 
         private static RabbitMqExchangeOptions GetExchangeOptions() =>
-            new RabbitMqExchangeOptions
+            new()
             {
                 Type = "direct",
                 DeadLetterExchange = "exchange.dlx",
@@ -133,7 +135,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
                 RequeueTimeoutMilliseconds = 50,
                 Queues = new List<RabbitMqQueueOptions>
                 {
-                    new RabbitMqQueueOptions
+                    new()
                     {
                         Name = "test.queue",
                         RoutingKeys = new HashSet<string> { FirstRoutingKey, SecondRoutingKey }

@@ -2,6 +2,8 @@
 using RabbitMQ.Client.Core.DependencyInjection.Configuration;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using RabbitMQ.Client.Core.DependencyInjection;
+using RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces;
 
 namespace Examples.Producer
 {
@@ -13,7 +15,7 @@ namespace Examples.Producer
             ConfigureServices(serviceCollection);
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
-            var queueService = serviceProvider.GetRequiredService<IQueueService>();
+            var queueService = serviceProvider.GetRequiredService<IProducingService>();
 
             for (var i = 0; i < 10; i++)
             {
@@ -48,7 +50,7 @@ namespace Examples.Producer
                     }
                 }
             };
-            services.AddRabbitMqClient(rabbitMqConfiguration)
+            services.AddRabbitMqProducer(rabbitMqConfiguration)
                 .AddProductionExchange("exchange.name", exchangeOptions);
         }
     }
