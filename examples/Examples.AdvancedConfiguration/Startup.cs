@@ -3,7 +3,6 @@ using Examples.AdvancedConfiguration.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using RabbitMQ.Client.Core.DependencyInjection;
 
 namespace Examples.AdvancedConfiguration
 {

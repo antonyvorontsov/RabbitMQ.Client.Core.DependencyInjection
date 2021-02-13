@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Core.DependencyInjection.Filters;
+using RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces;
 using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.Tests.Stubs
@@ -24,7 +25,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.Stubs
             MessageHandlerNumber = messageHandlerNumber;
         }
 
-        public Func<BasicDeliverEventArgs, IQueueService, Task> Execute(Func<BasicDeliverEventArgs, IQueueService, Task> next)
+        public Func<BasicDeliverEventArgs, IConsumingService, Task> Execute(Func<BasicDeliverEventArgs, IConsumingService, Task> next)
         {
             var order = _handlerOrderMap.Values.Max();
             _handlerOrderMap[MessageHandlerNumber] = order + 1;

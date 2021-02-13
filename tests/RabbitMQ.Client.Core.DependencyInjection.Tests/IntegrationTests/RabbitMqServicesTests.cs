@@ -13,7 +13,7 @@ using Xunit;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
 {
-    public class QueueServiceTests
+    public class RabbitMqServicesTests
     {
         private readonly TimeSpan _globalTestsTimeout = TimeSpan.FromSeconds(60);
 
@@ -42,16 +42,15 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
             serviceCollection
                 .AddSingleton(connectionFactoryMock.Object)
                 .AddSingleton(callerMock.Object)
-                .AddRabbitMqClient(GetClientOptions())
+                .AddRabbitMqServices(GetClientOptions())
                 .AddConsumptionExchange(DefaultExchangeName, GetExchangeOptions())
                 .AddMessageHandlerTransient<StubMessageHandler>(FirstRoutingKey)
-                .AddNonCyclicMessageHandlerTransient<StubNonCyclicMessageHandler>(FirstRoutingKey)
-                .AddAsyncMessageHandlerTransient<StubAsyncMessageHandler>(SecondRoutingKey)
-                .AddAsyncNonCyclicMessageHandlerTransient<StubAsyncNonCyclicMessageHandler>(SecondRoutingKey);
+                .AddAsyncMessageHandlerTransient<StubAsyncMessageHandler>(SecondRoutingKey);
 
             await using var serviceProvider = serviceCollection.BuildServiceProvider();
-            var queueService = serviceProvider.GetRequiredService<IQueueService>();
-            queueService.StartConsuming();
+            var consumingService = serviceProvider.GetRequiredService<IConsumingService>();
+            var producingService = serviceProvider.GetRequiredService<IProducingService>();
+            consumingService.StartConsuming();
 
             using var resetEvent = new AutoResetEvent(false);
             consumer.Received += (sender, @event) =>
@@ -60,11 +59,11 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
                 return Task.CompletedTask;
             };
 
-            await queueService.SendAsync(new { Message = "message" }, DefaultExchangeName, FirstRoutingKey);
+            await producingService.SendAsync(new { Message = "message" }, DefaultExchangeName, FirstRoutingKey);
             resetEvent.WaitOne(_globalTestsTimeout);
             callerMock.Verify(x => x.Call(It.IsAny<string>()), Times.Exactly(2));
 
-            await queueService.SendAsync(new { Message = "message" }, DefaultExchangeName, SecondRoutingKey);
+            await producingService.SendAsync(new { Message = "message" }, DefaultExchangeName, SecondRoutingKey);
             resetEvent.WaitOne(_globalTestsTimeout);
             callerMock.Verify(x => x.CallAsync(It.IsAny<string>()), Times.Exactly(2));
         }
@@ -89,13 +88,15 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
             serviceCollection
                 .AddSingleton(connectionFactoryMock.Object)
                 .AddSingleton(callerMock.Object)
-                .AddRabbitMqClient(GetClientOptions())
+                .AddRabbitMqServices(GetClientOptions())
                 .AddConsumptionExchange(DefaultExchangeName, GetExchangeOptions())
                 .AddMessageHandlerTransient<StubExceptionMessageHandler>(FirstRoutingKey);
 
             await using var serviceProvider = serviceCollection.BuildServiceProvider();
-            var queueService = serviceProvider.GetRequiredService<IQueueService>();
-            queueService.StartConsuming();
+            var consumingService = serviceProvider.GetRequiredService<IConsumingService>();
+            var producingService = serviceProvider.GetRequiredService<IProducingService>();
+            
+            consumingService.StartConsuming();
 
             using var resetEvent = new AutoResetEvent(false);
             consumer.Received += (sender, @event) =>
@@ -104,7 +105,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
                 return Task.CompletedTask;
             };
 
-            await queueService.SendAsync(new { Message = "message" }, DefaultExchangeName, FirstRoutingKey);
+            await producingService.SendAsync(new { Message = "message" }, DefaultExchangeName, FirstRoutingKey);
 
             for (var i = 1; i <= RequeueAttempts + 1; i++)
             {

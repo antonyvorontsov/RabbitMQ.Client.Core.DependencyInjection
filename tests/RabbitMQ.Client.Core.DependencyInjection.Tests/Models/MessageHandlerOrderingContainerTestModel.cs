@@ -1,6 +1,6 @@
 using RabbitMQ.Client.Core.DependencyInjection.MessageHandlers;
 
-namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests.Models
+namespace RabbitMQ.Client.Core.DependencyInjection.Tests.Models
 {
     internal class MessageHandlerOrderingContainerTestModel
     {

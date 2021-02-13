@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using RabbitMQ.Client.Core.DependencyInjection;
 using RabbitMQ.Client.Core.DependencyInjection.Configuration;
 using System.Collections.Generic;
 using System.Threading.Tasks;

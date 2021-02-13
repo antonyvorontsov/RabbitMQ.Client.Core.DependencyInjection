@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests.Models
+namespace RabbitMQ.Client.Core.DependencyInjection.Tests.Models
 {
     public class HandleMessageReceivingEventTestDataModel
     {
@@ -23,21 +23,5 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests.Models
         public bool AsyncMessageHandlerShouldTrigger { get; set; }
 
         public int? AsyncMessageHandlerOrder { get; set; }
-
-        public string NonCyclicMessageHandlerExchange { get; set; }
-
-        public List<string> NonCyclicMessageHandlerPatterns { get; set; }
-
-        public bool NonCyclicMessageHandlerShouldTrigger { get; set; }
-
-        public int? NonCyclicMessageHandlerOrder { get; set; }
-
-        public string AsyncNonCyclicMessageHandlerExchange { get; set; }
-
-        public List<string> AsyncNonCyclicMessageHandlerPatterns { get; set; }
-
-        public bool AsyncNonCyclicMessageHandlerShouldTrigger { get; set; }
-
-        public int? AsyncNonCyclicMessageHandlerOrder { get; set; }
     }
 }

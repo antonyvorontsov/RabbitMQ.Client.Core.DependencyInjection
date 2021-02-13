@@ -4,7 +4,6 @@ using System.Net.Security;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using RabbitMQ.Client.Core.DependencyInjection;
 using RabbitMQ.Client.Core.DependencyInjection.Configuration;
 
 namespace Examples.SslProducer

@@ -18,7 +18,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
         public async Task ShouldProperlyExecutePipelineWithNoFilters()
         {
             var argsMock = new Mock<BasicDeliverEventArgs>();
-            var queueServiceMock = new Mock<IQueueService>();
+            var consumingServiceMock = new Mock<IConsumingService>();
             
             var messageHandlingServiceMock = new Mock<IMessageHandlingService>();
 
@@ -27,16 +27,16 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                 Enumerable.Empty<IMessageHandlingFilter>(),
                 Enumerable.Empty<IMessageHandlingExceptionFilter>());
 
-            await service.Execute(argsMock.Object, queueServiceMock.Object);
+            await service.Execute(argsMock.Object, consumingServiceMock.Object);
 
-            messageHandlingServiceMock.Verify(x => x.HandleMessageReceivingEvent(argsMock.Object, queueServiceMock.Object), Times.Once);
+            messageHandlingServiceMock.Verify(x => x.HandleMessageReceivingEvent(argsMock.Object, consumingServiceMock.Object), Times.Once);
         }
 
         [Fact]
         public async Task ShouldProperlyExecutePipelineInReverseOrder()
         {
             var argsMock = new Mock<BasicDeliverEventArgs>();
-            var queueServiceMock = new Mock<IQueueService>();
+            var consumingServiceMock = new Mock<IConsumingService>();
             
             var messageHandlingServiceMock = new Mock<IMessageHandlingService>();
 
@@ -57,9 +57,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                 handlingFilters,
                 Enumerable.Empty<IMessageHandlingExceptionFilter>());
 
-            await service.Execute(argsMock.Object, queueServiceMock.Object);
+            await service.Execute(argsMock.Object, consumingServiceMock.Object);
             
-            messageHandlingServiceMock.Verify(x => x.HandleMessageReceivingEvent(argsMock.Object, queueServiceMock.Object), Times.Once);
+            messageHandlingServiceMock.Verify(x => x.HandleMessageReceivingEvent(argsMock.Object, consumingServiceMock.Object), Times.Once);
             Assert.Equal(1, handlerOrderMap[thirdFilter.MessageHandlerNumber]);
             Assert.Equal(2, handlerOrderMap[secondFilter.MessageHandlerNumber]);
             Assert.Equal(3, handlerOrderMap[firstFilter.MessageHandlerNumber]);
@@ -69,11 +69,11 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
         public async Task ShouldProperlyExecuteFailurePipelineInReverseOrderWhenMessageHandlingServiceThrowsException()
         {
             var argsMock = new Mock<BasicDeliverEventArgs>();
-            var queueServiceMock = new Mock<IQueueService>();
+            var consumingServiceMock = new Mock<IConsumingService>();
 
             var exception = new Exception();
             var messageHandlingServiceMock = new Mock<IMessageHandlingService>();
-            messageHandlingServiceMock.Setup(x => x.HandleMessageReceivingEvent(argsMock.Object, queueServiceMock.Object))
+            messageHandlingServiceMock.Setup(x => x.HandleMessageReceivingEvent(argsMock.Object, consumingServiceMock.Object))
                 .ThrowsAsync(exception);
 
             var filterOrderMap = new Dictionary<int, int>();
@@ -92,9 +92,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                 Enumerable.Empty<IMessageHandlingFilter>(),
                 exceptionFilters);
             
-            await service.Execute(argsMock.Object, queueServiceMock.Object);
+            await service.Execute(argsMock.Object, consumingServiceMock.Object);
             
-            messageHandlingServiceMock.Verify(x => x.HandleMessageProcessingFailure(exception, argsMock.Object, queueServiceMock.Object), Times.Once);
+            messageHandlingServiceMock.Verify(x => x.HandleMessageProcessingFailure(exception, argsMock.Object, consumingServiceMock.Object), Times.Once);
             Assert.Equal(1, filterOrderMap[thirdFilter.FilterNumber]);
             Assert.Equal(2, filterOrderMap[secondFilter.FilterNumber]);
             Assert.Equal(3, filterOrderMap[firstFilter.FilterNumber]);
@@ -104,13 +104,13 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
         public async Task ShouldProperlyExecuteFailurePipelineInReverseOrderWhenMessageHandlingFilterThrowsException()
         {
             var argsMock = new Mock<BasicDeliverEventArgs>();
-            var queueServiceMock = new Mock<IQueueService>();
+            var consumingServiceMock = new Mock<IConsumingService>();
             
             var messageHandlingServiceMock = new Mock<IMessageHandlingService>();
 
             var exception = new Exception();
             var handlingFilter = new Mock<IMessageHandlingFilter>();
-            handlingFilter.Setup(x => x.Execute(It.IsAny<Func<BasicDeliverEventArgs, IQueueService, Task>>()))
+            handlingFilter.Setup(x => x.Execute(It.IsAny<Func<BasicDeliverEventArgs, IConsumingService, Task>>()))
                 .Throws(exception);
             var handlingFilters = new List<IMessageHandlingFilter>
             {
@@ -133,9 +133,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                 handlingFilters,
                 exceptionFilters);
             
-            await service.Execute(argsMock.Object, queueServiceMock.Object);
+            await service.Execute(argsMock.Object, consumingServiceMock.Object);
             
-            messageHandlingServiceMock.Verify(x => x.HandleMessageProcessingFailure(exception, argsMock.Object, queueServiceMock.Object), Times.Once);
+            messageHandlingServiceMock.Verify(x => x.HandleMessageProcessingFailure(exception, argsMock.Object, consumingServiceMock.Object), Times.Once);
             Assert.Equal(1, filterOrderMap[thirdFilter.FilterNumber]);
             Assert.Equal(2, filterOrderMap[secondFilter.FilterNumber]);
             Assert.Equal(3, filterOrderMap[firstFilter.FilterNumber]);
