@@ -83,7 +83,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.Models
                     MessageHandlerPatterns = new List<string> { "file.create" },
                     MessageHandlerOrder = 0,
                     MessageHandlerShouldTrigger = false,
-                    AsyncMessageHandlerExchange = null,
+                    AsyncMessageHandlerExchange = "another.exchange",
                     AsyncMessageHandlerPatterns = new List<string> { "file.update" },
                     AsyncMessageHandlerOrder = 0,
                     AsyncMessageHandlerShouldTrigger = false
@@ -111,7 +111,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.Models
                 {
                     MessageExchange = "exchange",
                     MessageRoutingKey = "connection.create.stable",
-                    MessageHandlerExchange =  null,
+                    MessageHandlerExchange = null,
                     MessageHandlerPatterns = new List<string> { "*.*.*" },
                     MessageHandlerOrder = 10,
                     MessageHandlerShouldTrigger = true,

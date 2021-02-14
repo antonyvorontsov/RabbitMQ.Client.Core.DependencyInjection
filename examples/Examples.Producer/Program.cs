@@ -15,7 +15,7 @@ namespace Examples.Producer
             ConfigureServices(serviceCollection);
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
-            var queueService = serviceProvider.GetRequiredService<IProducingService>();
+            var producingService = serviceProvider.GetRequiredService<IProducingService>();
 
             for (var i = 0; i < 10; i++)
             {
@@ -26,7 +26,7 @@ namespace Examples.Producer
                     Index = i,
                     Numbers = new[] { 1, 2, 3 }
                 };
-                await queueService.SendAsync(message, "exchange.name", "routing.key");
+                await producingService.SendAsync(message, "exchange.name", "routing.key");
             }
         }
 

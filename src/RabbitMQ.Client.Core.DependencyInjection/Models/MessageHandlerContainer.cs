@@ -25,6 +25,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Models
         /// <summary>
         /// Flag is the container general.
         /// </summary>
+        // TODO: validate that everything is okay with general exchanges.
         public bool IsGeneral => string.IsNullOrEmpty(Exchange);
 
         /// <summary>

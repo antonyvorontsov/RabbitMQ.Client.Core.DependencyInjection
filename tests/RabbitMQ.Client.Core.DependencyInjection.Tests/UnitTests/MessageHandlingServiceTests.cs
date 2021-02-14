@@ -79,7 +79,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                 orderingModels,
                 messageHandlers,
                 asyncMessageHandlers);
-            var queueService = CreateConsumingService();
+            var consumingService = CreateConsumingService();
 
             var eventArgs = new BasicDeliverEventArgs
             {
@@ -87,7 +87,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                 RoutingKey = testDataModel.MessageRoutingKey,
                 Body = Array.Empty<byte>()
             };
-            await service.HandleMessageReceivingEvent(eventArgs, queueService);
+            await service.HandleMessageReceivingEvent(eventArgs, consumingService);
 
             var messageHandlerTimes = testDataModel.MessageHandlerShouldTrigger ? Times.Once() : Times.Never();
             messageHandlerMock.Verify(x => x.Handle(It.IsAny<BasicDeliverEventArgs>(), It.IsAny<string>()), messageHandlerTimes);
@@ -104,10 +104,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
         private static IConsumingService CreateConsumingService()
         {
             var channelMock = new Mock<IModel>();
-            var queueServiceMock = new Mock<IConsumingService>();
-            queueServiceMock.Setup(x => x.Channel)
-                .Returns(channelMock.Object);
-            return queueServiceMock.Object;
+            var consumingServiceMock = new Mock<IConsumingService>();
+            consumingServiceMock.Setup(x => x.Channel).Returns(channelMock.Object);
+            return consumingServiceMock.Object;
         }
 
         private static IMessageHandlingService CreateService(
