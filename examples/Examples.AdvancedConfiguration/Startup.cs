@@ -27,11 +27,13 @@ namespace Examples.AdvancedConfiguration
             var producingExchangeSection = Configuration.GetSection("ProducingExchange");
             var consumingExchangeSection = Configuration.GetSection("ConsumingExchange");
 
+            // TODO: fix comment.
+            
             // There is an example of configuring different message handlers with different parameters.
             // You can set collection of routing keys or specify the exact exchange that will be listened by giver routing keys (or route patterns) by message handlers.
             // You can also register singleton or transient RabbitMQ clients (IConsumer and IProducer) and message handlers.
             // There are a lot of different extension methods that is better take a closer look to.
-            services.AddRabbitMqConsumer(rabbitMqConsumerSection)
+            services.AddRabbitMqServices(rabbitMqConsumerSection)
                 .AddRabbitMqProducer(rabbitMqProducerSection)
                 .AddProductionExchange("exchange.to.send.messages.only", producingExchangeSection)
                 .AddConsumptionExchange("consumption.exchange", consumingExchangeSection)

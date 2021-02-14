@@ -16,6 +16,11 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces
         /// RabbitMQ consuming channel.
         /// </summary>
         IModel Channel { get; }
+        
+        /// <summary>
+        /// Asynchronous consumer. 
+        /// </summary>
+        AsyncEventingBasicConsumer Consumer { get; }
     
         /// <summary>
         /// Start consuming (getting messages).

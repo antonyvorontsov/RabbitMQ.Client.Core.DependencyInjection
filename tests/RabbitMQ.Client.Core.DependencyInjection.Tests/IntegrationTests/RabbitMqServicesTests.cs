@@ -6,10 +6,8 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using RabbitMQ.Client.Core.DependencyInjection.Configuration;
-using RabbitMQ.Client.Core.DependencyInjection.Services;
 using RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces;
 using RabbitMQ.Client.Core.DependencyInjection.Tests.Stubs;
-using RabbitMQ.Client.Events;
 using Xunit;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
@@ -27,22 +25,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
         [Fact]
         public async Task ShouldProperlyPublishAndConsumeMessages()
         {
-            var connectionFactoryMock = new Mock<RabbitMqConnectionFactory> { CallBase = true }
-                .As<IRabbitMqConnectionFactory>();
-
-            AsyncEventingBasicConsumer consumer = null;
-            connectionFactoryMock.Setup(x => x.CreateConsumer(It.IsAny<IModel>()))
-                .Returns<IModel>(channel =>
-                {
-                    consumer = new AsyncEventingBasicConsumer(channel);
-                    return consumer;
-                });
-
             var callerMock = new Mock<IStubCaller>();
-
             var serviceCollection = new ServiceCollection();
             serviceCollection
-                .AddSingleton(connectionFactoryMock.Object)
                 .AddSingleton(callerMock.Object)
                 .AddRabbitMqServices(GetClientOptions())
                 .AddConsumptionExchange(DefaultExchangeName, GetExchangeOptions())
@@ -52,10 +37,12 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
             await using var serviceProvider = serviceCollection.BuildServiceProvider();
             var consumingService = serviceProvider.GetRequiredService<IConsumingService>();
             var producingService = serviceProvider.GetRequiredService<IProducingService>();
+            var channelDeclarationService = serviceProvider.GetRequiredService<IChannelDeclarationService>();
+            
+            channelDeclarationService.SetConnectionInfrastructureForRabbitMqServices();
             consumingService.StartConsuming();
-
             using var resetEvent = new AutoResetEvent(false);
-            consumer.Received += (_, _) =>
+            consumingService.Consumer.Received += (_, _) =>
             {
                 resetEvent.Set();
                 return Task.CompletedTask;
@@ -63,32 +50,19 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
 
             await producingService.SendAsync(new { Message = "message" }, DefaultExchangeName, FirstRoutingKey);
             resetEvent.WaitOne(_globalTestsTimeout);
-            callerMock.Verify(x => x.Call(It.IsAny<string>()), Times.Exactly(2));
+            callerMock.Verify(x => x.Call(It.IsAny<string>()), Times.Once);
 
             await producingService.SendAsync(new { Message = "message" }, DefaultExchangeName, SecondRoutingKey);
             resetEvent.WaitOne(_globalTestsTimeout);
-            callerMock.Verify(x => x.CallAsync(It.IsAny<string>()), Times.Exactly(2));
+            callerMock.Verify(x => x.CallAsync(It.IsAny<string>()), Times.Once);
         }
         
         [Fact]
         public async Task ShouldProperlyRequeueMessages()
         {
-            var connectionFactoryMock = new Mock<RabbitMqConnectionFactory> { CallBase = true }
-                .As<IRabbitMqConnectionFactory>();
-
-            AsyncEventingBasicConsumer consumer = null;
-            connectionFactoryMock.Setup(x => x.CreateConsumer(It.IsAny<IModel>()))
-                .Returns<IModel>(channel =>
-                {
-                    consumer = new AsyncEventingBasicConsumer(channel);
-                    return consumer;
-                });
-
             var callerMock = new Mock<IStubCaller>();
-
             var serviceCollection = new ServiceCollection();
             serviceCollection
-                .AddSingleton(connectionFactoryMock.Object)
                 .AddSingleton(callerMock.Object)
                 .AddRabbitMqServices(GetClientOptions())
                 .AddConsumptionExchange(DefaultExchangeName, GetExchangeOptions())
@@ -97,11 +71,12 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
             await using var serviceProvider = serviceCollection.BuildServiceProvider();
             var consumingService = serviceProvider.GetRequiredService<IConsumingService>();
             var producingService = serviceProvider.GetRequiredService<IProducingService>();
+            var channelDeclarationService = serviceProvider.GetRequiredService<IChannelDeclarationService>();
             
+            channelDeclarationService.SetConnectionInfrastructureForRabbitMqServices();
             consumingService.StartConsuming();
-
             using var resetEvent = new AutoResetEvent(false);
-            consumer.Received += (_, _) =>
+            consumingService.Consumer.Received += (_, _) =>
             {
                 resetEvent.Set();
                 return Task.CompletedTask;

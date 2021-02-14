@@ -18,9 +18,10 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         public IConnection Connection { get; private set; }
 
         public IModel Channel { get; private set; }
+        
+        public AsyncEventingBasicConsumer Consumer { get; private set; }
 
         private bool _consumingStarted;
-        private AsyncEventingBasicConsumer _consumer;
 
         private readonly IMessageHandlingPipelineExecutingService _messageHandlingPipelineExecutingService;
         private readonly IEnumerable<RabbitMqExchange> _exchanges;
@@ -63,7 +64,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
 
         public void UseConsumer(AsyncEventingBasicConsumer consumer)
         {
-            _consumer = consumer;
+            Consumer = consumer;
         }
 
         public void StartConsuming()
@@ -78,13 +79,13 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
                 return;
             }
 
-            _consumer.Received += ConsumerOnReceived;
+            Consumer.Received += ConsumerOnReceived;
             _consumingStarted = true;
 
             var consumptionExchanges = _exchanges.Where(x => x.IsConsuming);
             _consumerTags = consumptionExchanges.SelectMany(
                     exchange => exchange.Options.Queues.Select(
-                        queue => Channel.BasicConsume(queue: queue.Name, autoAck: false, consumer: _consumer)))
+                        queue => Channel.BasicConsume(queue: queue.Name, autoAck: false, consumer: Consumer)))
                 .Distinct()
                 .ToList();
         }
@@ -101,7 +102,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
                 return;
             }
 
-            _consumer.Received -= ConsumerOnReceived;
+            Consumer.Received -= ConsumerOnReceived;
             _consumingStarted = false;
             foreach (var tag in _consumerTags)
             {

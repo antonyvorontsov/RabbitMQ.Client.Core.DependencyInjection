@@ -24,8 +24,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         {
             services.AddRabbitMqInfrastructure();
             services.ConfigureRabbitMqConnectionOptions(RabbitMqServiceOptionsDependencyInjectionExtensions.GetRabbitMqServiceOptionsInstance(configuration));
-            services.AddProducer();
-            services.AddConsumer();
+            services.AddRabbitMqServices();
+            services.AddConsumptionStarter();
             return services;
         }
 
@@ -40,8 +40,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         {
             services.AddRabbitMqInfrastructure();
             services.ConfigureRabbitMqConnectionOptions(configuration);
-            services.AddProducer();
-            services.AddConsumer();
+            services.AddRabbitMqServices();
+            services.AddConsumptionStarter();
             return services;
         }
 
@@ -54,8 +54,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         public static IServiceCollection AddRabbitMqProducer(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddRabbitMqInfrastructure();
-            services.ConfigureRabbitMqProducingServiceOptions(RabbitMqServiceOptionsDependencyInjectionExtensions.GetRabbitMqServiceOptionsInstance(configuration));
-            services.AddProducer();
+            services.ConfigureRabbitMqProducingOnlyServiceOptions(RabbitMqServiceOptionsDependencyInjectionExtensions.GetRabbitMqServiceOptionsInstance(configuration));
+            services.AddRabbitMqServices();
             return services;
         }
 
@@ -68,48 +68,20 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         public static IServiceCollection AddRabbitMqProducer(this IServiceCollection services, RabbitMqServiceOptions configuration)
         {
             services.AddRabbitMqInfrastructure();
-            services.ConfigureRabbitMqProducingServiceOptions(configuration);
-            services.AddProducer();
+            services.ConfigureRabbitMqProducingOnlyServiceOptions(configuration);
+            services.AddRabbitMqServices();
             return services;
         }
 
-        /// <summary>
-        /// Add a singleton consuming RabbitMQ service <see cref="IConsumingService"/> and required infrastructure.
-        /// </summary>
-        /// <param name="services">Service collection.</param>
-        /// <param name="configuration">RabbitMq configuration section.</param>
-        /// <returns>Service collection.</returns>
-        public static IServiceCollection AddRabbitMqConsumer(this IServiceCollection services, IConfiguration configuration)
-        {
-            services.AddRabbitMqInfrastructure();
-            services.ConfigureRabbitMqConsumingServiceOptions(RabbitMqServiceOptionsDependencyInjectionExtensions.GetRabbitMqServiceOptionsInstance(configuration));
-            services.AddConsumer();
-            return services;
-        }
-
-        /// <summary>
-        /// Add a singleton consuming RabbitMQ service <see cref="IConsumingService"/> and required infrastructure.
-        /// </summary>
-        /// <param name="services">Service collection.</param>
-        /// <param name="configuration">RabbitMq configuration <see cref="RabbitMqServiceOptions"/>.</param>
-        /// <returns>Service collection.</returns>
-        public static IServiceCollection AddRabbitMqConsumer(this IServiceCollection services, RabbitMqServiceOptions configuration)
-        {
-            services.AddRabbitMqInfrastructure();
-            services.ConfigureRabbitMqConsumingServiceOptions(configuration);
-            services.AddConsumer();
-            return services;
-        }
-
-        private static IServiceCollection AddProducer(this IServiceCollection services)
+        private static IServiceCollection AddRabbitMqServices(this IServiceCollection services)
         {
             services.TryAddSingleton<IProducingService, ProducingService>();
+            services.TryAddSingleton<IConsumingService, ConsumingService>();
             return services;
         }
 
-        private static IServiceCollection AddConsumer(this IServiceCollection services)
+        private static IServiceCollection AddConsumptionStarter(this IServiceCollection services)
         {
-            services.TryAddSingleton<IConsumingService, ConsumingService>();
             services.AddHostedService<ConsumingHostedService>();
             return services;
         }
@@ -122,6 +94,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             services.TryAddSingleton<IMessageHandlerContainerBuilder, MessageHandlerContainerBuilder>();
             services.TryAddSingleton<IMessageHandlingPipelineExecutingService, MessageHandlingPipelineExecutingService>();
             services.TryAddSingleton<IMessageHandlingService, MessageHandlingService>();
+            services.TryAddSingleton<IChannelDeclarationService, ChannelDeclarationService>();
             services.AddHostedService<ChannelDeclarationHostedService>();
             return services;
         }
