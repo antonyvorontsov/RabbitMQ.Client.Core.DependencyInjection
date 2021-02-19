@@ -5,9 +5,9 @@ using RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.Services
 {
-    // TODO: change summary.
     /// <summary>
     /// Hosted service that is responsible for creating connections and channels for both producing and consuming services.
+    /// It does its thing by using IChannelDeclarationService <see cref="IChannelDeclarationService"/>.
     /// </summary>
     public class ChannelDeclarationHostedService : IHostedService
     {

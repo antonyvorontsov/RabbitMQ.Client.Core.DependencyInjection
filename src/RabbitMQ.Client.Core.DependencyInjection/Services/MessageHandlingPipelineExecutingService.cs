@@ -8,9 +8,7 @@ using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.Services
 {
-    /// <summary>
-    /// Service that is responsible for handling received message in the pipeline of filters.
-    /// </summary>
+    /// <inheritdoc/>
     public class MessageHandlingPipelineExecutingService : IMessageHandlingPipelineExecutingService
     {
         private readonly IMessageHandlingService _messageHandlingService;
@@ -27,6 +25,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             _exceptionFilters = exceptionFilters ?? Enumerable.Empty<IMessageHandlingExceptionFilter>();
         }
 
+        /// <inheritdoc/>
         public async Task Execute(BasicDeliverEventArgs eventArgs, IConsumingService consumingService)
         {
             try

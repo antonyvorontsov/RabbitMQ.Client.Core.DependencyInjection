@@ -10,7 +10,7 @@ using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.Services
 {
-    // TODO: summary.
+    /// <inheritdoc/>
     public class ChannelDeclarationService : IChannelDeclarationService
     {
         private readonly RabbitMqConnectionOptions _connectionOptions;
@@ -36,6 +36,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             _logger = logger;
         }
 
+        /// <inheritdoc/>
         public void SetConnectionInfrastructureForRabbitMqServices()
         {
             if (_connectionOptions.ProducerOptions != null)

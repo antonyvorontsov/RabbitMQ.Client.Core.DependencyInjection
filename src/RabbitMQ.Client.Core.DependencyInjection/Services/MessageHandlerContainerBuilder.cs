@@ -8,11 +8,7 @@ using RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.Services
 {
-    /// <summary>
-    /// Implementation of the service that build message handler containers collection.
-    /// Those containers contain information about message handlers (all types) bound to the exchange.
-    /// Container could be "general" if message handler has not been bound to the exchange (so it will "listen" regardless of the exchange).
-    /// </summary>
+    /// <inheritdoc/>
     public class MessageHandlerContainerBuilder : IMessageHandlerContainerBuilder
     {
         private readonly IEnumerable<MessageHandlerRouter> _routers;
@@ -32,10 +28,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             _asyncMessageHandlers = asyncMessageHandlers;
         }
 
-        /// <summary>
-        /// Build message handler containers collection.
-        /// </summary>
-        /// <returns>Collection of message handler containers <see cref="MessageHandlerContainer"/>.</returns>
+        /// <inheritdoc/>
         public IEnumerable<MessageHandlerContainer> BuildCollection()
         {
             var containers = new List<MessageHandlerContainer>();

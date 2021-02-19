@@ -10,17 +10,10 @@ using RabbitMQ.Client.Exceptions;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.Services
 {
-    /// <summary>
-    /// Service that is responsible for creating RabbitMQ connections depending on options <see cref="RabbitMqServiceOptions"/>.
-    /// </summary>
+    /// <inheritdoc/>
     public class RabbitMqConnectionFactory : IRabbitMqConnectionFactory
     {
-        /// <summary>
-        /// Create a RabbitMQ connection.
-        /// </summary>
-        /// <param name="options">An instance of options <see cref="RabbitMqServiceOptions"/>.</param>
-        /// <returns>An instance of connection <see cref="IConnection"/>.</returns>
-        /// <remarks>If options parameter is null the method return null too.</remarks>
+        /// <inheritdoc/>
         public IConnection CreateRabbitMqConnection(RabbitMqServiceOptions options)
         {
             if (options is null)
@@ -51,11 +44,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
                 : CreateNamedConnection(options, factory);
         }
 
-        /// <summary>
-        /// Create a consumer depending on the connection channel.
-        /// </summary>
-        /// <param name="channel">Connection channel.</param>
-        /// <returns>A consumer instance <see cref="AsyncEventingBasicConsumer"/>.</returns>
+        /// <inheritdoc/>
         public AsyncEventingBasicConsumer CreateConsumer(IModel channel) => new AsyncEventingBasicConsumer(channel);
 
         private static IConnection CreateConnectionWithTcpEndpoints(RabbitMqServiceOptions options, ConnectionFactory factory)
