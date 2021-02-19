@@ -11,9 +11,7 @@ using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.Services
 {
-    /// <summary>
-    /// An implementation of the service that handles message receiving (consumption) events.
-    /// </summary>
+    /// <inheritdoc/>
     public class MessageHandlingService : IMessageHandlingService
     {
         private readonly IProducingService _producingService;

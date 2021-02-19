@@ -10,15 +10,16 @@ using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.Services
 {
-    /// <summary>
-    /// An implementation of custom RabbitMQ consuming service interface.
-    /// </summary>
+    /// <inheritdoc cref="IConsumingService"/>
     public class ConsumingService : IConsumingService, IDisposable
     {
+        /// <inheritdoc/>
         public IConnection Connection { get; private set; }
 
+        /// <inheritdoc/>
         public IModel Channel { get; private set; }
         
+        /// <inheritdoc/>
         public AsyncEventingBasicConsumer Consumer { get; private set; }
 
         private bool _consumingStarted;
@@ -36,6 +37,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             _exchanges = exchanges;
         }
 
+        /// <inheritdoc/>
         public void Dispose()
         {
             if (Channel?.IsOpen == true)
@@ -52,21 +54,25 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             Connection?.Dispose();
         }
 
+        /// <inheritdoc/>
         public void UseConnection(IConnection connection)
         {
             Connection = connection;
         }
 
+        /// <inheritdoc/>
         public void UseChannel(IModel channel)
         {
             Channel = channel;
         }
 
+        /// <inheritdoc/>
         public void UseConsumer(AsyncEventingBasicConsumer consumer)
         {
             Consumer = consumer;
         }
 
+        /// <inheritdoc/>
         public void StartConsuming()
         {
             if (Channel is null)
@@ -90,6 +96,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
                 .ToList();
         }
 
+        /// <inheritdoc/>
         public void StopConsuming()
         {
             if (Channel is null)
@@ -110,7 +117,6 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             }
         }
 
-        // TODO: take a look at _messageHandlingPipelineExecutingService and its paradigm.
         private Task ConsumerOnReceived(object sender, BasicDeliverEventArgs eventArgs) => _messageHandlingPipelineExecutingService.Execute(eventArgs, this);
     }
 }

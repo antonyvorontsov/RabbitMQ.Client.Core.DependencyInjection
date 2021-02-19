@@ -11,13 +11,13 @@ using RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.Services
 {
-    /// <summary>
-    /// Implementation of the custom RabbitMQ queue service.
-    /// </summary>
+    /// <inheritdoc cref="IProducingService"/>
     public sealed class ProducingService : IProducingService, IDisposable
     {
+        /// <inheritdoc/>
         public IConnection Connection { get; private set; }
 
+        /// <inheritdoc/>
         public IModel Channel { get; private set; }
 
         private readonly IEnumerable<RabbitMqExchange> _exchanges;
@@ -30,6 +30,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             _exchanges = exchanges;
         }
 
+        /// <inheritdoc/>
         public void Dispose()
         {
             if (Channel?.IsOpen == true)
@@ -46,16 +47,19 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             Connection?.Dispose();
         }
 
+        /// <inheritdoc/>
         public void UseConnection(IConnection connection)
         {
             Connection = connection;
         }
 
+        /// <inheritdoc/>
         public void UseChannel(IModel channel)
         {
             Channel = channel;
         }
 
+        /// <inheritdoc/>
         public void Send<T>(T @object, string exchangeName, string routingKey) where T : class
         {
             EnsureProducingChannelIsNotNull();
@@ -66,6 +70,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             Send(bytes, properties, exchangeName, routingKey);
         }
 
+        /// <inheritdoc/>
         public void Send<T>(T @object, string exchangeName, string routingKey, int millisecondsDelay) where T : class
         {
             EnsureProducingChannelIsNotNull();
@@ -75,6 +80,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             Send(@object, deadLetterExchange, delayedQueueName);
         }
 
+        /// <inheritdoc/>
         public void SendJson(string json, string exchangeName, string routingKey)
         {
             EnsureProducingChannelIsNotNull();
@@ -84,6 +90,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             Send(bytes, properties, exchangeName, routingKey);
         }
 
+        /// <inheritdoc/>
         public void SendJson(string json, string exchangeName, string routingKey, int millisecondsDelay)
         {
             EnsureProducingChannelIsNotNull();
@@ -93,6 +100,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             SendJson(json, deadLetterExchange, delayedQueueName);
         }
 
+        /// <inheritdoc/>
         public void SendString(string message, string exchangeName, string routingKey)
         {
             EnsureProducingChannelIsNotNull();
@@ -101,6 +109,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             Send(bytes, CreateProperties(), exchangeName, routingKey);
         }
 
+        /// <inheritdoc/>
         public void SendString(string message, string exchangeName, string routingKey, int millisecondsDelay)
         {
             EnsureProducingChannelIsNotNull();
@@ -110,6 +119,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             SendString(message, deadLetterExchange, delayedQueueName);
         }
 
+        /// <inheritdoc/>
         public void Send(ReadOnlyMemory<byte> bytes, IBasicProperties properties, string exchangeName, string routingKey)
         {
             EnsureProducingChannelIsNotNull();
@@ -123,6 +133,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             }
         }
 
+        /// <inheritdoc/>
         public void Send(ReadOnlyMemory<byte> bytes, IBasicProperties properties, string exchangeName, string routingKey, int millisecondsDelay)
         {
             EnsureProducingChannelIsNotNull();
@@ -132,27 +143,35 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             Send(bytes, properties, deadLetterExchange, delayedQueueName);
         }
 
+        /// <inheritdoc/>
         public async Task SendAsync<T>(T @object, string exchangeName, string routingKey) where T : class =>
             await Task.Run(() => Send(@object, exchangeName, routingKey)).ConfigureAwait(false);
 
+        /// <inheritdoc/>
         public async Task SendAsync<T>(T @object, string exchangeName, string routingKey, int millisecondsDelay) where T : class =>
             await Task.Run(() => Send(@object, exchangeName, routingKey, millisecondsDelay)).ConfigureAwait(false);
 
+        /// <inheritdoc/>
         public async Task SendJsonAsync(string json, string exchangeName, string routingKey) =>
             await Task.Run(() => SendJson(json, exchangeName, routingKey)).ConfigureAwait(false);
 
+        /// <inheritdoc/>
         public async Task SendJsonAsync(string json, string exchangeName, string routingKey, int millisecondsDelay) =>
             await Task.Run(() => SendJson(json, exchangeName, routingKey, millisecondsDelay)).ConfigureAwait(false);
 
+        /// <inheritdoc/>
         public async Task SendStringAsync(string message, string exchangeName, string routingKey) =>
             await Task.Run(() => SendString(message, exchangeName, routingKey)).ConfigureAwait(false);
 
+        /// <inheritdoc/>
         public async Task SendStringAsync(string message, string exchangeName, string routingKey, int millisecondsDelay) =>
             await Task.Run(() => SendString(message, exchangeName, routingKey, millisecondsDelay)).ConfigureAwait(false);
 
+        /// <inheritdoc/>
         public async Task SendAsync(ReadOnlyMemory<byte> bytes, IBasicProperties properties, string exchangeName, string routingKey) =>
             await Task.Run(() => Send(bytes, properties, exchangeName, routingKey)).ConfigureAwait(false);
 
+        /// <inheritdoc/>
         public async Task SendAsync(ReadOnlyMemory<byte> bytes, IBasicProperties properties, string exchangeName, string routingKey, int millisecondsDelay) =>
             await Task.Run(() => Send(bytes, properties, exchangeName, routingKey, millisecondsDelay)).ConfigureAwait(false);
 
