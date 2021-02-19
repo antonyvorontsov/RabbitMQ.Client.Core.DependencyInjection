@@ -8,7 +8,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
 {
     public class WildcardExtensionsTests
     {
-        readonly string[] _routes;
+        private readonly string[] _routes;
 
         public WildcardExtensionsTests()
         {
@@ -29,7 +29,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
         [Fact]
         public void ShouldProperlyConstructTree()
         {
-            var tree = WildcardExtensions.ConstructRoutesTree(_routes);
+            var tree = WildcardExtensions.ConstructRoutesTree(_routes).ToList();
 
             var countNodes = CountNodes(tree);
             Assert.Equal(15, countNodes);
@@ -40,29 +40,34 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             Assert.Contains(tree, x => x.KeyPartition == "*");
             Assert.Contains(tree, x => x.KeyPartition == "create");
 
-            var sharpNodes = tree.FirstOrDefault(x => !x.IsLastNode && x.KeyPartition == "#").Nodes;
+            var sharpNodes = tree.FirstOrDefault(x => !x.IsLastNode && x.KeyPartition == "#")?.Nodes;
+            Assert.NotNull(sharpNodes);
             Assert.Equal(3, sharpNodes.Count);
             Assert.Contains(sharpNodes, x => x.KeyPartition == "delete");
             Assert.Contains(sharpNodes, x => x.KeyPartition == "create");
             Assert.Contains(sharpNodes, x => x.KeyPartition == "update");
 
-            var createNodes = tree.FirstOrDefault(x => x.KeyPartition == "create").Nodes;
+            var createNodes = tree.FirstOrDefault(x => x.KeyPartition == "create")?.Nodes;
+            Assert.NotNull(createNodes);
             Assert.Equal(2, createNodes.Count);
             Assert.Contains(createNodes, x => x.KeyPartition == "*");
             Assert.Contains(createNodes, x => x.KeyPartition == "#");
 
-            var asteriskNodes = tree.FirstOrDefault(x => x.KeyPartition == "*").Nodes;
+            var asteriskNodes = tree.FirstOrDefault(x => x.KeyPartition == "*")?.Nodes;
+            Assert.NotNull(asteriskNodes);
             Assert.Equal(3, asteriskNodes.Count);
             Assert.Contains(asteriskNodes, x => x.KeyPartition == "*");
             Assert.Contains(asteriskNodes, x => x.KeyPartition == "create");
             Assert.Contains(asteriskNodes, x => x.KeyPartition == "update");
 
-            var doubleAsteriskNodes = asteriskNodes.FirstOrDefault(x => x.KeyPartition == "*").Nodes;
+            var doubleAsteriskNodes = asteriskNodes.FirstOrDefault(x => x.KeyPartition == "*")?.Nodes;
+            Assert.NotNull(doubleAsteriskNodes);
             Assert.Equal(2, doubleAsteriskNodes.Count);
             Assert.Contains(doubleAsteriskNodes, x => x.KeyPartition == "*");
             Assert.Contains(doubleAsteriskNodes, x => x.KeyPartition == "create");
 
-            var asteriskCreateNodes = asteriskNodes.FirstOrDefault(x => x.KeyPartition == "create").Nodes;
+            var asteriskCreateNodes = asteriskNodes.FirstOrDefault(x => x.KeyPartition == "create")?.Nodes;
+            Assert.NotNull(asteriskCreateNodes);
             Assert.Single(asteriskCreateNodes);
             Assert.Contains(asteriskCreateNodes, x => x.KeyPartition == "*");
         }
@@ -85,14 +90,15 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             var routingKeyParts = routingKey.Split(".");
             var matchingRoutes = WildcardExtensions.GetMatchingRoutePatterns(tree, routingKeyParts).ToList();
 
-            Assert.Equal(routes.Count(), matchingRoutes.Count);
-            foreach (var route in routes)
+            var listOfRoutes = routes.ToList();
+            Assert.Equal(listOfRoutes.Count, matchingRoutes.Count);
+            foreach (var route in listOfRoutes)
             {
                 Assert.Contains(matchingRoutes, x => x == route);
             }
         }
 
-        static int CountNodes(IEnumerable<TreeNode> nodes)
+        private static int CountNodes(IList<TreeNode> nodes)
         {
             var count = nodes.Count();
             foreach (var node in nodes)

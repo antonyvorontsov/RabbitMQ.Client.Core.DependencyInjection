@@ -5,7 +5,7 @@ on: [push]
 jobs:
   workflow:
     runs-on: ubuntu-latest
-    container: mcr.microsoft.com/dotnet/core/runtime:3.1
+    container: mcr.microsoft.com/dotnet/core/runtime:latest
 
     services:
       rabbitmq:
@@ -19,7 +19,7 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 3.1.202
+        dotnet-version: 5.0.102
     - name: Build
       run: dotnet build --configuration Release
     - name: Run tests

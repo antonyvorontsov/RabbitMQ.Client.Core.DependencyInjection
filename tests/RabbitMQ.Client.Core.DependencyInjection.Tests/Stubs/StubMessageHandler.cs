@@ -5,7 +5,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.Stubs
 {
     public class StubMessageHandler : IMessageHandler
     {
-        readonly IStubCaller _caller;
+        private readonly IStubCaller _caller;
 
         public StubMessageHandler(IStubCaller caller)
         {

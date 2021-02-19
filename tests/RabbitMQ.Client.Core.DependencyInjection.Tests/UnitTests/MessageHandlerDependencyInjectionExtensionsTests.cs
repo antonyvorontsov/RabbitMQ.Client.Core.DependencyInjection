@@ -31,29 +31,5 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                 return Task.CompletedTask;
             });
         }
-
-        [Fact]
-        public async Task ShouldProperlyThrowExceptionWhenRegisteringSameNonCyclicMessageHandlerTwiceForOneRoutingKeyWithDifferentOrder()
-        {
-            await Assert.ThrowsAsync<ArgumentException>(() =>
-            {
-                new ServiceCollection()
-                    .AddNonCyclicMessageHandlerTransient<StubNonCyclicMessageHandler>("routing.key", 0)
-                    .AddNonCyclicMessageHandlerTransient<StubNonCyclicMessageHandler>("routing.key", 1);
-                return Task.CompletedTask;
-            });
-        }
-
-        [Fact]
-        public async Task ShouldProperlyThrowExceptionWhenRegisteringSameAsyncNonCyclicMessageHandlerTwiceForOneRoutingKeyWithDifferentOrder()
-        {
-            await Assert.ThrowsAsync<ArgumentException>(() =>
-            {
-                new ServiceCollection()
-                    .AddAsyncNonCyclicMessageHandlerTransient<StubAsyncNonCyclicMessageHandler>("routing.key", 0)
-                    .AddAsyncNonCyclicMessageHandlerTransient<StubAsyncNonCyclicMessageHandler>("routing.key", 1);
-                return Task.CompletedTask;
-            });
-        }
     }
 }

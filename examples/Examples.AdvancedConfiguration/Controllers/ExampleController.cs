@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using RabbitMQ.Client.Core.DependencyInjection.Services;
+using RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces;
 
 namespace Examples.AdvancedConfiguration.Controllers
 {
@@ -9,8 +9,8 @@ namespace Examples.AdvancedConfiguration.Controllers
     [Route("api/example")]
     public class ExampleController : ControllerBase
     {
-        readonly ILogger<ExampleController> _logger;
-        readonly IProducingService _producingService;
+        private readonly ILogger<ExampleController> _logger;
+        private readonly IProducingService _producingService;
 
         public ExampleController(
             IProducingService producingService,

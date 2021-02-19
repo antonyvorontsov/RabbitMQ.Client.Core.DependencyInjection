@@ -4,23 +4,24 @@ using System.Linq;
 using System.Threading;
 using RabbitMQ.Client.Core.DependencyInjection.Configuration;
 using RabbitMQ.Client.Core.DependencyInjection.Exceptions;
+using RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.Services
 {
     /// <summary>
-    /// Service that is responsible for creating RabbitMQ connections depending on options <see cref="RabbitMqClientOptions"/>.
+    /// Service that is responsible for creating RabbitMQ connections depending on options <see cref="RabbitMqServiceOptions"/>.
     /// </summary>
     public class RabbitMqConnectionFactory : IRabbitMqConnectionFactory
     {
         /// <summary>
         /// Create a RabbitMQ connection.
         /// </summary>
-        /// <param name="options">An instance of options <see cref="RabbitMqClientOptions"/>.</param>
+        /// <param name="options">An instance of options <see cref="RabbitMqServiceOptions"/>.</param>
         /// <returns>An instance of connection <see cref="IConnection"/>.</returns>
         /// <remarks>If options parameter is null the method return null too.</remarks>
-        public IConnection CreateRabbitMqConnection(RabbitMqClientOptions options)
+        public IConnection CreateRabbitMqConnection(RabbitMqServiceOptions options)
         {
             if (options is null)
             {
@@ -57,7 +58,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         /// <returns>A consumer instance <see cref="AsyncEventingBasicConsumer"/>.</returns>
         public AsyncEventingBasicConsumer CreateConsumer(IModel channel) => new AsyncEventingBasicConsumer(channel);
 
-        static IConnection CreateConnectionWithTcpEndpoints(RabbitMqClientOptions options, ConnectionFactory factory)
+        private static IConnection CreateConnectionWithTcpEndpoints(RabbitMqServiceOptions options, ConnectionFactory factory)
         {
             var clientEndpoints = new List<AmqpTcpEndpoint>();
             foreach (var endpoint in options.TcpEndpoints)
@@ -86,7 +87,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             return TryToCreateConnection(() => factory.CreateConnection(clientEndpoints), options.InitialConnectionRetries, options.InitialConnectionRetryTimeoutMilliseconds);
         }
 
-        static IConnection CreateNamedConnection(RabbitMqClientOptions options, ConnectionFactory factory)
+        private static IConnection CreateNamedConnection(RabbitMqServiceOptions options, ConnectionFactory factory)
         {
             if (options.HostNames?.Any() == true)
             {
@@ -97,7 +98,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             return TryToCreateConnection(() => factory.CreateConnection(options.ClientProvidedName), options.InitialConnectionRetries, options.InitialConnectionRetryTimeoutMilliseconds);
         }
 
-        static IConnection CreateConnection(RabbitMqClientOptions options, ConnectionFactory factory)
+        private static IConnection CreateConnection(RabbitMqServiceOptions options, ConnectionFactory factory)
         {
             if (options.HostNames?.Any() == true)
             {
@@ -108,7 +109,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             return TryToCreateConnection(factory.CreateConnection, options.InitialConnectionRetries, options.InitialConnectionRetryTimeoutMilliseconds);
         }
 
-        static IConnection TryToCreateConnection(Func<IConnection> connectionFunction, int numberOfRetries, int timeoutMilliseconds)
+        private static IConnection TryToCreateConnection(Func<IConnection> connectionFunction, int numberOfRetries, int timeoutMilliseconds)
         {
             ValidateArguments(numberOfRetries, timeoutMilliseconds);
 
@@ -138,7 +139,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             };
         }
 
-        static void ValidateArguments(int numberOfRetries, int timeoutMilliseconds)
+        private static void ValidateArguments(int numberOfRetries, int timeoutMilliseconds)
         {
             if (numberOfRetries < 1)
             {

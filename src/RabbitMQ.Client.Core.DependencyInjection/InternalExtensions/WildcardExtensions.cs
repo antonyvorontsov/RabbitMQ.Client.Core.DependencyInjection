@@ -15,9 +15,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection.InternalExtensions
     /// </remarks>
     internal static class WildcardExtensions
     {
-        const string Separator = ".";
-        const string SingleWordPattern = "*";
-        const string MultipleWordsPattern = "#";
+        private const string Separator = ".";
+        private const string SingleWordPattern = "*";
+        private const string MultipleWordsPattern = "#";
 
         /// <summary>
         /// Construct tree (trie) structure of message handler route patterns.
@@ -80,7 +80,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.InternalExtensions
             return GetMatchingRoutePatterns(tree, routingKeyParts, depth: 0);
         }
 
-        static IEnumerable<string> GetMatchingRoutePatterns(IEnumerable<TreeNode> tree, IReadOnlyList<string> routingKeyParts, int depth)
+        private static IEnumerable<string> GetMatchingRoutePatterns(IEnumerable<TreeNode> tree, IReadOnlyList<string> routingKeyParts, int depth)
         {
             foreach (var node in tree)
             {
@@ -122,7 +122,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.InternalExtensions
             }
         }
 
-        static IEnumerable<string[]> CollectRoutingKeyTails(IReadOnlyCollection<string> routingKeyParts, int depthStart)
+        private static IEnumerable<string[]> CollectRoutingKeyTails(IReadOnlyCollection<string> routingKeyParts, int depthStart)
         {
             for (var index = depthStart; index < routingKeyParts.Count; index++)
             {
@@ -130,7 +130,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.InternalExtensions
             }
         }
 
-        static string CollectRoutingKeyInReverseOrder(TreeNode node, string routingKey = "")
+        private static string CollectRoutingKeyInReverseOrder(TreeNode node, string routingKey = "")
         {
             routingKey = string.IsNullOrEmpty(routingKey) ? node.KeyPartition : $"{node.KeyPartition}.{routingKey}";
             return node.Parent != null ? CollectRoutingKeyInReverseOrder(node.Parent, routingKey) : routingKey;

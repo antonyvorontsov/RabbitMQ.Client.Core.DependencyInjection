@@ -7,7 +7,8 @@ using Moq;
 using RabbitMQ.Client.Core.DependencyInjection.MessageHandlers;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
 using RabbitMQ.Client.Core.DependencyInjection.Services;
-using RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests.Models;
+using RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces;
+using RabbitMQ.Client.Core.DependencyInjection.Tests.Models;
 using RabbitMQ.Client.Events;
 using Xunit;
 
@@ -21,7 +22,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
         {
             var exchanges = new List<RabbitMqExchange>
             {
-                new RabbitMqExchange { Name = testDataModel.MessageExchange }
+                new() { Name = testDataModel.MessageExchange }
             };
 
             var callOrder = 0;
@@ -45,77 +46,40 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                 });
             var asyncMessageHandlers = new[] { asyncMessageHandlerMock.Object };
 
-            int? nonCyclicMessageHandlerOrder = null;
-            var nonCyclicMessageHandlerMock = new Mock<INonCyclicMessageHandler>();
-            nonCyclicMessageHandlerMock.Setup(x => x.Handle(It.IsAny<BasicDeliverEventArgs>(), It.IsAny<string>(), It.IsAny<IQueueService>()))
-                .Callback(() =>
-                {
-                    callOrder++;
-                    nonCyclicMessageHandlerOrder = callOrder;
-                });
-            var nonCyclicMessageHandlers = new[] { nonCyclicMessageHandlerMock.Object };
-
-            int? asyncNonCyclicMessageHandlerOrder = null;
-            var asyncNonCyclicMessageHandlerMock = new Mock<IAsyncNonCyclicMessageHandler>();
-            asyncNonCyclicMessageHandlerMock.Setup(x => x.Handle(It.IsAny<BasicDeliverEventArgs>(), It.IsAny<string>(), It.IsAny<IQueueService>()))
-                .Callback(() =>
-                {
-                    callOrder++;
-                    asyncNonCyclicMessageHandlerOrder = callOrder;
-                });
-            var asyncNonCyclicMessageHandlers = new[] { asyncNonCyclicMessageHandlerMock.Object };
-
             var routers = new List<MessageHandlerRouter>
             {
-                new MessageHandlerRouter
+                new()
                 {
                     Type = messageHandlerMock.Object.GetType(),
                     Exchange = testDataModel.MessageHandlerExchange,
                     RoutePatterns = testDataModel.MessageHandlerPatterns
                 },
-                new MessageHandlerRouter
+                new()
                 {
                     Type = asyncMessageHandlerMock.Object.GetType(),
                     Exchange = testDataModel.AsyncMessageHandlerExchange,
                     RoutePatterns = testDataModel.AsyncMessageHandlerPatterns
-                },
-                new MessageHandlerRouter
-                {
-                    Type = nonCyclicMessageHandlerMock.Object.GetType(),
-                    Exchange = testDataModel.NonCyclicMessageHandlerExchange,
-                    RoutePatterns = testDataModel.NonCyclicMessageHandlerPatterns
-                },
-                new MessageHandlerRouter
-                {
-                    Type = asyncNonCyclicMessageHandlerMock.Object.GetType(),
-                    Exchange = testDataModel.AsyncNonCyclicMessageHandlerExchange,
-                    RoutePatterns = testDataModel.AsyncNonCyclicMessageHandlerPatterns
                 }
             };
 
             var orderingModels = GetMessageHandlerOrderingModels(
                 testDataModel,
                 messageHandlerMock.Object.GetType(),
-                asyncMessageHandlerMock.Object.GetType(),
-                nonCyclicMessageHandlerMock.Object.GetType(),
-                asyncNonCyclicMessageHandlerMock.Object.GetType());
-            
+                asyncMessageHandlerMock.Object.GetType());
+
             var testingOrderingModels = GetTestingOrderingModels(
-                testDataModel,
-                messageHandlerMock,
-                asyncMessageHandlerMock,
-                nonCyclicMessageHandlerMock,
-                asyncNonCyclicMessageHandlerMock);
+                    testDataModel,
+                    messageHandlerMock,
+                    asyncMessageHandlerMock)
+                .ToList();
 
             var service = CreateService(
                 exchanges,
                 routers,
                 orderingModels,
                 messageHandlers,
-                asyncMessageHandlers,
-                nonCyclicMessageHandlers,
-                asyncNonCyclicMessageHandlers);
-            var queueService = CreateQueueService();
+                asyncMessageHandlers);
+            var consumingService = CreateConsumingService();
 
             var eventArgs = new BasicDeliverEventArgs
             {
@@ -123,7 +87,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                 RoutingKey = testDataModel.MessageRoutingKey,
                 Body = Array.Empty<byte>()
             };
-            await service.HandleMessageReceivingEvent(eventArgs, queueService);
+            await service.HandleMessageReceivingEvent(eventArgs, consumingService);
 
             var messageHandlerTimes = testDataModel.MessageHandlerShouldTrigger ? Times.Once() : Times.Never();
             messageHandlerMock.Verify(x => x.Handle(It.IsAny<BasicDeliverEventArgs>(), It.IsAny<string>()), messageHandlerTimes);
@@ -131,57 +95,45 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             var asyncMessageHandlerTimes = testDataModel.AsyncMessageHandlerShouldTrigger ? Times.Once() : Times.Never();
             asyncMessageHandlerMock.Verify(x => x.Handle(It.IsAny<BasicDeliverEventArgs>(), It.IsAny<string>()), asyncMessageHandlerTimes);
 
-            var nonCyclicMessageHandlerTimes = testDataModel.NonCyclicMessageHandlerShouldTrigger ? Times.Once() : Times.Never();
-            nonCyclicMessageHandlerMock.Verify(x => x.Handle(It.IsAny<BasicDeliverEventArgs>(), It.IsAny<string>(), It.IsAny<IQueueService>()), nonCyclicMessageHandlerTimes);
-
-            var asyncNonCyclicMessageHandlerTimes = testDataModel.AsyncNonCyclicMessageHandlerShouldTrigger ? Times.Once() : Times.Never();
-            asyncNonCyclicMessageHandlerMock.Verify(x => x.Handle(It.IsAny<BasicDeliverEventArgs>(), It.IsAny<string>(), It.IsAny<IQueueService>()), asyncNonCyclicMessageHandlerTimes);
-
             var messageHandlerCallOrder = testingOrderingModels.FirstOrDefault(x => x.MessageHandler.GetType() == messageHandlerMock.Object.GetType())?.CallOrder;
             Assert.Equal(messageHandlerCallOrder, messageHandlerOrder);
             var asyncMessageHandlerCallOrder = testingOrderingModels.FirstOrDefault(x => x.MessageHandler.GetType() == asyncMessageHandlerMock.Object.GetType())?.CallOrder;
             Assert.Equal(asyncMessageHandlerCallOrder, asyncMessageHandlerOrder);
-            var nonCyclicMessageHandlerCallOrder = testingOrderingModels.FirstOrDefault(x => x.MessageHandler.GetType() == nonCyclicMessageHandlerMock.Object.GetType())?.CallOrder;
-            Assert.Equal(nonCyclicMessageHandlerCallOrder, nonCyclicMessageHandlerOrder);
-            var asyncNonCyclicMessageHandlerCallOrder = testingOrderingModels.FirstOrDefault(x => x.MessageHandler.GetType() == asyncNonCyclicMessageHandlerMock.Object.GetType())?.CallOrder;
-            Assert.Equal(asyncNonCyclicMessageHandlerCallOrder, asyncNonCyclicMessageHandlerOrder);
         }
 
-        static IQueueService CreateQueueService()
+        private static IConsumingService CreateConsumingService()
         {
             var channelMock = new Mock<IModel>();
-            var queueServiceMock = new Mock<IQueueService>();
-            queueServiceMock.Setup(x => x.ConsumingChannel)
-                .Returns(channelMock.Object);
-            return queueServiceMock.Object;
+            var consumingServiceMock = new Mock<IConsumingService>();
+            consumingServiceMock.Setup(x => x.Channel).Returns(channelMock.Object);
+            return consumingServiceMock.Object;
         }
 
-        static IMessageHandlingService CreateService(
+        private static IMessageHandlingService CreateService(
             IEnumerable<RabbitMqExchange> exchanges,
             IEnumerable<MessageHandlerRouter> routers,
             IEnumerable<MessageHandlerOrderingModel> orderingModels,
             IEnumerable<IMessageHandler> messageHandlers,
-            IEnumerable<IAsyncMessageHandler> asyncMessageHandlers,
-            IEnumerable<INonCyclicMessageHandler> nonCyclicMessageHandler,
-            IEnumerable<IAsyncNonCyclicMessageHandler> asyncNonCyclicMessageHandlers)
+            IEnumerable<IAsyncMessageHandler> asyncMessageHandlers)
         {
             var messageHandlerContainerBuilder = new MessageHandlerContainerBuilder(
                 routers,
                 orderingModels,
                 messageHandlers,
-                asyncMessageHandlers,
-                nonCyclicMessageHandler,
-                asyncNonCyclicMessageHandlers);
+                asyncMessageHandlers);
             var loggerMock = new Mock<ILogger<MessageHandlingService>>();
-            return new MessageHandlingService(messageHandlerContainerBuilder, exchanges, loggerMock.Object);
+            var producingServiceMock = new Mock<IProducingService>();
+            return new MessageHandlingService(
+                producingServiceMock.Object,
+                messageHandlerContainerBuilder,
+                exchanges,
+                loggerMock.Object);
         }
 
-        static IEnumerable<MessageHandlerOrderingModel> GetMessageHandlerOrderingModels(
+        private static IEnumerable<MessageHandlerOrderingModel> GetMessageHandlerOrderingModels(
             HandleMessageReceivingEventTestDataModel testDataModel,
             Type messageHandlerType,
-            Type asyncMessageHandlerType,
-            Type nonCyclicMessageHandlerType,
-            Type asyncNonCyclicMessageHandlerType)
+            Type asyncMessageHandlerType)
         {
             var orderingModels = new List<MessageHandlerOrderingModel>();
             if (testDataModel.MessageHandlerOrder.HasValue)
@@ -204,61 +156,27 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                     Order = testDataModel.AsyncMessageHandlerOrder.Value
                 });
             }
-            if (testDataModel.NonCyclicMessageHandlerOrder.HasValue)
-            {
-                orderingModels.Add(new MessageHandlerOrderingModel
-                {
-                    MessageHandlerType =  nonCyclicMessageHandlerType,
-                    Exchange = testDataModel.NonCyclicMessageHandlerExchange,
-                    RoutePatterns = testDataModel.NonCyclicMessageHandlerPatterns,
-                    Order = testDataModel.NonCyclicMessageHandlerOrder.Value
-                });
-            }
-            if (testDataModel.AsyncNonCyclicMessageHandlerOrder.HasValue)
-            {
-                orderingModels.Add(new MessageHandlerOrderingModel
-                {
-                    MessageHandlerType =  asyncNonCyclicMessageHandlerType,
-                    Exchange = testDataModel.AsyncNonCyclicMessageHandlerExchange,
-                    RoutePatterns = testDataModel.AsyncNonCyclicMessageHandlerPatterns,
-                    Order = testDataModel.AsyncNonCyclicMessageHandlerOrder.Value
-                });
-            }
             return orderingModels;
         }
 
-        static IEnumerable<MessageHandlerOrderingContainerTestModel> GetTestingOrderingModels(
+        private static IEnumerable<MessageHandlerOrderingContainerTestModel> GetTestingOrderingModels(
             HandleMessageReceivingEventTestDataModel testDataModel,
             IMock<IMessageHandler> messageHandlerMock,
-            IMock<IAsyncMessageHandler> asyncMessageHandlerMock,
-            IMock<INonCyclicMessageHandler> nonCyclicMessageHandlerMock,
-            IMock<IAsyncNonCyclicMessageHandler> asyncNonCyclicMessageHandlerMock)
+            IMock<IAsyncMessageHandler> asyncMessageHandlerMock)
         {
             var collection = new List<MessageHandlerOrderingContainerTestModel>
             {
-                new MessageHandlerOrderingContainerTestModel
+                new()
                 {
                     MessageHandler = messageHandlerMock.Object,
                     ShouldTrigger = testDataModel.MessageHandlerShouldTrigger,
                     OrderValue = testDataModel.MessageHandlerOrder
                 },
-                new MessageHandlerOrderingContainerTestModel
+                new()
                 {
                     MessageHandler = asyncMessageHandlerMock.Object,
                     ShouldTrigger = testDataModel.AsyncMessageHandlerShouldTrigger,
                     OrderValue = testDataModel.AsyncMessageHandlerOrder
-                },
-                new MessageHandlerOrderingContainerTestModel
-                {
-                    MessageHandler = nonCyclicMessageHandlerMock.Object,
-                    ShouldTrigger = testDataModel.NonCyclicMessageHandlerShouldTrigger,
-                    OrderValue = testDataModel.NonCyclicMessageHandlerOrder
-                },
-                new MessageHandlerOrderingContainerTestModel
-                {
-                    MessageHandler = asyncNonCyclicMessageHandlerMock.Object,
-                    ShouldTrigger = testDataModel.AsyncNonCyclicMessageHandlerShouldTrigger,
-                    OrderValue = testDataModel.AsyncNonCyclicMessageHandlerOrder
                 }
             };
 

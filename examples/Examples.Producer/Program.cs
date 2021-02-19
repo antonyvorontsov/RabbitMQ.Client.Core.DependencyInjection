@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using RabbitMQ.Client.Core.DependencyInjection;
 using RabbitMQ.Client.Core.DependencyInjection.Configuration;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using RabbitMQ.Client.Core.DependencyInjection.Services;
+using RabbitMQ.Client.Core.DependencyInjection;
+using RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces;
 
 namespace Examples.Producer
 {
@@ -15,7 +15,7 @@ namespace Examples.Producer
             ConfigureServices(serviceCollection);
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
-            var queueService = serviceProvider.GetRequiredService<IQueueService>();
+            var producingService = serviceProvider.GetRequiredService<IProducingService>();
 
             for (var i = 0; i < 10; i++)
             {
@@ -26,13 +26,13 @@ namespace Examples.Producer
                     Index = i,
                     Numbers = new[] { 1, 2, 3 }
                 };
-                await queueService.SendAsync(message, "exchange.name", "routing.key");
+                await producingService.SendAsync(message, "exchange.name", "routing.key");
             }
         }
 
-        static void ConfigureServices(IServiceCollection services)
+        private static void ConfigureServices(IServiceCollection services)
         {
-            var rabbitMqConfiguration = new RabbitMqClientOptions
+            var rabbitMqConfiguration = new RabbitMqServiceOptions
             {
                 HostName = "127.0.0.1",
                 Port = 5672,
@@ -50,7 +50,7 @@ namespace Examples.Producer
                     }
                 }
             };
-            services.AddRabbitMqClient(rabbitMqConfiguration)
+            services.AddRabbitMqProducer(rabbitMqConfiguration)
                 .AddProductionExchange("exchange.name", exchangeOptions);
         }
     }

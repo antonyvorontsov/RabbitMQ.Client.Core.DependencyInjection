@@ -1,6 +1,6 @@
 using System;
 using System.Threading.Tasks;
-using RabbitMQ.Client.Core.DependencyInjection.Services;
+using RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces;
 using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.Filters
@@ -15,6 +15,6 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Filters
         /// </summary>
         /// <param name="next">Next action.</param>
         /// <returns>Function that could process occured exception.</returns>
-        Func<Exception, BasicDeliverEventArgs, IQueueService, Task> Execute(Func<Exception, BasicDeliverEventArgs, IQueueService, Task> next);
+        Func<Exception, BasicDeliverEventArgs, IConsumingService, Task> Execute(Func<Exception, BasicDeliverEventArgs, IConsumingService, Task> next);
     }
 }

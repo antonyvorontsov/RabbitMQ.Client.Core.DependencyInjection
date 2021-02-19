@@ -6,26 +6,26 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using RabbitMQ.Client.Core.DependencyInjection;
 using RabbitMQ.Client.Core.DependencyInjection.Configuration;
-using RabbitMQ.Client.Core.DependencyInjection.Services;
+using RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces;
 
 namespace Examples.SslProducer
 {
     public static class Program
     {
-        public static IConfiguration Configuration { get; set; }
+        private static IConfiguration _configuration;
 
         public static async Task Main()
         {
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-            Configuration = builder.Build();
+            _configuration = builder.Build();
 
             var serviceCollection = new ServiceCollection();
             ConfigureServices(serviceCollection);
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
-            var queueService = serviceProvider.GetRequiredService<IQueueService>();
+            var producingService = serviceProvider.GetRequiredService<IProducingService>();
 
             for (var i = 0; i < 10; i++)
             {
@@ -36,25 +36,25 @@ namespace Examples.SslProducer
                     Index = i,
                     Numbers = new[] { 1, 2, 3 }
                 };
-                await queueService.SendAsync(message, "exchange.name", "routing.key");
+                await producingService.SendAsync(message, "exchange.name", "routing.key");
             }
         }
 
-        static void ConfigureServices(IServiceCollection services)
+        private static void ConfigureServices(IServiceCollection services)
         {
             // You can either use a json configuration or bind options by yourself.
-            var rabbitMqConfiguration = Configuration.GetSection("RabbitMq");
+            var rabbitMqConfiguration = _configuration.GetSection("RabbitMq");
             // There are both examples of json and manual configuration.
             //var rabbitMqConfiguration = GetClientOptions();
 
             var exchangeOptions = GetExchangeOptions();
 
-            services.AddRabbitMqClient(rabbitMqConfiguration)
+            services.AddRabbitMqProducer(rabbitMqConfiguration)
                 .AddProductionExchange("exchange.name", exchangeOptions);
         }
 
-        static RabbitMqClientOptions GetClientOptions() =>
-            new RabbitMqClientOptions
+        private static RabbitMqServiceOptions GetClientOptions() =>
+            new RabbitMqServiceOptions
             {
                 UserName = "guest",
                 Password = "guest",
@@ -76,7 +76,7 @@ namespace Examples.SslProducer
                 }
             };
 
-        static RabbitMqExchangeOptions GetExchangeOptions() =>
+        private static RabbitMqExchangeOptions GetExchangeOptions() =>
             new RabbitMqExchangeOptions
             {
                 Queues = new List<RabbitMqQueueOptions>

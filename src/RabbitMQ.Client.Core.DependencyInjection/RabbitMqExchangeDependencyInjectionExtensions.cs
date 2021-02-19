@@ -100,7 +100,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             return services;
         }
 
-        static void CheckExchangeExists(IServiceCollection services, string exchangeName)
+        private static void CheckExchangeExists(IServiceCollection services, string exchangeName)
         {
             var exchangeExists = services.Any(x => x.ServiceType == typeof(RabbitMqExchange)
                   && x.Lifetime == ServiceLifetime.Singleton

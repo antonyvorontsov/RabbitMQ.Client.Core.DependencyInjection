@@ -75,7 +75,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         {
             eventArgs.EnsureIsNotNull();
             var messageString = Encoding.UTF8.GetString(eventArgs.Body.ToArray());
-            return JsonConvert.DeserializeAnonymousType<T>(messageString, anonymousTypeObject);
+            return JsonConvert.DeserializeAnonymousType(messageString, anonymousTypeObject);
         }
         
         /// <summary>
@@ -90,15 +90,17 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         {
             eventArgs.EnsureIsNotNull();
             var messageString = Encoding.UTF8.GetString(eventArgs.Body.ToArray());
-            return JsonConvert.DeserializeAnonymousType<T>(messageString, anonymousTypeObject, settings);
+            return JsonConvert.DeserializeAnonymousType(messageString, anonymousTypeObject, settings);
         }
-        
-        static void EnsureIsNotNull(this BasicDeliverEventArgs eventArgs)
+
+        private static BasicDeliverEventArgs EnsureIsNotNull(this BasicDeliverEventArgs eventArgs)
         {
             if (eventArgs is null)
             {
                 throw new ArgumentNullException(nameof(eventArgs), "BasicDeliverEventArgs have to be not null to parse a message");
             }
+
+            return eventArgs;
         }
     }
 }

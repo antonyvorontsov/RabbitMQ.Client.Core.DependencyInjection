@@ -7,7 +7,7 @@ namespace Examples.ConsumerHost
 {
     public class CustomMessageHandler : IMessageHandler
     {
-        readonly ILogger<CustomMessageHandler> _logger;
+        private readonly ILogger<CustomMessageHandler> _logger;
         public CustomMessageHandler(ILogger<CustomMessageHandler> logger)
         {
             _logger = logger;
