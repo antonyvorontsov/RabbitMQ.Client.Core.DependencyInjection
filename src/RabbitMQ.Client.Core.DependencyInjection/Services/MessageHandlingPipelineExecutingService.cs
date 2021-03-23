@@ -21,8 +21,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             IEnumerable<IMessageHandlingExceptionFilter> exceptionFilters)
         {
             _messageHandlingService = messageHandlingService;
-            _handlingFilters = handlingFilters ?? Enumerable.Empty<IMessageHandlingFilter>();
-            _exceptionFilters = exceptionFilters ?? Enumerable.Empty<IMessageHandlingExceptionFilter>();
+            _handlingFilters = handlingFilters;
+            _exceptionFilters = exceptionFilters;
         }
 
         /// <inheritdoc/>

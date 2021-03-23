@@ -61,7 +61,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.InternalExtensions
                 && ((MessageHandlerOrderingModel)x.ImplementationInstance).MessageHandlerType == typeof(TImplementation)
                 && (string.Equals(((MessageHandlerOrderingModel)x.ImplementationInstance).Exchange, exchange, StringComparison.OrdinalIgnoreCase)
                     || (exchange is null && ((MessageHandlerOrderingModel)x.ImplementationInstance).Exchange is null))
-                && ((MessageHandlerOrderingModel)x.ImplementationInstance).Order != order
+                && (((MessageHandlerOrderingModel)x.ImplementationInstance)!).Order != order
                 && patterns.Intersect(((MessageHandlerOrderingModel)x.ImplementationInstance).RoutePatterns).Any());
             if (messageHandlerOrderingModel is null)
             {

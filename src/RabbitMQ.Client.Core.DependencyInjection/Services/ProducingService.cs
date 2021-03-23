@@ -220,7 +220,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         private string GetDeadLetterExchange(string exchangeName)
         {
             var exchange = _exchanges.FirstOrDefault(x => x.Name == exchangeName);
-            if (string.IsNullOrEmpty(exchange?.Options?.DeadLetterExchange))
+            if (string.IsNullOrEmpty(exchange?.Options.DeadLetterExchange))
             {
                 throw new ArgumentException($"Exchange {nameof(exchangeName)} has not been configured with a dead letter exchange.", nameof(exchangeName));
             }

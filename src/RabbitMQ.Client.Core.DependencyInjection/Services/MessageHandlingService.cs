@@ -146,12 +146,6 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
                 return;
             }
             
-            if (exchange.Options is null)
-            {
-                _logger.LogWarning($"Options of an exchange \"{eventArgs.Exchange}\" are not configured. The message won't be re-queued");
-                return;
-            }
-            
             if (!exchange.Options.RequeueFailedMessages)
             {
                 _logger.LogWarning($"RequeueFailedMessages option for an exchange \"{eventArgs.Exchange}\" is disabled. The message won't be re-queued");

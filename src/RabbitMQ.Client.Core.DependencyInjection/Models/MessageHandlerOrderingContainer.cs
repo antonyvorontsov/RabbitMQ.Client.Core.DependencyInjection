@@ -20,16 +20,16 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Models
         /// <summary>
         /// The instance of message handler.
         /// </summary>
-        public IBaseMessageHandler MessageHandler { get; set; }
+        public IBaseMessageHandler MessageHandler { get; }
 
         /// <summary>
         /// Order.
         /// </summary>
-        public int? Order { get; set; }
+        public int? Order { get; }
 
         /// <summary>
         /// Route that matches a routing key of received message.
         /// </summary>
-        public string MatchingRoute { get; set; }
+        public string MatchingRoute { get; }
     }
 }

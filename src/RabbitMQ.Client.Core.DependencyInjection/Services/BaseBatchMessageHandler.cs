@@ -72,10 +72,10 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             {
                 throw new ArgumentNullException($"Client connection options for {nameof(BaseBatchMessageHandler)} has not been found.", nameof(batchConsumerConnectionOptions));
             }
-            
-            _serviceOptions = optionsContainer.ServiceOptions ?? throw new ArgumentNullException($"Consumer client options is null for {nameof(BaseBatchMessageHandler)}.", nameof(optionsContainer.ServiceOptions));
+
+            _serviceOptions = optionsContainer.ServiceOptions;
             _rabbitMqConnectionFactory = rabbitMqConnectionFactory;
-            _batchMessageHandlingFilters = batchMessageHandlingFilters ?? Enumerable.Empty<IBatchMessageHandlingFilter>();
+            _batchMessageHandlingFilters = batchMessageHandlingFilters;
             _logger = logger;
         }
 
@@ -93,7 +93,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             }
 
             var consumer = _rabbitMqConnectionFactory.CreateConsumer(Channel);
-            consumer.Received += async (sender, eventArgs) =>
+            consumer.Received += async (_, eventArgs) =>
             {
                 lock (_lock)
                 {

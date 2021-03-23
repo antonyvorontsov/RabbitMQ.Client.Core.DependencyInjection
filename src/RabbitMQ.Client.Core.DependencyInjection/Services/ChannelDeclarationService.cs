@@ -80,7 +80,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         private void StartClient(IModel channel)
         {
             var deadLetterExchanges = _exchanges
-                .Where(x => !string.IsNullOrEmpty(x.Options?.DeadLetterExchange))
+                .Where(x => !string.IsNullOrEmpty(x.Options.DeadLetterExchange))
                 .Select(x => x.Options.DeadLetterExchange)
                 .Distinct()
                 .ToList();
@@ -155,9 +155,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             }
         }
 
-        private void HandleConnectionCallbackException(object sender, CallbackExceptionEventArgs @event)
+        private void HandleConnectionCallbackException(object sender, CallbackExceptionEventArgs? @event)
         {
-            if (@event is null)
+            if (@event?.Exception is null)
             {
                 return;
             }
@@ -166,9 +166,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             throw @event.Exception;
         }
 
-        private void HandleConnectionRecoveryError(object sender, ConnectionRecoveryErrorEventArgs @event)
+        private void HandleConnectionRecoveryError(object sender, ConnectionRecoveryErrorEventArgs? @event)
         {
-            if (@event is null)
+            if (@event?.Exception is null)
             {
                 return;
             }
@@ -177,7 +177,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             throw @event.Exception;
         }
 
-        private void HandleChannelBasicRecoverOk(object sender, EventArgs @event)
+        private void HandleChannelBasicRecoverOk(object sender, EventArgs? @event)
         {
             if (@event is null)
             {
@@ -187,9 +187,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             _logger.LogInformation("Connection has been reestablished");
         }
 
-        private void HandleChannelCallbackException(object sender, CallbackExceptionEventArgs @event)
+        private void HandleChannelCallbackException(object sender, CallbackExceptionEventArgs? @event)
         {
-            if (@event is null)
+            if (@event?.Exception is null)
             {
                 return;
             }

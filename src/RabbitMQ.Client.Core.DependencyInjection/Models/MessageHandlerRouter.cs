@@ -18,7 +18,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Models
         /// <summary>
         /// Message Handler Type
         /// </summary>
-        public Type Type { get; set; }
+        public Type Type { get; }
 
         /// <summary>
         /// An exchange which is being listened by the message handler by specified route patterns.
@@ -27,12 +27,12 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Models
         /// Exchange can be null, and in that scenario message handler will be general
         /// (it will listen all messages regardless of an exchange).
         /// </remarks>
-        public string? Exchange { get; set; }
+        public string? Exchange { get; }
         
         /// <summary>
         /// Collection of route patterns (routing keys) that handler will be "listening".
         /// </summary>
-        public IList<string> RoutePatterns { get; set; }
+        public IList<string> RoutePatterns { get; }
 
         /// <summary>
         /// Flag is the message handler general.
