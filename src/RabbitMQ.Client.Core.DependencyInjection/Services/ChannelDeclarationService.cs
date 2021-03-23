@@ -4,6 +4,7 @@ using System.Linq;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client.Core.DependencyInjection.Configuration;
+using RabbitMQ.Client.Core.DependencyInjection.InternalExtensions.Validation;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
 using RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces;
 using RabbitMQ.Client.Events;
@@ -41,7 +42,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         {
             if (_connectionOptions.ProducerOptions != null)
             {
-                var connection = CreateConnection(_connectionOptions.ProducerOptions);
+                var connection = CreateConnection(_connectionOptions.ProducerOptions).EnsureIsNotNull();
                 var channel = CreateChannel(connection);
                 StartClient(channel);
                 _producingService.UseConnection(connection);
@@ -50,7 +51,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
 
             if (_connectionOptions.ConsumerOptions != null)
             {
-                var connection = CreateConnection(_connectionOptions.ConsumerOptions);
+                var connection = CreateConnection(_connectionOptions.ConsumerOptions).EnsureIsNotNull();
                 var channel = CreateChannel(connection);
                 StartClient(channel);
                 var consumer = _rabbitMqConnectionFactory.CreateConsumer(channel);
@@ -60,7 +61,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             }
         }
 
-        private IConnection CreateConnection(RabbitMqServiceOptions options) => _rabbitMqConnectionFactory.CreateRabbitMqConnection(options);
+        private IConnection? CreateConnection(RabbitMqServiceOptions options) => _rabbitMqConnectionFactory.CreateRabbitMqConnection(options);
 
         private IModel CreateChannel(IConnection connection)
         {
@@ -79,7 +80,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         private void StartClient(IModel channel)
         {
             var deadLetterExchanges = _exchanges
-                .Where(x => !string.IsNullOrEmpty(x.Options?.DeadLetterExchange))
+                .Where(x => !string.IsNullOrEmpty(x.Options.DeadLetterExchange))
                 .Select(x => x.Options.DeadLetterExchange)
                 .Distinct()
                 .ToList();
@@ -89,11 +90,6 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
 
         private static void StartChannel(IModel channel, IEnumerable<RabbitMqExchange> exchanges, IEnumerable<string> deadLetterExchanges)
         {
-            if (channel is null)
-            {
-                return;
-            }
-
             foreach (var exchangeName in deadLetterExchanges)
             {
                 StartDeadLetterExchange(channel, exchangeName);
@@ -159,9 +155,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             }
         }
 
-        private void HandleConnectionCallbackException(object sender, CallbackExceptionEventArgs @event)
+        private void HandleConnectionCallbackException(object sender, CallbackExceptionEventArgs? @event)
         {
-            if (@event is null)
+            if (@event?.Exception is null)
             {
                 return;
             }
@@ -170,9 +166,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             throw @event.Exception;
         }
 
-        private void HandleConnectionRecoveryError(object sender, ConnectionRecoveryErrorEventArgs @event)
+        private void HandleConnectionRecoveryError(object sender, ConnectionRecoveryErrorEventArgs? @event)
         {
-            if (@event is null)
+            if (@event?.Exception is null)
             {
                 return;
             }
@@ -181,7 +177,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             throw @event.Exception;
         }
 
-        private void HandleChannelBasicRecoverOk(object sender, EventArgs @event)
+        private void HandleChannelBasicRecoverOk(object sender, EventArgs? @event)
         {
             if (@event is null)
             {
@@ -191,9 +187,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             _logger.LogInformation("Connection has been reestablished");
         }
 
-        private void HandleChannelCallbackException(object sender, CallbackExceptionEventArgs @event)
+        private void HandleChannelCallbackException(object sender, CallbackExceptionEventArgs? @event)
         {
-            if (@event is null)
+            if (@event?.Exception is null)
             {
                 return;
             }

@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using RabbitMQ.Client.Core.DependencyInjection.Configuration;
 using RabbitMQ.Client.Core.DependencyInjection.Exceptions;
 using RabbitMQ.Client.Core.DependencyInjection.Filters;
+using RabbitMQ.Client.Core.DependencyInjection.InternalExtensions.Validation;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
 using RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces;
 using RabbitMQ.Client.Events;
@@ -23,12 +24,12 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         /// <summary>
         /// A connection which is in use by batch message handler.
         /// </summary>
-        public IConnection Connection { get; private set; }
+        public IConnection? Connection { get; private set; }
 
         /// <summary>
         /// A channel that has been created using the connection.
         /// </summary>
-        public IModel Channel { get;  private set; }
+        public IModel? Channel { get;  private set; }
 
         /// <summary>
         /// Prefetch size value that can be overridden.
@@ -56,7 +57,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         private readonly ILogger<BaseBatchMessageHandler> _logger;
 
         private readonly ConcurrentBag<BasicDeliverEventArgs> _messages = new ConcurrentBag<BasicDeliverEventArgs>();
-        private Timer _timer;
+        private Timer? _timer;
         private readonly object _lock = new object();
         private bool _disposed = false;
 
@@ -71,10 +72,10 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             {
                 throw new ArgumentNullException($"Client connection options for {nameof(BaseBatchMessageHandler)} has not been found.", nameof(batchConsumerConnectionOptions));
             }
-            
-            _serviceOptions = optionsContainer.ServiceOptions ?? throw new ArgumentNullException($"Consumer client options is null for {nameof(BaseBatchMessageHandler)}.", nameof(optionsContainer.ServiceOptions));
+
+            _serviceOptions = optionsContainer.ServiceOptions;
             _rabbitMqConnectionFactory = rabbitMqConnectionFactory;
-            _batchMessageHandlingFilters = batchMessageHandlingFilters ?? Enumerable.Empty<IBatchMessageHandlingFilter>();
+            _batchMessageHandlingFilters = batchMessageHandlingFilters;
             _logger = logger;
         }
 
@@ -82,8 +83,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         {
             ValidateProperties();
             _logger.LogInformation($"Batch message handler {GetType()} has been started.");
-            Connection = _rabbitMqConnectionFactory.CreateRabbitMqConnection(_serviceOptions);
-            Channel = Connection.CreateModel();
+            Connection = _rabbitMqConnectionFactory.CreateRabbitMqConnection(_serviceOptions).EnsureIsNotNull();
+            Channel = Connection.CreateModel().EnsureIsNotNull();
             Channel.BasicQos(PrefetchSize, PrefetchCount, false);
             
             if (MessageHandlingPeriod != null)
@@ -92,7 +93,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             }
 
             var consumer = _rabbitMqConnectionFactory.CreateConsumer(Channel);
-            consumer.Received += async (sender, eventArgs) =>
+            consumer.Received += async (_, eventArgs) =>
             {
                 lock (_lock)
                 {
@@ -137,7 +138,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             var messagesCollection = messages.ToList();
             await HandleMessages(messagesCollection, cancellationToken).ConfigureAwait(false);
             var latestDeliveryTag = messagesCollection.Max(x => x.DeliveryTag);
-            Channel.BasicAck(latestDeliveryTag, true);
+            Channel.EnsureIsNotNull().BasicAck(latestDeliveryTag, true);
         }
 
         private IList<BasicDeliverEventArgs> GetMessages()

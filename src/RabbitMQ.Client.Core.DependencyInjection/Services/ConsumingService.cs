@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using RabbitMQ.Client.Core.DependencyInjection.Exceptions;
+using RabbitMQ.Client.Core.DependencyInjection.InternalExtensions.Validation;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
 using RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces;
 using RabbitMQ.Client.Events;
@@ -14,13 +14,13 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
     public class ConsumingService : IConsumingService, IDisposable
     {
         /// <inheritdoc/>
-        public IConnection Connection { get; private set; }
+        public IConnection? Connection { get; private set; }
 
         /// <inheritdoc/>
-        public IModel Channel { get; private set; }
+        public IModel? Channel { get; private set; }
         
         /// <inheritdoc/>
-        public AsyncEventingBasicConsumer Consumer { get; private set; }
+        public AsyncEventingBasicConsumer? Consumer { get; private set; }
 
         private bool _consumingStarted;
 
@@ -75,16 +75,14 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         /// <inheritdoc/>
         public void StartConsuming()
         {
-            if (Channel is null)
-            {
-                throw new ConsumingChannelIsNullException($"Consuming channel is null. Configure {nameof(IConsumingService)} or full functional {nameof(IConsumingService)} for consuming messages.");
-            }
+            Channel.EnsureIsNotNull();
+            Consumer.EnsureIsNotNull();
 
             if (_consumingStarted)
             {
                 return;
             }
-
+            
             Consumer.Received += ConsumerOnReceived;
             _consumingStarted = true;
 
@@ -99,10 +97,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         /// <inheritdoc/>
         public void StopConsuming()
         {
-            if (Channel is null)
-            {
-                throw new ConsumingChannelIsNullException($"Consuming channel is null. Configure {nameof(IConsumingService)} or full functional {nameof(IConsumingService)} for consuming messages.");
-            }
+            Channel.EnsureIsNotNull();
+            Consumer.EnsureIsNotNull();
 
             if (!_consumingStarted)
             {

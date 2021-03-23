@@ -7,20 +7,27 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Models
     /// </summary>
     public class RabbitMqExchange
     {
+        public RabbitMqExchange(string name, bool isConsuming, RabbitMqExchangeOptions options)
+        {
+            Name = name;
+            IsConsuming = isConsuming;
+            Options = options;
+        }
+        
         /// <summary>
         /// The unique name of the exchange.
         /// </summary>
-        public string Name { get; set; }
+        public string Name { get; }
 
         /// <summary>
         /// Flag determining whether the exchange made for message consumption.
         /// If false then an exchange made only for publishing.
         /// </summary>
-        public bool IsConsuming { get; set; }
+        public bool IsConsuming { get; }
 
         /// <summary>
         /// Exchange options.
         /// </summary>
-        public RabbitMqExchangeOptions Options { get; set; }
+        public RabbitMqExchangeOptions Options { get; }
     }
 }

@@ -9,18 +9,26 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Models
     /// </summary>
     public class MessageHandlerContainer
     {
+        public MessageHandlerContainer(string? exchange, IEnumerable<TreeNode> tree, IDictionary<string, IList<IBaseMessageHandler>> messageHandlers, IEnumerable<MessageHandlerOrderingModel> messageHandlerOrderingModels)
+        {
+            Exchange = exchange;
+            Tree = tree;
+            MessageHandlers = messageHandlers;
+            MessageHandlerOrderingModels = messageHandlerOrderingModels;
+        }
+        
         /// <summary>
         /// An exchange.
         /// </summary>
         /// <remarks>
         /// Could be null.
         /// </remarks>
-        public string Exchange { get; set; }
+        public string? Exchange { get; }
 
         /// <summary>
         /// Route patterns tree (trie) structure.
         /// </summary>
-        public IEnumerable<TreeNode> Tree { get; set; }
+        public IEnumerable<TreeNode> Tree { get; }
 
         /// <summary>
         /// Flag is the container general.
@@ -31,11 +39,11 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Models
         /// <summary>
         /// Dictionary of route patterns and message handlers connected by them.
         /// </summary>
-        public IDictionary<string, IList<IBaseMessageHandler>> MessageHandlers { get; set; }
+        public IDictionary<string, IList<IBaseMessageHandler>> MessageHandlers { get; }
 
         /// <summary>
         /// The collection of models that contain information about an order in which message handlers will be called.
         /// </summary>
-        public IEnumerable<MessageHandlerOrderingModel> MessageHandlerOrderingModels { get; set; }
+        public IEnumerable<MessageHandlerOrderingModel> MessageHandlerOrderingModels { get; }
     }
 }

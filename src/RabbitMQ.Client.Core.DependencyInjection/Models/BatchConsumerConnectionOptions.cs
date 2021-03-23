@@ -8,14 +8,20 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Models
     /// </summary>
     public class BatchConsumerConnectionOptions
     {
+        public BatchConsumerConnectionOptions(Type type, RabbitMqServiceOptions options)
+        {
+            Type = type;
+            ServiceOptions = options;
+        }
+
         /// <summary>
         /// Type of batch message handler.
         /// </summary>
-        public Type Type { get; set; }
+        public Type Type { get; }
 
         /// <summary>
         /// Consumer client connection options.
         /// </summary>
-        public RabbitMqServiceOptions ServiceOptions { get; set; }
+        public RabbitMqServiceOptions ServiceOptions { get; }
     }
 }

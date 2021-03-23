@@ -7,19 +7,29 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Models
     /// </summary>
     internal class MessageHandlerOrderingContainer
     {
+        internal MessageHandlerOrderingContainer(
+            IBaseMessageHandler handler,
+            string matchingRoute,
+            int? order)
+        {
+            MessageHandler = handler;
+            MatchingRoute = matchingRoute;
+            Order = order;
+        }
+
         /// <summary>
         /// The instance of message handler.
         /// </summary>
-        public IBaseMessageHandler MessageHandler { get; set; }
+        public IBaseMessageHandler MessageHandler { get; }
 
         /// <summary>
         /// Order.
         /// </summary>
-        public int? Order { get; set; }
+        public int? Order { get; }
 
         /// <summary>
         /// Route that matches a routing key of received message.
         /// </summary>
-        public string MatchingRoute { get; set; }
+        public string MatchingRoute { get; }
     }
 }

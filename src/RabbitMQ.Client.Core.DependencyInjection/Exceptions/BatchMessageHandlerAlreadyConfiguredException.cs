@@ -3,7 +3,7 @@ using System;
 namespace RabbitMQ.Client.Core.DependencyInjection.Exceptions
 {
     /// <summary>
-    /// An exception that is thrown when batch message handler of some type configured twice.
+    /// This exception is thrown when batch message handler of some type configured twice.
     /// </summary>
     public class BatchMessageHandlerAlreadyConfiguredException : Exception
     {

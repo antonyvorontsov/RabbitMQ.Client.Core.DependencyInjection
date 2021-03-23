@@ -81,21 +81,13 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// <param name="options">Exchange configuration <see cref="RabbitMqExchangeOptions"/>.</param>
         /// <param name="isConsuming">Flag whether an exchange made for consumption.</param>
         /// <returns>Service collection.</returns>
-        public static IServiceCollection AddExchange(this IServiceCollection services, string exchangeName, bool isConsuming, RabbitMqExchangeOptions options)
+        public static IServiceCollection AddExchange(this IServiceCollection services, string exchangeName, bool isConsuming, RabbitMqExchangeOptions? options)
         {
             CheckExchangeExists(services, exchangeName);
 
             var exchangeOptions = options ?? new RabbitMqExchangeOptions();
-            var exchange = new RabbitMqExchange
-            {
-                Name = exchangeName,
-                IsConsuming = isConsuming,
-                Options = exchangeOptions
-            };
-            var service = new ExchangeServiceDescriptor(typeof(RabbitMqExchange), exchange)
-            {
-                ExchangeName = exchangeName
-            };
+            var exchange = new RabbitMqExchange(exchangeName, isConsuming, exchangeOptions);
+            var service = new ExchangeServiceDescriptor(typeof(RabbitMqExchange), exchange, exchangeName);
             services.Add(service);
             return services;
         }

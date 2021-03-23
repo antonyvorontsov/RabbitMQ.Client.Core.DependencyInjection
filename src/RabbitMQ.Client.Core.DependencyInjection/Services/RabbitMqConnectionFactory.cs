@@ -14,7 +14,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
     public class RabbitMqConnectionFactory : IRabbitMqConnectionFactory
     {
         /// <inheritdoc/>
-        public IConnection CreateRabbitMqConnection(RabbitMqServiceOptions options)
+        public IConnection? CreateRabbitMqConnection(RabbitMqServiceOptions? options)
         {
             if (options is null)
             {
@@ -34,7 +34,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
                 DispatchConsumersAsync = true
             };
 
-            if (options.TcpEndpoints?.Any() == true)
+            if (options.TcpEndpoints.Any())
             {
                 return CreateConnectionWithTcpEndpoints(options, factory);
             }
@@ -78,7 +78,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
 
         private static IConnection CreateNamedConnection(RabbitMqServiceOptions options, ConnectionFactory factory)
         {
-            if (options.HostNames?.Any() == true)
+            if (options.HostNames.Any())
             {
                 return TryToCreateConnection(() => factory.CreateConnection(options.HostNames.ToList(), options.ClientProvidedName), options.InitialConnectionRetries, options.InitialConnectionRetryTimeoutMilliseconds);
             }
@@ -89,7 +89,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
 
         private static IConnection CreateConnection(RabbitMqServiceOptions options, ConnectionFactory factory)
         {
-            if (options.HostNames?.Any() == true)
+            if (options.HostNames.Any())
             {
                 return TryToCreateConnection(() => factory.CreateConnection(options.HostNames.ToList()), options.InitialConnectionRetries, options.InitialConnectionRetryTimeoutMilliseconds);
             }
@@ -103,7 +103,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             ValidateArguments(numberOfRetries, timeoutMilliseconds);
 
             var attempts = 0;
-            BrokerUnreachableException latestException = null;
+            BrokerUnreachableException? latestException = null;
             while (attempts < numberOfRetries)
             {
                 try
