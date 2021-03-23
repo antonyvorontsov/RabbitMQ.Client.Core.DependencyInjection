@@ -54,11 +54,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         private static IServiceCollection ConfigureBatchConsumerConnectionOptions<TBatchMessageHandler>(this IServiceCollection services, RabbitMqServiceOptions serviceOptions)
             where TBatchMessageHandler : BaseBatchMessageHandler
         {
-            var options = new BatchConsumerConnectionOptions
-            {
-                Type = typeof(TBatchMessageHandler),
-                ServiceOptions = serviceOptions
-            };
+            var options = new BatchConsumerConnectionOptions(typeof(TBatchMessageHandler), serviceOptions);
             var serviceDescriptor = new ServiceDescriptor(typeof(BatchConsumerConnectionOptions), options);
             services.Add(serviceDescriptor);
             return services;

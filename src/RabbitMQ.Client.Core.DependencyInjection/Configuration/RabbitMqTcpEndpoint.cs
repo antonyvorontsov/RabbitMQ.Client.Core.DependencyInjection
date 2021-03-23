@@ -8,7 +8,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Configuration
         /// <summary>
         /// RabbitMQ server.
         /// </summary>
-        public string HostName { get; set; }
+        public string HostName { get; set; } = string.Empty;
 
         /// <summary>
         /// Tcp connection port.
@@ -21,6 +21,6 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Configuration
         /// <remarks>
         /// Should be null if certificate should not be used.
         /// </remarks>
-        public RabbitMqSslOption SslOption { get; set; }
+        public RabbitMqSslOption? SslOption { get; set; }
     }
 }

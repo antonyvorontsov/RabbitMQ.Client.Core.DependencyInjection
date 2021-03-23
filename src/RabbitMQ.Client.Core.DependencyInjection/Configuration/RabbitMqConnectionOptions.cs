@@ -8,11 +8,11 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Configuration
         /// <summary>
         /// Producer connection.
         /// </summary>
-        public RabbitMqServiceOptions ProducerOptions { get; set; }
+        public RabbitMqServiceOptions? ProducerOptions { get; set; }
 
         /// <summary>
         /// Consumer connection.
         /// </summary>
-        public RabbitMqServiceOptions ConsumerOptions { get; set; }
+        public RabbitMqServiceOptions? ConsumerOptions { get; set; }
     }
 }

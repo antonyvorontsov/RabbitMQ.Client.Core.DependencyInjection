@@ -215,11 +215,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             IStubCaller caller,
             IEnumerable<IBatchMessageHandlingFilter> handlingFilters)
         {
-            var connectionOptions = new BatchConsumerConnectionOptions
-            {
-                Type = typeof(StubBaseBatchMessageHandler),
-                ServiceOptions = new RabbitMqServiceOptions()
-            };
+            var connectionOptions = new BatchConsumerConnectionOptions(typeof(StubBaseBatchMessageHandler), new RabbitMqServiceOptions());
             var loggerMock = new Mock<ILogger<StubBaseBatchMessageHandler>>();
             return new StubBaseBatchMessageHandler(
                 caller,

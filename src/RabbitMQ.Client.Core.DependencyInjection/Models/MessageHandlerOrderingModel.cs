@@ -9,6 +9,14 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Models
     /// </summary>
     public class MessageHandlerOrderingModel
     {
+        public MessageHandlerOrderingModel(Type messageHandlerType, string? exchange, IEnumerable<string> routePatterns, int order)
+        {
+            MessageHandlerType = messageHandlerType;
+            Exchange = exchange;
+            RoutePatterns = routePatterns;
+            Order = order;
+        }
+        
         /// <summary>
         /// A type of the registered message handler.
         /// </summary>
@@ -17,7 +25,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Models
         /// <summary>
         /// An exchange which message handler bound to.
         /// </summary>
-        public string Exchange { get; set; }
+        public string? Exchange { get; set; }
 
         /// <summary>
         /// A collection of route patterns which message handler "listens".

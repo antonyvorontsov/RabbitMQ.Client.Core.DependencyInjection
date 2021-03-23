@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using RabbitMQ.Client.Core.DependencyInjection.Exceptions;
+using RabbitMQ.Client.Core.DependencyInjection.InternalExtensions.Validation;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
 using RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces;
 
@@ -15,10 +16,10 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
     public sealed class ProducingService : IProducingService, IDisposable
     {
         /// <inheritdoc/>
-        public IConnection Connection { get; private set; }
+        public IConnection? Connection { get; private set; }
 
         /// <inheritdoc/>
-        public IModel Channel { get; private set; }
+        public IModel? Channel { get; private set; }
 
         private readonly IEnumerable<RabbitMqExchange> _exchanges;
         private readonly object _lock = new object();
@@ -177,14 +178,14 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
 
         private IBasicProperties CreateProperties()
         {
-            var properties = Channel.CreateBasicProperties();
+            var properties = Channel.EnsureIsNotNull().CreateBasicProperties();
             properties.Persistent = true;
             return properties;
         }
 
         private IBasicProperties CreateJsonProperties()
         {
-            var properties = Channel.CreateBasicProperties();
+            var properties = Channel.EnsureIsNotNull().CreateBasicProperties();
             properties.Persistent = true;
             properties.ContentType = "application/json";
             return properties;
@@ -232,6 +233,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             var delayedQueueName = $"{routingKey}.delayed.{millisecondsDelay}";
             var arguments = CreateArguments(exchange, routingKey, millisecondsDelay);
 
+            Channel.EnsureIsNotNull();
             Channel.QueueDeclare(
                 queue: delayedQueueName,
                 durable: true,

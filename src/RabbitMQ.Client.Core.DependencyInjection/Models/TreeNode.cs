@@ -13,12 +13,12 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Models
         /// <remarks>
         /// Routing key split into parts by the dot.
         /// </remarks>
-        public string KeyPartition { get; set; }
+        public string KeyPartition { get; set; } = string.Empty;
 
         /// <summary>
         /// Parent node.
         /// </summary>
-        public TreeNode Parent { get; set; }
+        public TreeNode? Parent { get; set; }
 
         /// <summary>
         /// Child nodes.

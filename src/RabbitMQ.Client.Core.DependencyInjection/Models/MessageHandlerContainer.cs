@@ -9,13 +9,21 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Models
     /// </summary>
     public class MessageHandlerContainer
     {
+        public MessageHandlerContainer(string? exchange, IEnumerable<TreeNode> tree, IDictionary<string, IList<IBaseMessageHandler>> messageHandlers, IEnumerable<MessageHandlerOrderingModel> messageHandlerOrderingModels)
+        {
+            Exchange = exchange;
+            Tree = tree;
+            MessageHandlers = messageHandlers;
+            MessageHandlerOrderingModels = messageHandlerOrderingModels;
+        }
+        
         /// <summary>
         /// An exchange.
         /// </summary>
         /// <remarks>
         /// Could be null.
         /// </remarks>
-        public string Exchange { get; set; }
+        public string? Exchange { get; set; }
 
         /// <summary>
         /// Route patterns tree (trie) structure.

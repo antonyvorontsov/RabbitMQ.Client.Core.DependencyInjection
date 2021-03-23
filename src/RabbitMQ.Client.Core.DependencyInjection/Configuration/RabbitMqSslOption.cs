@@ -10,17 +10,17 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Configuration
         /// <summary>
         /// Canonical server name.
         /// </summary>
-        public string ServerName { get; set; }
+        public string ServerName { get; set; } = string.Empty;
 
         /// <summary>
         /// Path to the certificate.
         /// </summary>
-        public string CertificatePath { get; set; }
+        public string CertificatePath { get; set; } = string.Empty;
 
         /// <summary>
         /// A pass-phrase for the certificate.
         /// </summary>
-        public string CertificatePassphrase { get; set; }
+        public string CertificatePassphrase { get; set; } = string.Empty;
 
         /// <summary>
         /// Flag that defines if certificate should be used.

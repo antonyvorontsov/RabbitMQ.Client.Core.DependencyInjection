@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
+using RabbitMQ.Client.Core.DependencyInjection.Configuration;
 using RabbitMQ.Client.Core.DependencyInjection.MessageHandlers;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
 using RabbitMQ.Client.Core.DependencyInjection.Services;
@@ -22,7 +23,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
         {
             var exchanges = new List<RabbitMqExchange>
             {
-                new() { Name = testDataModel.MessageExchange }
+                new(testDataModel.MessageExchange, false, new RabbitMqExchangeOptions())
             };
 
             var callOrder = 0;
@@ -48,18 +49,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
 
             var routers = new List<MessageHandlerRouter>
             {
-                new()
-                {
-                    Type = messageHandlerMock.Object.GetType(),
-                    Exchange = testDataModel.MessageHandlerExchange,
-                    RoutePatterns = testDataModel.MessageHandlerPatterns
-                },
-                new()
-                {
-                    Type = asyncMessageHandlerMock.Object.GetType(),
-                    Exchange = testDataModel.AsyncMessageHandlerExchange,
-                    RoutePatterns = testDataModel.AsyncMessageHandlerPatterns
-                }
+                new(messageHandlerMock.Object.GetType(), testDataModel.MessageHandlerExchange, testDataModel.MessageHandlerPatterns),
+                new(asyncMessageHandlerMock.Object.GetType(), testDataModel.AsyncMessageHandlerExchange, testDataModel.AsyncMessageHandlerPatterns)
             };
 
             var orderingModels = GetMessageHandlerOrderingModels(
@@ -138,23 +129,21 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             var orderingModels = new List<MessageHandlerOrderingModel>();
             if (testDataModel.MessageHandlerOrder.HasValue)
             {
-                orderingModels.Add(new MessageHandlerOrderingModel
-                {
-                    MessageHandlerType =  messageHandlerType,
-                    Exchange = testDataModel.MessageHandlerExchange,
-                    RoutePatterns = testDataModel.MessageHandlerPatterns,
-                    Order = testDataModel.MessageHandlerOrder.Value
-                });
+                orderingModels.Add(
+                    new MessageHandlerOrderingModel(
+                        messageHandlerType,
+                        testDataModel.MessageHandlerExchange,
+                        testDataModel.MessageHandlerPatterns,
+                        testDataModel.MessageHandlerOrder.Value));
             }
             if (testDataModel.AsyncMessageHandlerOrder.HasValue)
             {
-                orderingModels.Add(new MessageHandlerOrderingModel
-                {
-                    MessageHandlerType =  asyncMessageHandlerType,
-                    Exchange = testDataModel.AsyncMessageHandlerExchange,
-                    RoutePatterns = testDataModel.AsyncMessageHandlerPatterns,
-                    Order = testDataModel.AsyncMessageHandlerOrder.Value
-                });
+                orderingModels.Add(
+                    new MessageHandlerOrderingModel(
+                        asyncMessageHandlerType,
+                        testDataModel.AsyncMessageHandlerExchange,
+                        testDataModel.AsyncMessageHandlerPatterns,
+                        testDataModel.AsyncMessageHandlerOrder.Value));
             }
             return orderingModels;
         }

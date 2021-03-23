@@ -43,7 +43,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// <param name="settings">Serializer settings <see cref="JsonSerializerSettings"/>.</param>
         /// <typeparam name="T">Type of a message body.</typeparam>
         /// <returns>Object of type <see cref="T"/>.</returns>
-        public static T GetPayload<T>(this BasicDeliverEventArgs eventArgs, JsonSerializerSettings settings)
+        public static T? GetPayload<T>(this BasicDeliverEventArgs eventArgs, JsonSerializerSettings settings)
         {
             eventArgs.EnsureIsNotNull();
             var messageString = Encoding.UTF8.GetString(eventArgs.Body.ToArray());
@@ -57,7 +57,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// <param name="converters">A collection of json converters <see cref="JsonConverter"/>.</param>
         /// <typeparam name="T">Type of a message body.</typeparam>
         /// <returns>Object of type <see cref="T"/>.</returns>
-        public static T GetPayload<T>(this BasicDeliverEventArgs eventArgs, IEnumerable<JsonConverter> converters)
+        public static T? GetPayload<T>(this BasicDeliverEventArgs eventArgs, IEnumerable<JsonConverter> converters)
         {
             eventArgs.EnsureIsNotNull();
             var messageString = Encoding.UTF8.GetString(eventArgs.Body.ToArray());

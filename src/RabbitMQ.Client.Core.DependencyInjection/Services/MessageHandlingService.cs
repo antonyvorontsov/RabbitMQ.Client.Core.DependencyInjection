@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client.Core.DependencyInjection.InternalExtensions;
+using RabbitMQ.Client.Core.DependencyInjection.InternalExtensions.Validation;
 using RabbitMQ.Client.Core.DependencyInjection.MessageHandlers;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
 using RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces;
@@ -37,14 +38,14 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             _logger.LogInformation($"A new message received with deliveryTag {eventArgs.DeliveryTag}.");
             var matchingRoutes = GetMatchingRoutePatterns(eventArgs.Exchange, eventArgs.RoutingKey);
             await ProcessMessageEvent(eventArgs, matchingRoutes).ConfigureAwait(false);
-            consumingService.Channel.BasicAck(eventArgs.DeliveryTag, false);
+            consumingService.Channel.EnsureIsNotNull().BasicAck(eventArgs.DeliveryTag, false);
             _logger.LogInformation($"Message processing finished successfully. Acknowledge has been sent with deliveryTag {eventArgs.DeliveryTag}.");
         }
 
         /// <inheritdoc />
         public async Task HandleMessageProcessingFailure(Exception exception, BasicDeliverEventArgs eventArgs, IConsumingService consumingService)
         {
-            consumingService.Channel.BasicAck(eventArgs.DeliveryTag, false);
+            consumingService.Channel.EnsureIsNotNull().BasicAck(eventArgs.DeliveryTag, false);
             _logger.LogError(new EventId(), exception, $"An error occurred while processing received message with the delivery tag {eventArgs.DeliveryTag}.");
             await HandleFailedMessageProcessing(eventArgs).ConfigureAwait(false);
         }
@@ -79,12 +80,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
                     continue;
                 }
 
-                var orderingContainers = container.MessageHandlers[matchingRoute].Select(handler => new MessageHandlerOrderingContainer
-                {
-                    MessageHandler = handler,
-                    Order = container.MessageHandlerOrderingModels.FirstOrDefault(x => x.MessageHandlerType == handler.GetType())?.Order,
-                    MatchingRoute = matchingRoute
-                });
+                var orderingContainers = container.MessageHandlers[matchingRoute]
+                    .Select(handler => new MessageHandlerOrderingContainer(handler, matchingRoute, container.GetOrderForHandler(handler)));
                 messageHandlerOrderingContainers.AddRange(orderingContainers);
             }
 

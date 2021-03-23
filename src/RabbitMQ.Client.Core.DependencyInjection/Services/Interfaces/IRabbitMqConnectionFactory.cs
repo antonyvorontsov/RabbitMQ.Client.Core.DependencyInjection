@@ -14,7 +14,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces
         /// <param name="options">An instance of options <see cref="RabbitMqServiceOptions"/>.</param>
         /// <returns>An instance of connection <see cref="IConnection"/>.</returns>
         /// <remarks>If options parameter is null the method return null too.</remarks>
-        IConnection CreateRabbitMqConnection(RabbitMqServiceOptions options);
+        IConnection? CreateRabbitMqConnection(RabbitMqServiceOptions? options);
 
         /// <summary>
         /// Create a consumer depending on the connection channel.

@@ -11,12 +11,12 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces
         /// <summary>
         /// RabbitMQ producing connection.
         /// </summary>
-        IConnection Connection { get; }
+        IConnection? Connection { get; }
 
         /// <summary>
         /// RabbitMQ producing channel.
         /// </summary>
-        IModel Channel { get; }
+        IModel? Channel { get; }
 
         /// <summary>
         /// Send a message.

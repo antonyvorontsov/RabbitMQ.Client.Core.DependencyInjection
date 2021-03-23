@@ -12,7 +12,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Exceptions
         /// </summary>
         public int NumberOfRetries { get; set; }
 
-        public InitialConnectionException(string message, Exception innerException) : base(message, innerException)
+        public InitialConnectionException(string message, Exception? innerException) : base(message, innerException)
         {
         }
     }

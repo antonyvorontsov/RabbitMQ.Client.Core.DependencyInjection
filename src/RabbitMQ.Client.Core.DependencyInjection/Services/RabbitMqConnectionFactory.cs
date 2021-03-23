@@ -14,7 +14,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
     public class RabbitMqConnectionFactory : IRabbitMqConnectionFactory
     {
         /// <inheritdoc/>
-        public IConnection CreateRabbitMqConnection(RabbitMqServiceOptions options)
+        public IConnection? CreateRabbitMqConnection(RabbitMqServiceOptions? options)
         {
             if (options is null)
             {
@@ -103,7 +103,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             ValidateArguments(numberOfRetries, timeoutMilliseconds);
 
             var attempts = 0;
-            BrokerUnreachableException latestException = null;
+            BrokerUnreachableException? latestException = null;
             while (attempts < numberOfRetries)
             {
                 try

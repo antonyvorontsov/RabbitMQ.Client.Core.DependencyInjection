@@ -13,9 +13,10 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Models
         /// </summary>
         public string ExchangeName { get; set; }
 
-        public ExchangeServiceDescriptor(Type serviceType, object instance)
+        public ExchangeServiceDescriptor(Type serviceType, object instance, string exchangeName)
             : base(serviceType, instance)
         {
+            ExchangeName = exchangeName;
         }
     }
 }

@@ -21,55 +21,39 @@ namespace RabbitMQ.Client.Core.DependencyInjection.InternalExtensions
             where TImplementation : class, TInterface =>
             services.AddInstanceSingleton<TInterface, TImplementation>(routePatterns, null, order);
 
-        internal static IServiceCollection AddInstanceTransient<TInterface, TImplementation>(this IServiceCollection services, IEnumerable<string> routePatterns, string exchange, int order)
+        internal static IServiceCollection AddInstanceTransient<TInterface, TImplementation>(this IServiceCollection services, IEnumerable<string> routePatterns, string? exchange, int order)
             where TInterface : class
             where TImplementation : class, TInterface
         {
             var patterns = routePatterns.ToList();
             services.AddTransient<TInterface, TImplementation>();
-            var router = new MessageHandlerRouter
-            {
-                Type = typeof(TImplementation),
-                Exchange = exchange,
-                RoutePatterns = patterns
-            };
+            var router = new MessageHandlerRouter(typeof(TImplementation), exchange, patterns);
             services.Add(new ServiceDescriptor(typeof(MessageHandlerRouter), router));
             return services.AddMessageHandlerOrderingModel<TImplementation>(patterns, exchange, order);
         }
 
-        internal static IServiceCollection AddInstanceSingleton<TInterface, TImplementation>(this IServiceCollection services, IEnumerable<string> routePatterns, string exchange, int order)
+        internal static IServiceCollection AddInstanceSingleton<TInterface, TImplementation>(this IServiceCollection services, IEnumerable<string> routePatterns, string? exchange, int order)
             where TInterface : class
             where TImplementation : class, TInterface
         {
             var patterns = routePatterns.ToList();
             services.AddSingleton<TInterface, TImplementation>();
-            var router = new MessageHandlerRouter
-            {
-                Type = typeof(TImplementation),
-                Exchange = exchange,
-                RoutePatterns = patterns
-            };
+            var router = new MessageHandlerRouter(typeof(TImplementation), exchange, patterns);
             services.Add(new ServiceDescriptor(typeof(MessageHandlerRouter), router));
             return services.AddMessageHandlerOrderingModel<TImplementation>(patterns, exchange, order);
         }
 
-        private static IServiceCollection AddMessageHandlerOrderingModel<TImplementation>(this IServiceCollection services, IEnumerable<string> routePatterns, string exchange, int order)
+        private static IServiceCollection AddMessageHandlerOrderingModel<TImplementation>(this IServiceCollection services, IEnumerable<string> routePatterns, string? exchange, int order)
             where TImplementation : class
         {
             var patterns = routePatterns.ToList();
             MessageHandlerOrderingModelExists<TImplementation>(services, patterns, exchange, order);
-            var messageHandlerOrderingModel = new MessageHandlerOrderingModel
-            {
-                Exchange = exchange,
-                RoutePatterns = patterns,
-                Order = order,
-                MessageHandlerType = typeof(TImplementation)
-            };
+            var messageHandlerOrderingModel = new MessageHandlerOrderingModel(typeof(TImplementation), exchange, patterns, order);
             services.AddSingleton(messageHandlerOrderingModel);
             return services;
         }
 
-        private static void MessageHandlerOrderingModelExists<TImplementation>(IServiceCollection services, IEnumerable<string> routePatterns, string exchange, int order)
+        private static void MessageHandlerOrderingModelExists<TImplementation>(IServiceCollection services, IEnumerable<string> routePatterns, string? exchange, int order)
         {
             var patterns = routePatterns.ToList();
             var messageHandlerOrderingModel = services.FirstOrDefault(x => x.ServiceType == typeof(MessageHandlerOrderingModel)

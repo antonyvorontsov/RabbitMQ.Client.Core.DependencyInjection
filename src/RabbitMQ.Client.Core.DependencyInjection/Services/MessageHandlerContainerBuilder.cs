@@ -49,7 +49,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             return containers;
         }
 
-        private MessageHandlerContainer CreateContainer(string exchange, IList<MessageHandlerRouter> selectedRouters)
+        private MessageHandlerContainer CreateContainer(string? exchange, IList<MessageHandlerRouter> selectedRouters)
         {
             var routersDictionary = TransformMessageHandlerRoutersToDictionary(selectedRouters);
             var boundMessageHandlers = _messageHandlers.Where(x => routersDictionary.Keys.Contains(x.GetType())).ToList();
@@ -64,18 +64,12 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
                 boundMessageHandlers,
                 boundAsyncMessageHandlers,
                 _orderingModels);
-            return new MessageHandlerContainer
-            {
-                Exchange = exchange,
-                Tree = WildcardExtensions.ConstructRoutesTree(routePatterns),
-                MessageHandlers = messageHandlers,
-                MessageHandlerOrderingModels = orderingModels
-            };
+            return new MessageHandlerContainer(exchange, WildcardExtensions.ConstructRoutesTree(routePatterns), messageHandlers, orderingModels);
         }
 
-        private static IDictionary<Type, List<string>> TransformMessageHandlerRoutersToDictionary(IEnumerable<MessageHandlerRouter> routers)
+        private static IDictionary<Type, IList<string>> TransformMessageHandlerRoutersToDictionary(IEnumerable<MessageHandlerRouter> routers)
         {
-            var dictionary = new Dictionary<Type, List<string>>();
+            var dictionary = new Dictionary<Type, IList<string>>();
             foreach (var router in routers)
             {
                 if (dictionary.ContainsKey(router.Type))
@@ -91,7 +85,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         }
 
         private static IEnumerable<MessageHandlerOrderingModel> GetMessageHandlerOrderingModels(
-            string exchange,
+            string? exchange,
             IEnumerable<IMessageHandler> messageHandlers,
             IEnumerable<IAsyncMessageHandler> asyncMessageHandlers,
             IEnumerable<MessageHandlerOrderingModel> orderingModels)
@@ -106,7 +100,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         private static IDictionary<string, IList<IBaseMessageHandler>> TransformMessageHandlersCollectionsToDictionary(
             IEnumerable<IMessageHandler> messageHandlers,
             IEnumerable<IAsyncMessageHandler> asyncMessageHandlers,
-            IDictionary<Type, List<string>> routersDictionary)
+            IDictionary<Type, IList<string>> routersDictionary)
         {
             var transformedMessageHandlers = TransformMessageHandlersCollectionToDictionary(messageHandlers, routersDictionary);
             var transformedAsyncMessageHandlers = TransformMessageHandlersCollectionToDictionary(asyncMessageHandlers, routersDictionary);
@@ -115,7 +109,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
 
         private static IDictionary<string, IList<IBaseMessageHandler>> TransformMessageHandlersCollectionToDictionary<T>(
             IEnumerable<T> messageHandlers,
-            IDictionary<Type, List<string>> routersDictionary)
+            IDictionary<Type, IList<string>> routersDictionary)
             where T : class, IBaseMessageHandler
         {
             var dictionary = new Dictionary<string, IList<IBaseMessageHandler>>();
