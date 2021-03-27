@@ -5,6 +5,8 @@
 
 This repository contains the library that provides functionality for wrapping [RabbitMQ.Client](https://github.com/rabbitmq/rabbitmq-dotnet-client) code and adding it in your application via the dependency injection mechanism. That wrapper provides easy, managed message queue consume and publish operations. The library targets netstandard2.1.
 
+*(!)Current version of documentation is out of date for 5.0.0. Stay updated.(!)*
+
 ## Usage
 
 This section contains only an example of a basic usage of the library. You can find the [detailed documentation](./docs/index.md) in the docs directory where all functionality fully covered.
