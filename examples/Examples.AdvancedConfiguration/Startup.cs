@@ -1,3 +1,4 @@
+using Examples.AdvancedConfiguration.DbContexts;
 using Examples.AdvancedConfiguration.MessageHandlers;
 using Examples.AdvancedConfiguration.Services;
 using Microsoft.AspNetCore.Builder;
@@ -19,7 +20,8 @@ namespace Examples.AdvancedConfiguration
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-
+            services.AddDbContext<ApplicationDbContext>();
+            
             // Configurations are the same (same user) and same password, but the only difference - names of connections.
             var rabbitMqConsumerSection = Configuration.GetSection("RabbitMqConsumer");
             var rabbitMqProducerSection = Configuration.GetSection("RabbitMqProducer");
@@ -35,9 +37,9 @@ namespace Examples.AdvancedConfiguration
                 .AddProductionExchange("exchange.to.send.messages.only", producingExchangeSection)
                 .AddConsumptionExchange("consumption.exchange", consumingExchangeSection)
                 .AddMessageHandlerTransient<CustomMessageHandler>("routing.key")
-                .AddAsyncMessageHandlerTransient<CustomAsyncMessageHandler>(new[] { "routing.key", "another.routing.key" });
-
-            services.AddHostedService<ConsumingHostedService>();
+                .AddAsyncMessageHandlerTransient<CustomAsyncMessageHandler>(new[] { "routing.key", "another.routing.key" })
+                .AddBatchMessageHandler<ConsumingWithScopeBatchMessageHandler>(consumingExchangeSection)
+                .AddBatchMessageHandler<ConsumingWithProviderBatchMessageHandler>(consumingExchangeSection);
         }
 
         public void Configure(IApplicationBuilder app)
