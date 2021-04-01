@@ -1,4 +1,6 @@
-﻿using RabbitMQ.Client.Core.DependencyInjection.Configuration;
+﻿using System.Collections.Generic;
+using System.Linq;
+using RabbitMQ.Client.Core.DependencyInjection.Configuration;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.Models
 {
@@ -7,10 +9,16 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Models
     /// </summary>
     public class RabbitMqExchange
     {
-        public RabbitMqExchange(string name, bool isConsuming, RabbitMqExchangeOptions options)
+        private readonly IReadOnlyCollection<ClientExchangeType> _exchangeTypesAllowedForConsuming = new[]
+        {
+            ClientExchangeType.Consumption,
+            ClientExchangeType.Universal
+        };
+        
+        public RabbitMqExchange(string name, ClientExchangeType clientExchangeType, RabbitMqExchangeOptions options)
         {
             Name = name;
-            IsConsuming = isConsuming;
+            ClientExchangeType = clientExchangeType;
             Options = options;
         }
         
@@ -18,12 +26,17 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Models
         /// The unique name of the exchange.
         /// </summary>
         public string Name { get; }
+        
+        /// <summary>
+        /// Type of the exchange.
+        /// </summary>
+        public ClientExchangeType ClientExchangeType { get; }
 
         /// <summary>
         /// Flag determining whether the exchange made for message consumption.
         /// If false then an exchange made only for publishing.
         /// </summary>
-        public bool IsConsuming { get; }
+        public bool IsConsuming => _exchangeTypesAllowedForConsuming.Contains(ClientExchangeType);
 
         /// <summary>
         /// Exchange options.

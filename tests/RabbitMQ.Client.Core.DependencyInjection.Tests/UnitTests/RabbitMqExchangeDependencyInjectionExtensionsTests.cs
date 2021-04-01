@@ -1,25 +1,36 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using RabbitMQ.Client.Core.DependencyInjection.Configuration;
+using RabbitMQ.Client.Core.DependencyInjection.Models;
 using Xunit;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
 {
+    [SuppressMessage("ReSharper", "RedundantArgumentDefaultValue")]
     public class RabbitMqExchangeDependencyInjectionExtensionsTests
     {
         [Fact]
-        public async Task ShouldProperlyThrowExceptionWhenRegisteringSameExchangeWithSameNameAndOptionsTwice()
+        public void ShouldProperlyThrowExceptionWhenRegisteringSameExchangeOfSameTypeTwice()
         {
-            await Assert.ThrowsAsync<ArgumentException>(() =>
-            {
-                new ServiceCollection()
-                    .AddExchange("exchange.name", true, new RabbitMqExchangeOptions())
-                    .AddExchange("exchange.name", false, new RabbitMqExchangeOptions());
-                return Task.CompletedTask;
-            });
+            Assert.Throws<ArgumentException>(
+                () =>
+                {
+                    new ServiceCollection()
+                        .AddExchange("exchange.name", new RabbitMqExchangeOptions(), ClientExchangeType.Consumption)
+                        .AddExchange("exchange.name", new RabbitMqExchangeOptions(), ClientExchangeType.Consumption);
+                });
+        }
+        
+        [Fact]
+        public void ShouldProperlyNotThrowExceptionWhenRegisteringSameExchangeWithDifferentTypeTwice()
+        {
+            new ServiceCollection()
+                .AddConsumptionExchange("exchange.name", new RabbitMqExchangeOptions())
+                .AddProductionExchange("exchange.name", new RabbitMqExchangeOptions());
         }
 
         [Fact]
@@ -29,10 +40,43 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             {
                 var configurationMock = new Mock<IConfiguration>();
                 new ServiceCollection()
-                    .AddExchange("exchange.name", true, configurationMock.Object)
-                    .AddExchange("exchange.name", false, configurationMock.Object);
+                    .AddExchange("exchange.name", configurationMock.Object, ClientExchangeType.Consumption)
+                    .AddExchange("exchange.name", configurationMock.Object, ClientExchangeType.Consumption);
                 return Task.CompletedTask;
             });
+        }
+        
+        [Fact]
+        public void ShouldProperlyNotThrowExceptionWhenRegisteringSameExchangeWithDifferentTypeButSameConfigurationTwice()
+        {
+            var configurationMock = new Mock<IConfiguration>();
+            new ServiceCollection()
+                .AddConsumptionExchange("exchange.name", configurationMock.Object)
+                .AddProductionExchange("exchange.name", configurationMock.Object);
+        }
+        
+        [Fact]
+        public void ShouldProperlyThrowExceptionWhenRegisteringConsumptionExchangeWhenUniversalExchangeWithSameNameAlreadyAdded()
+        {
+            Assert.Throws<ArgumentException>(
+                () =>
+                {
+                    new ServiceCollection()
+                        .AddExchange("exchange.name", new RabbitMqExchangeOptions(), ClientExchangeType.Universal)
+                        .AddExchange("exchange.name", new RabbitMqExchangeOptions(), ClientExchangeType.Consumption);
+                });
+        }
+        
+        [Fact]
+        public void ShouldProperlyThrowExceptionWhenRegisteringProductionExchangeWhenUniversalExchangeWithSameNameAlreadyAdded()
+        {
+            Assert.Throws<ArgumentException>(
+                () =>
+                {
+                    new ServiceCollection()
+                        .AddExchange("exchange.name", new RabbitMqExchangeOptions(), ClientExchangeType.Universal)
+                        .AddExchange("exchange.name", new RabbitMqExchangeOptions(), ClientExchangeType.Production);
+                });
         }
     }
 }

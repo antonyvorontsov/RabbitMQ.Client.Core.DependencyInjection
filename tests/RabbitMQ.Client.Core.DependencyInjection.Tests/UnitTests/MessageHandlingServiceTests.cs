@@ -23,7 +23,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
         {
             var exchanges = new List<RabbitMqExchange>
             {
-                new(testDataModel.MessageExchange, false, new RabbitMqExchangeOptions())
+                new(testDataModel.MessageExchange, ClientExchangeType.Consumption, new RabbitMqExchangeOptions())
             };
 
             var callOrder = 0;
