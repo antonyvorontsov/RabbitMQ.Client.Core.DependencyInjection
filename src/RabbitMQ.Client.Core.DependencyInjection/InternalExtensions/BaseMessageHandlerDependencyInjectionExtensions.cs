@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
+using RabbitMQ.Client.Core.DependencyInjection.Specifications;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.InternalExtensions
 {
@@ -53,22 +54,16 @@ namespace RabbitMQ.Client.Core.DependencyInjection.InternalExtensions
             return services;
         }
 
-        private static void MessageHandlerOrderingModelExists<TImplementation>(IServiceCollection services, IEnumerable<string> routePatterns, string? exchange, int order)
+        private static void MessageHandlerOrderingModelExists<TImplementation>(IServiceCollection services, IReadOnlyCollection<string> routePatterns, string? exchange, int order)
         {
-            var patterns = routePatterns.ToList();
-            var messageHandlerOrderingModel = services.FirstOrDefault(x => x.ServiceType == typeof(MessageHandlerOrderingModel)
-                && x.Lifetime == ServiceLifetime.Singleton
-                && ((MessageHandlerOrderingModel)x.ImplementationInstance).MessageHandlerType == typeof(TImplementation)
-                && (string.Equals(((MessageHandlerOrderingModel)x.ImplementationInstance).Exchange, exchange, StringComparison.OrdinalIgnoreCase)
-                    || (exchange is null && ((MessageHandlerOrderingModel)x.ImplementationInstance).Exchange is null))
-                && (((MessageHandlerOrderingModel)x.ImplementationInstance)!).Order != order
-                && patterns.Intersect(((MessageHandlerOrderingModel)x.ImplementationInstance).RoutePatterns).Any());
+            var specification = new DuplicatedMessageHandlerDeclarationSpecification(typeof(TImplementation), routePatterns, exchange, order);
+            var messageHandlerOrderingModel = services.FirstOrDefault(x => specification.IsSatisfiedBy(x));
             if (messageHandlerOrderingModel is null)
             {
                 return;
             }
 
-            var intersectRoutePatterns = patterns.Intersect(((MessageHandlerOrderingModel)messageHandlerOrderingModel.ImplementationInstance).RoutePatterns);
+            var intersectRoutePatterns = routePatterns.Intersect(((MessageHandlerOrderingModel)messageHandlerOrderingModel.ImplementationInstance).RoutePatterns);
             throw new ArgumentException($"A message handler {nameof(TImplementation)} for an exchange {exchange} has already been configured for route patterns[{string.Join(", ", intersectRoutePatterns)}] with an order {order}.");
         }
     }
