@@ -21,14 +21,14 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         /// <inheritdoc/>
         public IModel? Channel { get; private set; }
 
-        private readonly IEnumerable<RabbitMqExchange> _exchanges;
+        private readonly IReadOnlyCollection<RabbitMqExchange> _exchanges;
         private readonly object _lock = new object();
 
         private const int QueueExpirationTime = 60000;
 
         public ProducingService(IEnumerable<RabbitMqExchange> exchanges)
         {
-            _exchanges = exchanges;
+            _exchanges = exchanges.Where(x => x.IsProducing).ToList();
         }
 
         /// <inheritdoc/>
@@ -199,7 +199,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             }
         }
 
-        private void ValidateArguments(string exchangeName, string routingKey)
+        internal void ValidateArguments(string exchangeName, string routingKey)
         {
             if (string.IsNullOrEmpty(exchangeName))
             {

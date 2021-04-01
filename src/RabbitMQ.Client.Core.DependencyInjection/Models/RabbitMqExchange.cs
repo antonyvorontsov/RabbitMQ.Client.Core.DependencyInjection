@@ -15,6 +15,12 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Models
             ClientExchangeType.Universal
         };
         
+        private readonly IReadOnlyCollection<ClientExchangeType> _exchangeTypesAllowedForProducing = new[]
+        {
+            ClientExchangeType.Production,
+            ClientExchangeType.Universal
+        };
+        
         public RabbitMqExchange(string name, ClientExchangeType clientExchangeType, RabbitMqExchangeOptions options)
         {
             Name = name;
@@ -37,6 +43,12 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Models
         /// If false then an exchange made only for publishing.
         /// </summary>
         public bool IsConsuming => _exchangeTypesAllowedForConsuming.Contains(ClientExchangeType);
+
+        /// <summary>
+        /// Flag determining whether the exchange made for message production.
+        /// If false then an exchange made only for consumption.
+        /// </summary>
+        public bool IsProducing => _exchangeTypesAllowedForProducing.Contains(ClientExchangeType);
 
         /// <summary>
         /// Exchange options.
