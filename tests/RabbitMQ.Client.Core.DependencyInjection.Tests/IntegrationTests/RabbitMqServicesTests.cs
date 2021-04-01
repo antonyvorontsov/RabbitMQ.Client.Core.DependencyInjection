@@ -30,7 +30,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
             serviceCollection
                 .AddSingleton(callerMock.Object)
                 .AddRabbitMqServices(GetClientOptions())
-                .AddConsumptionExchange(DefaultExchangeName, GetExchangeOptions())
+                .AddExchange(DefaultExchangeName, GetExchangeOptions())
                 .AddMessageHandlerTransient<StubMessageHandler>(FirstRoutingKey)
                 .AddAsyncMessageHandlerTransient<StubAsyncMessageHandler>(SecondRoutingKey);
 
@@ -65,7 +65,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
             serviceCollection
                 .AddSingleton(callerMock.Object)
                 .AddRabbitMqServices(GetClientOptions())
-                .AddConsumptionExchange(DefaultExchangeName, GetExchangeOptions())
+                .AddExchange(DefaultExchangeName, GetExchangeOptions())
                 .AddMessageHandlerTransient<StubExceptionMessageHandler>(FirstRoutingKey);
 
             await using var serviceProvider = serviceCollection.BuildServiceProvider();
