@@ -4,6 +4,7 @@ using RabbitMQ.Client.Core.DependencyInjection.Configuration;
 using System;
 using System.Linq;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
+using RabbitMQ.Client.Core.DependencyInjection.Specifications;
 
 namespace RabbitMQ.Client.Core.DependencyInjection
 {
@@ -21,7 +22,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// <param name="configuration">Exchange configuration section.</param>
         /// <returns>Service collection.</returns>
         public static IServiceCollection AddConsumptionExchange(this IServiceCollection services, string exchangeName, IConfiguration configuration) =>
-            services.AddExchange(exchangeName, isConsuming: true, configuration);
+            services.AddExchange(exchangeName, configuration, ClientExchangeType.Consumption);
 
         /// <summary>
         /// Add a production exchange as singleton.
@@ -32,7 +33,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// <param name="configuration">Exchange configuration section.</param>
         /// <returns>Service collection.</returns>
         public static IServiceCollection AddProductionExchange(this IServiceCollection services, string exchangeName, IConfiguration configuration) =>
-            services.AddExchange(exchangeName, isConsuming: false, configuration);
+            services.AddExchange(exchangeName, configuration, ClientExchangeType.Production);
 
         /// <summary>
         /// Add a consumption exchange as singleton.
@@ -43,7 +44,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// <param name="options">Exchange configuration <see cref="RabbitMqExchangeOptions"/>.</param>
         /// <returns>Service collection.</returns>
         public static IServiceCollection AddConsumptionExchange(this IServiceCollection services, string exchangeName, RabbitMqExchangeOptions options) =>
-            services.AddExchange(exchangeName, isConsuming: true, options);
+            services.AddExchange(exchangeName, options, ClientExchangeType.Consumption);
 
         /// <summary>
         /// Add a production exchange as singleton.
@@ -54,7 +55,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// <param name="options">Exchange configuration <see cref="RabbitMqExchangeOptions"/>.</param>
         /// <returns>Service collection.</returns>
         public static IServiceCollection AddProductionExchange(this IServiceCollection services, string exchangeName, RabbitMqExchangeOptions options) =>
-            services.AddExchange(exchangeName, isConsuming: false, options);
+            services.AddExchange(exchangeName, options, ClientExchangeType.Production);
 
         /// <summary>
         /// Add an exchange as a singleton.
@@ -62,15 +63,15 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// <param name="services">Service collection.</param>
         /// <param name="exchangeName">Exchange name.</param>
         /// <param name="configuration">Exchange configuration section.</param>
-        /// <param name="isConsuming">Flag whether an exchange made for consumption.</param>
+        /// <param name="clientExchangeType">Custom client exchange type that defines what functionality is allowed for an exchange.</param>
         /// <returns>Service collection.</returns>
-        public static IServiceCollection AddExchange(this IServiceCollection services, string exchangeName, bool isConsuming, IConfiguration configuration)
+        public static IServiceCollection AddExchange(this IServiceCollection services, string exchangeName, IConfiguration configuration, ClientExchangeType clientExchangeType = ClientExchangeType.Universal)
         {
-            CheckExchangeExists(services, exchangeName);
+            CheckExchangeExists(services, exchangeName, clientExchangeType);
 
             var options = new RabbitMqExchangeOptions();
             configuration.Bind(options);
-            return services.AddExchange(exchangeName, isConsuming, options);
+            return services.AddExchange(exchangeName, options, clientExchangeType);
         }
 
         /// <summary>
@@ -79,25 +80,23 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// <param name="services">Service collection.</param>
         /// <param name="exchangeName">Exchange name.</param>
         /// <param name="options">Exchange configuration <see cref="RabbitMqExchangeOptions"/>.</param>
-        /// <param name="isConsuming">Flag whether an exchange made for consumption.</param>
+        /// <param name="clientExchangeType">Custom client exchange type that defines what functionality is allowed for an exchange.</param>
         /// <returns>Service collection.</returns>
-        public static IServiceCollection AddExchange(this IServiceCollection services, string exchangeName, bool isConsuming, RabbitMqExchangeOptions? options)
+        public static IServiceCollection AddExchange(this IServiceCollection services, string exchangeName, RabbitMqExchangeOptions? options, ClientExchangeType clientExchangeType = ClientExchangeType.Universal)
         {
-            CheckExchangeExists(services, exchangeName);
+            CheckExchangeExists(services, exchangeName, clientExchangeType);
 
             var exchangeOptions = options ?? new RabbitMqExchangeOptions();
-            var exchange = new RabbitMqExchange(exchangeName, isConsuming, exchangeOptions);
-            var service = new ExchangeServiceDescriptor(typeof(RabbitMqExchange), exchange, exchangeName);
+            var exchange = new RabbitMqExchange(exchangeName, clientExchangeType, exchangeOptions);
+            var service = new ExchangeServiceDescriptor(typeof(RabbitMqExchange), exchange, exchangeName, clientExchangeType);
             services.Add(service);
             return services;
         }
 
-        private static void CheckExchangeExists(IServiceCollection services, string exchangeName)
+        private static void CheckExchangeExists(IServiceCollection services, string exchangeName, ClientExchangeType clientExchangeType)
         {
-            var exchangeExists = services.Any(x => x.ServiceType == typeof(RabbitMqExchange)
-                  && x.Lifetime == ServiceLifetime.Singleton
-                  && string.Equals(((ExchangeServiceDescriptor)x).ExchangeName, exchangeName, StringComparison.OrdinalIgnoreCase));
-            if (exchangeExists)
+            var specification = new DuplicatedRabbitMqExchangeDeclarationSpecification(exchangeName, clientExchangeType);
+            if (services.Any(x => specification.IsSatisfiedBy(x)))
             {
                 throw new ArgumentException($"Exchange {exchangeName} has been added already!");
             }

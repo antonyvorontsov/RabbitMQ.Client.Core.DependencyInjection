@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.Configuration
 {
@@ -17,7 +16,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Configuration
         /// Has the first priority between properties TcpEndpoints, HostNames and HostName.
         /// If all properties set, TcpEndpoints will be used.
         /// </remarks>
-        public IEnumerable<RabbitMqTcpEndpoint> TcpEndpoints { get; set; } = Enumerable.Empty<RabbitMqTcpEndpoint>();
+        public IList<RabbitMqTcpEndpoint> TcpEndpoints { get; set; } = new List<RabbitMqTcpEndpoint>();
 
         /// <summary>
         /// Collection of RabbitMQ server host names.
@@ -29,7 +28,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Configuration
         /// Has the second priority between properties TcpEndpoints, HostNames and HostName.
         /// If HostNames collection property and HostName property both set then HostNames will be used.
         /// </remarks>
-        public IEnumerable<string> HostNames { get; set; } = Enumerable.Empty<string>();
+        public IList<string> HostNames { get; set; } = new List<string>();
 
         /// <summary>
         /// RabbitMQ server.
