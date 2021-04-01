@@ -1,5 +1,8 @@
 namespace RabbitMQ.Client.Core.DependencyInjection.Models
 {
+    /// <summary>
+    /// Custom exchange type that defines which functionality is allowed for an exchange.
+    /// </summary>
     public enum ClientExchangeType
     {
         /// <summary>

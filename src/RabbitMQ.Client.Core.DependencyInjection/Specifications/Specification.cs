@@ -7,7 +7,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Specifications
     {
         protected abstract Expression<Func<T , bool>> ToExpression();
 
-        public bool IsSatisfiedBy(T entity)
+        internal bool IsSatisfiedBy(T entity)
         {
             Func<T , bool> predicate = ToExpression().Compile();
             return predicate(entity);

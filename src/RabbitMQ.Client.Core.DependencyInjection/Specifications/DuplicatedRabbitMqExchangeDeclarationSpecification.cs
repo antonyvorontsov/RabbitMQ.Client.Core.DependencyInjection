@@ -13,7 +13,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Specifications
         private readonly string _exchangeName;
         private readonly ClientExchangeType _exchangeType;
 
-        public DuplicatedRabbitMqExchangeDeclarationSpecification(string exchangeName, ClientExchangeType exchangeType)
+        internal DuplicatedRabbitMqExchangeDeclarationSpecification(string exchangeName, ClientExchangeType exchangeType)
         {
             _exchangeName = exchangeName;
             _exchangeType = exchangeType;

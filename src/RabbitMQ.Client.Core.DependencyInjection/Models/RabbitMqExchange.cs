@@ -28,7 +28,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Models
         public string Name { get; }
         
         /// <summary>
-        /// Type of the exchange.
+        /// Custom client exchange type.
         /// </summary>
         public ClientExchangeType ClientExchangeType { get; }
 
