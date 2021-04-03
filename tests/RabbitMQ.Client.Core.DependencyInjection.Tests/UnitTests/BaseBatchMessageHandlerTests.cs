@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using Moq;
 using RabbitMQ.Client.Core.DependencyInjection.Configuration;
 using RabbitMQ.Client.Core.DependencyInjection.Filters;
@@ -216,13 +215,13 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             IEnumerable<IBatchMessageHandlingFilter> handlingFilters)
         {
             var connectionOptions = new BatchConsumerConnectionOptions(typeof(StubBaseBatchMessageHandler), new RabbitMqServiceOptions());
-            var loggerMock = new Mock<ILogger<StubBaseBatchMessageHandler>>();
+            var loggingServiceMock = new Mock<ILoggingService>();
             return new StubBaseBatchMessageHandler(
                 caller,
                 connectionFactory,
                 new List<BatchConsumerConnectionOptions> { connectionOptions },
                 handlingFilters,
-                loggerMock.Object)
+                loggingServiceMock.Object)
             {
                 QueueName = queueName,
                 PrefetchCount = prefetchCount,

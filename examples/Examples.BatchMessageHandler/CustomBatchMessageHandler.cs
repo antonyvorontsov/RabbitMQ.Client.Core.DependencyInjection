@@ -19,8 +19,9 @@ namespace Examples.BatchMessageHandler
             IRabbitMqConnectionFactory rabbitMqConnectionFactory,
             IEnumerable<BatchConsumerConnectionOptions> batchConsumerConnectionOptions,
             IEnumerable<IBatchMessageHandlingFilter> batchMessageHandlingFilters,
+            ILoggingService loggingService,
             ILogger<CustomBatchMessageHandler> logger)
-            : base(rabbitMqConnectionFactory, batchConsumerConnectionOptions, batchMessageHandlingFilters, logger)
+            : base(rabbitMqConnectionFactory, batchConsumerConnectionOptions, batchMessageHandlingFilters, loggingService)
         {
             _logger = logger;
         }

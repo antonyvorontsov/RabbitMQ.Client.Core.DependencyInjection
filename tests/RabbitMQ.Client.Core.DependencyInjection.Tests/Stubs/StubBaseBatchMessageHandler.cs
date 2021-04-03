@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using RabbitMQ.Client.Core.DependencyInjection.Filters;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
 using RabbitMQ.Client.Core.DependencyInjection.Services;
@@ -20,8 +19,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.Stubs
             IRabbitMqConnectionFactory rabbitMqConnectionFactory,
             IEnumerable<BatchConsumerConnectionOptions> batchConsumerConnectionOptions,
             IEnumerable<IBatchMessageHandlingFilter> batchMessageHandlingFilters,
-            ILogger<StubBaseBatchMessageHandler> logger)
-            : base(rabbitMqConnectionFactory, batchConsumerConnectionOptions, batchMessageHandlingFilters, logger)
+            ILoggingService loggingService)
+            : base(rabbitMqConnectionFactory, batchConsumerConnectionOptions, batchMessageHandlingFilters, loggingService)
         {
             _caller = caller;
         }

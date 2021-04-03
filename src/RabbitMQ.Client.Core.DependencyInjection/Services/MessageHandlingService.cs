@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using RabbitMQ.Client.Core.DependencyInjection.InternalExtensions;
 using RabbitMQ.Client.Core.DependencyInjection.InternalExtensions.Validation;
 using RabbitMQ.Client.Core.DependencyInjection.MessageHandlers;
@@ -18,35 +17,35 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         private readonly IProducingService _producingService;
         private readonly IEnumerable<RabbitMqExchange> _exchanges;
         private readonly IEnumerable<MessageHandlerContainer> _messageHandlerContainers;
-        private readonly ILogger<MessageHandlingService> _logger;
+        private readonly ILoggingService _loggingService;
 
         public MessageHandlingService(
             IProducingService producingService,
             IMessageHandlerContainerBuilder messageHandlerContainerBuilder,
             IEnumerable<RabbitMqExchange> exchanges,
-            ILogger<MessageHandlingService> logger)
+            ILoggingService loggingService)
         {
             _producingService = producingService;
             _exchanges = exchanges;
             _messageHandlerContainers = messageHandlerContainerBuilder.BuildCollection();
-            _logger = logger;
+            _loggingService = loggingService;
         }
 
         /// <inheritdoc />
         public async Task HandleMessageReceivingEvent(BasicDeliverEventArgs eventArgs, IConsumingService consumingService)
         {
-            _logger.LogInformation($"A new message received with deliveryTag {eventArgs.DeliveryTag}.");
+            _loggingService.LogInformation($"A new message received with deliveryTag {eventArgs.DeliveryTag}.");
             var matchingRoutes = GetMatchingRoutePatterns(eventArgs.Exchange, eventArgs.RoutingKey);
             await ProcessMessageEvent(eventArgs, matchingRoutes).ConfigureAwait(false);
             consumingService.Channel.EnsureIsNotNull().BasicAck(eventArgs.DeliveryTag, false);
-            _logger.LogInformation($"Message processing finished successfully. Acknowledge has been sent with deliveryTag {eventArgs.DeliveryTag}.");
+            _loggingService.LogInformation($"Message processing finished successfully. Acknowledge has been sent with deliveryTag {eventArgs.DeliveryTag}.");
         }
 
         /// <inheritdoc />
         public async Task HandleMessageProcessingFailure(Exception exception, BasicDeliverEventArgs eventArgs, IConsumingService consumingService)
         {
             consumingService.Channel.EnsureIsNotNull().BasicAck(eventArgs.DeliveryTag, false);
-            _logger.LogError(new EventId(), exception, $"An error occurred while processing received message with the delivery tag {eventArgs.DeliveryTag}.");
+            _loggingService.LogError(exception, $"An error occurred while processing received message with the delivery tag {eventArgs.DeliveryTag}.");
             await HandleFailedMessageProcessing(eventArgs).ConfigureAwait(false);
         }
 
@@ -116,17 +115,17 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         private void RunMessageHandler(IMessageHandler handler, BasicDeliverEventArgs eventArgs, string matchingRoute)
         {
             ValidateMessageHandler(handler);
-            _logger.LogDebug($"Starting processing the message by message handler {handler.GetType().Name}");
+            _loggingService.LogDebug($"Starting processing the message by message handler {handler.GetType().Name}");
             handler.Handle(eventArgs, matchingRoute);
-            _logger.LogDebug($"The message has been processed by message handler {handler.GetType().Name}");
+            _loggingService.LogDebug($"The message has been processed by message handler {handler.GetType().Name}");
         }
 
         private async Task RunAsyncMessageHandler(IAsyncMessageHandler handler, BasicDeliverEventArgs eventArgs, string matchingRoute)
         {
             ValidateMessageHandler(handler);
-            _logger.LogDebug($"Starting processing the message by async message handler {handler.GetType().Name}");
+            _loggingService.LogDebug($"Starting processing the message by async message handler {handler.GetType().Name}");
             await handler.Handle(eventArgs, matchingRoute);
-            _logger.LogDebug($"The message has been processed by async message handler {handler.GetType().Name}");
+            _loggingService.LogDebug($"The message has been processed by async message handler {handler.GetType().Name}");
         }
 
         private static void ValidateMessageHandler<T>(T messageHandler)
@@ -142,31 +141,31 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             var exchange = _exchanges.FirstOrDefault(x => x.Name == eventArgs.Exchange);
             if (exchange is null)
             {
-                _logger.LogWarning($"Could not detect an exchange \"{eventArgs.Exchange}\" to determine the necessity of resending the failed message. The message won't be re-queued");
+                _loggingService.LogWarning($"Could not detect an exchange \"{eventArgs.Exchange}\" to determine the necessity of resending the failed message. The message won't be re-queued");
                 return;
             }
             
             if (!exchange.Options.RequeueFailedMessages)
             {
-                _logger.LogWarning($"RequeueFailedMessages option for an exchange \"{eventArgs.Exchange}\" is disabled. The message won't be re-queued");
+                _loggingService.LogWarning($"RequeueFailedMessages option for an exchange \"{eventArgs.Exchange}\" is disabled. The message won't be re-queued");
                 return;
             }
 
             if (string.IsNullOrEmpty(exchange.Options.DeadLetterExchange))
             {
-                _logger.LogWarning($"DeadLetterExchange has not been configured for an exchange \"{eventArgs.Exchange}\". The message won't be re-queued");
+                _loggingService.LogWarning($"DeadLetterExchange has not been configured for an exchange \"{eventArgs.Exchange}\". The message won't be re-queued");
                 return;
             }
 
             if (exchange.Options.RequeueTimeoutMilliseconds < 1)
             {
-                _logger.LogWarning($"The value RequeueTimeoutMilliseconds for an exchange \"{eventArgs.Exchange}\" less than 1 millisecond. Configuration is invalid. The message won't be re-queued");
+                _loggingService.LogWarning($"The value RequeueTimeoutMilliseconds for an exchange \"{eventArgs.Exchange}\" less than 1 millisecond. Configuration is invalid. The message won't be re-queued");
                 return;
             }
             
             if (exchange.Options.RequeueAttempts < 1)
             {
-                _logger.LogWarning($"The value RequeueAttempts for an exchange \"{eventArgs.Exchange}\" less than 1. Configuration is invalid. The message won't be re-queued");
+                _loggingService.LogWarning($"The value RequeueAttempts for an exchange \"{eventArgs.Exchange}\" less than 1. Configuration is invalid. The message won't be re-queued");
                 return;
             }
 
@@ -190,14 +189,14 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             }
             else
             {
-                _logger.LogInformation("The failed message would not be re-queued. Attempts limit exceeded");   
+                _loggingService.LogInformation("The failed message would not be re-queued. Attempts limit exceeded");   
             }
         }
 
         private async Task RequeueMessage(BasicDeliverEventArgs eventArgs, int timeoutMilliseconds)
         {
             await _producingService.SendAsync(eventArgs.Body, eventArgs.BasicProperties, eventArgs.Exchange, eventArgs.RoutingKey, timeoutMilliseconds);
-            _logger.LogInformation("The failed message has been re-queued");
+            _loggingService.LogInformation("The failed message has been re-queued");
         }
     }
 }
