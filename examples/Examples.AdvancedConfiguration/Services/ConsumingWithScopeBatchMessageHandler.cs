@@ -3,7 +3,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Examples.AdvancedConfiguration.DbContexts;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using RabbitMQ.Client.Core.DependencyInjection.Filters;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
 using RabbitMQ.Client.Core.DependencyInjection.Services;
@@ -20,9 +19,9 @@ namespace Examples.AdvancedConfiguration.Services
             IRabbitMqConnectionFactory rabbitMqConnectionFactory,
             IEnumerable<BatchConsumerConnectionOptions> batchConsumerConnectionOptions,
             IEnumerable<IBatchMessageHandlingFilter> batchMessageHandlingFilters,
-            ILogger<ConsumingWithScopeBatchMessageHandler> logger,
+            ILoggingService loggingService,
             IServiceScopeFactory scopeFactory)
-            : base(rabbitMqConnectionFactory, batchConsumerConnectionOptions, batchMessageHandlingFilters, logger)
+            : base(rabbitMqConnectionFactory, batchConsumerConnectionOptions, batchMessageHandlingFilters, loggingService)
         {
             _scopeFactory = scopeFactory;
         }

@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using RabbitMQ.Client.Core.DependencyInjection.Configuration;
 using RabbitMQ.Client.Core.DependencyInjection.Exceptions;
 using RabbitMQ.Client.Core.DependencyInjection.Filters;
@@ -54,7 +53,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         private readonly IRabbitMqConnectionFactory _rabbitMqConnectionFactory;
         private readonly RabbitMqServiceOptions _serviceOptions;
         private readonly IEnumerable<IBatchMessageHandlingFilter> _batchMessageHandlingFilters;
-        private readonly ILogger<BaseBatchMessageHandler> _logger;
+        private readonly ILoggingService _loggingService;
 
         private readonly ConcurrentBag<BasicDeliverEventArgs> _messages = new ConcurrentBag<BasicDeliverEventArgs>();
         private Timer? _timer;
@@ -65,7 +64,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             IRabbitMqConnectionFactory rabbitMqConnectionFactory,
             IEnumerable<BatchConsumerConnectionOptions> batchConsumerConnectionOptions,
             IEnumerable<IBatchMessageHandlingFilter> batchMessageHandlingFilters,
-            ILogger<BaseBatchMessageHandler> logger)
+            ILoggingService loggingService)
         {
             var optionsContainer = batchConsumerConnectionOptions.FirstOrDefault(x => x.Type == GetType());
             if (optionsContainer is null)
@@ -76,13 +75,13 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             _serviceOptions = optionsContainer.ServiceOptions;
             _rabbitMqConnectionFactory = rabbitMqConnectionFactory;
             _batchMessageHandlingFilters = batchMessageHandlingFilters;
-            _logger = logger;
+            _loggingService = loggingService;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
             ValidateProperties();
-            _logger.LogInformation($"Batch message handler {GetType()} has been started.");
+            _loggingService.LogInformation($"Batch message handler {GetType()} has been started.");
             Connection = _rabbitMqConnectionFactory.CreateRabbitMqConnection(_serviceOptions).EnsureIsNotNull();
             Channel = Connection.CreateModel().EnsureIsNotNull();
             Channel.BasicQos(PrefetchSize, PrefetchCount, false);
@@ -180,7 +179,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         public Task StopAsync(CancellationToken cancellationToken)
         {
             _timer?.Change(Timeout.Infinite, 0);
-            _logger.LogInformation($"Batch message handler {GetType()} has been stopped.");
+            _loggingService.LogInformation($"Batch message handler {GetType()} has been stopped.");
             return Task.CompletedTask;
         }
 

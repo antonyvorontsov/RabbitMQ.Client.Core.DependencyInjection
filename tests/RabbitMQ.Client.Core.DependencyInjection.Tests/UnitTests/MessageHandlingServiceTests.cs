@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using Moq;
 using RabbitMQ.Client.Core.DependencyInjection.Configuration;
 using RabbitMQ.Client.Core.DependencyInjection.MessageHandlers;
@@ -112,13 +111,13 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                 orderingModels,
                 messageHandlers,
                 asyncMessageHandlers);
-            var loggerMock = new Mock<ILogger<MessageHandlingService>>();
+            var loggingServiceMock = new Mock<ILoggingService>();
             var producingServiceMock = new Mock<IProducingService>();
             return new MessageHandlingService(
                 producingServiceMock.Object,
                 messageHandlerContainerBuilder,
                 exchanges,
-                loggerMock.Object);
+                loggingServiceMock.Object);
         }
 
         private static IEnumerable<MessageHandlerOrderingModel> GetMessageHandlerOrderingModels(

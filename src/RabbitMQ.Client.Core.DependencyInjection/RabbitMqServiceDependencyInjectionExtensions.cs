@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using System;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using RabbitMQ.Client.Core.DependencyInjection.Configuration;
@@ -19,9 +20,11 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// </summary>
         /// <param name="services">Service collection.</param>
         /// <param name="configuration">RabbitMq configuration section.</param>
+        /// <param name="behaviourConfiguration">Custom behaviour configuration options.</param>
         /// <returns>Service collection.</returns>
-        public static IServiceCollection AddRabbitMqServices(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddRabbitMqServices(this IServiceCollection services, IConfiguration configuration, Action<BehaviourConfiguration>? behaviourConfiguration = null)
         {
+            services.AddBehaviourConfiguration(behaviourConfiguration);
             services.AddRabbitMqInfrastructure();
             services.ConfigureRabbitMqConnectionOptions(RabbitMqServiceOptionsDependencyInjectionExtensions.GetRabbitMqServiceOptionsInstance(configuration));
             services.AddRabbitMqServices();
@@ -35,9 +38,11 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// </summary>
         /// <param name="services">Service collection.</param>
         /// <param name="configuration">RabbitMq configuration <see cref="RabbitMqServiceOptions"/>.</param>
+        /// <param name="behaviourConfiguration">Custom behaviour configuration options.</param>
         /// <returns>Service collection.</returns>
-        public static IServiceCollection AddRabbitMqServices(this IServiceCollection services, RabbitMqServiceOptions configuration)
+        public static IServiceCollection AddRabbitMqServices(this IServiceCollection services, RabbitMqServiceOptions configuration, Action<BehaviourConfiguration>? behaviourConfiguration = null)
         {
+            services.AddBehaviourConfiguration(behaviourConfiguration);
             services.AddRabbitMqInfrastructure();
             services.ConfigureRabbitMqConnectionOptions(configuration);
             services.AddRabbitMqServices();
@@ -50,9 +55,11 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// </summary>
         /// <param name="services">Service collection.</param>
         /// <param name="configuration">RabbitMq configuration section.</param>
+        /// <param name="behaviourConfiguration">Custom behaviour configuration options.</param>
         /// <returns>Service collection.</returns>
-        public static IServiceCollection AddRabbitMqProducer(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddRabbitMqProducer(this IServiceCollection services, IConfiguration configuration, Action<BehaviourConfiguration>? behaviourConfiguration = null)
         {
+            services.AddBehaviourConfiguration(behaviourConfiguration);
             services.AddRabbitMqInfrastructure();
             services.ConfigureRabbitMqProducingOnlyServiceOptions(RabbitMqServiceOptionsDependencyInjectionExtensions.GetRabbitMqServiceOptionsInstance(configuration));
             services.AddRabbitMqServices();
@@ -64,9 +71,11 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// </summary>
         /// <param name="services">Service collection.</param>
         /// <param name="configuration">RabbitMq configuration <see cref="RabbitMqServiceOptions"/>.</param>
+        /// <param name="behaviourConfiguration">Custom behaviour configuration options.</param>
         /// <returns>Service collection.</returns>
-        public static IServiceCollection AddRabbitMqProducer(this IServiceCollection services, RabbitMqServiceOptions configuration)
+        public static IServiceCollection AddRabbitMqProducer(this IServiceCollection services, RabbitMqServiceOptions configuration, Action<BehaviourConfiguration>? behaviourConfiguration = null)
         {
+            services.AddBehaviourConfiguration(behaviourConfiguration);
             services.AddRabbitMqInfrastructure();
             services.ConfigureRabbitMqProducingOnlyServiceOptions(configuration);
             services.AddRabbitMqServices();
@@ -86,6 +95,14 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             return services;
         }
 
+        private static IServiceCollection AddBehaviourConfiguration(this IServiceCollection services, Action<BehaviourConfiguration>? behaviourConfiguration = null)
+        {
+            var configuration = new BehaviourConfiguration();
+            behaviourConfiguration?.Invoke(configuration);
+            services.Configure<BehaviourConfiguration>(x => x.DisableInternalLogging = configuration.DisableInternalLogging);
+            return services;
+        }
+
         private static IServiceCollection AddRabbitMqInfrastructure(this IServiceCollection services)
         {
             services.AddOptions();
@@ -95,6 +112,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             services.TryAddSingleton<IMessageHandlingPipelineExecutingService, MessageHandlingPipelineExecutingService>();
             services.TryAddSingleton<IMessageHandlingService, MessageHandlingService>();
             services.TryAddSingleton<IChannelDeclarationService, ChannelDeclarationService>();
+            services.TryAddSingleton<ILoggingService, LoggingService>();
             services.AddHostedService<ChannelDeclarationHostedService>();
             return services;
         }

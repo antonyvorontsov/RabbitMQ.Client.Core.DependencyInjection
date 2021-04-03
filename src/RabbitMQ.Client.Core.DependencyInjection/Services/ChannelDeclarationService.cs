@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client.Core.DependencyInjection.Configuration;
 using RabbitMQ.Client.Core.DependencyInjection.InternalExtensions.Validation;
@@ -19,7 +18,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         private readonly IConsumingService _consumingService;
         private readonly IRabbitMqConnectionFactory _rabbitMqConnectionFactory;
         private readonly IEnumerable<RabbitMqExchange> _exchanges;
-        private readonly ILogger<ChannelDeclarationService> _logger;
+        private readonly ILoggingService _loggingService;
         
         public ChannelDeclarationService(
             IProducingService producingService,
@@ -27,14 +26,14 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             IRabbitMqConnectionFactory rabbitMqConnectionFactory,
             IOptions<RabbitMqConnectionOptions> connectionOptions,
             IEnumerable<RabbitMqExchange> exchanges,
-            ILogger<ChannelDeclarationService> logger)
+            ILoggingService loggingService)
         {
             _producingService = producingService;
             _consumingService = consumingService;
             _rabbitMqConnectionFactory = rabbitMqConnectionFactory;
             _connectionOptions = connectionOptions.Value;
             _exchanges = exchanges;
-            _logger = logger;
+            _loggingService = loggingService;
         }
 
         /// <inheritdoc/>
@@ -162,7 +161,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
                 return;
             }
 
-            _logger.LogError(new EventId(), @event.Exception, @event.Exception.Message, @event);
+            _loggingService.LogError(@event.Exception, @event.Exception.Message);
             throw @event.Exception;
         }
 
@@ -173,7 +172,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
                 return;
             }
 
-            _logger.LogError(new EventId(), @event.Exception, @event.Exception.Message, @event);
+            _loggingService.LogError(@event.Exception, @event.Exception.Message);
             throw @event.Exception;
         }
 
@@ -184,7 +183,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
                 return;
             }
             
-            _logger.LogInformation("Connection has been reestablished");
+            _loggingService.LogInformation("Connection has been reestablished");
         }
 
         private void HandleChannelCallbackException(object sender, CallbackExceptionEventArgs? @event)
@@ -194,7 +193,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
                 return;
             }
 
-            _logger.LogError(new EventId(), @event.Exception, @event.Exception.Message, @event);
+            _loggingService.LogError(@event.Exception, @event.Exception.Message);
         }
     }
 }
