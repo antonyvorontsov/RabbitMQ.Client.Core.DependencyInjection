@@ -80,7 +80,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         {
             var deadLetterExchanges = _exchanges
                 .Select(x => x.Options)
-                .Where(x => !string.IsNullOrEmpty(x.DeadLetterExchange))
+                .Where(x => x.RequeueFailedMessages && !string.IsNullOrEmpty(x.DeadLetterExchange))
                 .Select(x => new DeadLetterExchange(x.DeadLetterExchange, x.DeadLetterExchangeType))
                 .Distinct(new DeadLetterExchangeEqualityComparer())
                 .ToList();
