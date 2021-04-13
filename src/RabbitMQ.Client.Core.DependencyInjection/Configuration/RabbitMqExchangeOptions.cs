@@ -28,6 +28,11 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Configuration
         public string DeadLetterExchange { get; set; } = "default.dlx.exchange";
 
         /// <summary>
+        /// Dead-letter-exchange type.
+        /// </summary>
+        public string DeadLetterExchangeType { get; set; } = "direct";
+
+        /// <summary>
         /// Option to re-queue failed messages.
         /// </summary>
         public bool RequeueFailedMessages { get; set; } = true;
