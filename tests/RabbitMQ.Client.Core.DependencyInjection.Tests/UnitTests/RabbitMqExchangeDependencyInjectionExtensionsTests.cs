@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using RabbitMQ.Client.Core.DependencyInjection.Configuration;
+using RabbitMQ.Client.Core.DependencyInjection.Exceptions;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
 using Xunit;
 
@@ -76,6 +77,28 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                     new ServiceCollection()
                         .AddExchange("exchange.name", new RabbitMqExchangeOptions(), ClientExchangeType.Universal)
                         .AddExchange("exchange.name", new RabbitMqExchangeOptions(), ClientExchangeType.Production);
+                });
+        }
+        
+        [Fact]
+        public void ShouldProperlyThrowExceptionWhenRegisteringExchangeWithWrongType()
+        {
+            Assert.Throws<InvalidExchangeTypeException>(
+                () =>
+                {
+                    new ServiceCollection()
+                        .AddExchange("exchange.name", new RabbitMqExchangeOptions { Type = "wrong.type" }, ClientExchangeType.Universal);
+                });
+        }
+        
+        [Fact]
+        public void ShouldProperlyThrowExceptionWhenRegisteringDeadLetterExchangeWithWrongType()
+        {
+            Assert.Throws<InvalidExchangeTypeException>(
+                () =>
+                {
+                    new ServiceCollection()
+                        .AddExchange("exchange.name", new RabbitMqExchangeOptions { RequeueFailedMessages = true, DeadLetterExchangeType = "wrong.type" }, ClientExchangeType.Universal);
                 });
         }
     }

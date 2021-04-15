@@ -90,9 +90,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
 
         private static void StartChannel(IModel channel, IEnumerable<RabbitMqExchange> exchanges, IEnumerable<DeadLetterExchange> deadLetterExchanges)
         {
-            foreach (var exchangeName in deadLetterExchanges)
+            foreach (var exchange in deadLetterExchanges)
             {
-                StartDeadLetterExchange(channel, exchangeName);
+                StartDeadLetterExchange(channel, exchange);
             }
 
             foreach (var exchange in exchanges)
