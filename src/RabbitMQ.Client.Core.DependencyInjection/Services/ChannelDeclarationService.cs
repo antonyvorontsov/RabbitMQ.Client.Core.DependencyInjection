@@ -79,19 +79,20 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         private void StartClient(IModel channel)
         {
             var deadLetterExchanges = _exchanges
-                .Where(x => !string.IsNullOrEmpty(x.Options.DeadLetterExchange))
-                .Select(x => x.Options.DeadLetterExchange)
-                .Distinct()
+                .Select(x => x.Options)
+                .Where(x => x.RequeueFailedMessages && !string.IsNullOrEmpty(x.DeadLetterExchange))
+                .Select(x => new DeadLetterExchange(x.DeadLetterExchange, x.DeadLetterExchangeType))
+                .Distinct(new DeadLetterExchangeEqualityComparer())
                 .ToList();
 
             StartChannel(channel, _exchanges, deadLetterExchanges);
         }
 
-        private static void StartChannel(IModel channel, IEnumerable<RabbitMqExchange> exchanges, IEnumerable<string> deadLetterExchanges)
+        private static void StartChannel(IModel channel, IEnumerable<RabbitMqExchange> exchanges, IEnumerable<DeadLetterExchange> deadLetterExchanges)
         {
-            foreach (var exchangeName in deadLetterExchanges)
+            foreach (var exchange in deadLetterExchanges)
             {
-                StartDeadLetterExchange(channel, exchangeName);
+                StartDeadLetterExchange(channel, exchange);
             }
 
             foreach (var exchange in exchanges)
@@ -100,11 +101,11 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             }
         }
 
-        private static void StartDeadLetterExchange(IModel channel, string exchangeName)
+        private static void StartDeadLetterExchange(IModel channel, DeadLetterExchange exchange)
         {
             channel.ExchangeDeclare(
-                exchange: exchangeName,
-                type: "direct",
+                exchange: exchange.Name,
+                type: exchange.Type,
                 durable: true,
                 autoDelete: false,
                 arguments: null);

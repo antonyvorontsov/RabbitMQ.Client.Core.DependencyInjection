@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using RabbitMQ.Client.Core.DependencyInjection.Configuration;
 using System;
 using System.Linq;
+using RabbitMQ.Client.Core.DependencyInjection.Exceptions;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
 using RabbitMQ.Client.Core.DependencyInjection.Specifications;
 
@@ -67,8 +68,6 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// <returns>Service collection.</returns>
         public static IServiceCollection AddExchange(this IServiceCollection services, string exchangeName, IConfiguration configuration, ClientExchangeType clientExchangeType = ClientExchangeType.Universal)
         {
-            CheckExchangeExists(services, exchangeName, clientExchangeType);
-
             var options = new RabbitMqExchangeOptions();
             configuration.Bind(options);
             return services.AddExchange(exchangeName, options, clientExchangeType);
@@ -84,21 +83,37 @@ namespace RabbitMQ.Client.Core.DependencyInjection
         /// <returns>Service collection.</returns>
         public static IServiceCollection AddExchange(this IServiceCollection services, string exchangeName, RabbitMqExchangeOptions? options, ClientExchangeType clientExchangeType = ClientExchangeType.Universal)
         {
-            CheckExchangeExists(services, exchangeName, clientExchangeType);
-
             var exchangeOptions = options ?? new RabbitMqExchangeOptions();
+            ValidateExchangeTypes(exchangeName, exchangeOptions);
+            EnsureExchangeHasNotBeenConfiguredYet(services, exchangeName, clientExchangeType);
+            
             var exchange = new RabbitMqExchange(exchangeName, clientExchangeType, exchangeOptions);
             var service = new ExchangeServiceDescriptor(typeof(RabbitMqExchange), exchange, exchangeName, clientExchangeType);
             services.Add(service);
             return services;
         }
-
-        private static void CheckExchangeExists(IServiceCollection services, string exchangeName, ClientExchangeType clientExchangeType)
+        
+        private static void EnsureExchangeHasNotBeenConfiguredYet(IServiceCollection services, string exchangeName, ClientExchangeType clientExchangeType)
         {
             var specification = new DuplicatedRabbitMqExchangeDeclarationSpecification(exchangeName, clientExchangeType);
             if (services.Any(x => specification.IsSatisfiedBy(x)))
             {
                 throw new ArgumentException($"Exchange {exchangeName} has been added already!");
+            }
+        }
+
+        private static void ValidateExchangeTypes(string exchangeName, RabbitMqExchangeOptions options)
+        {
+            var exchangeSpecification = new ValidExchangeTypeSpecification();
+            if (!exchangeSpecification.IsSatisfiedBy(options))
+            {
+                throw new InvalidExchangeTypeException(exchangeName, options.Type);
+            }
+
+            var deadLetterExchangeSpecification = new ValidDeadLetterExchangeTypeSpecification();
+            if (!deadLetterExchangeSpecification.IsSatisfiedBy(options))
+            {
+                throw new InvalidExchangeTypeException(options.DeadLetterExchange, options.DeadLetterExchangeType);
             }
         }
     }
