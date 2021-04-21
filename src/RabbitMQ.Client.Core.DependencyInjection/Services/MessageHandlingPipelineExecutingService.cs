@@ -2,7 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using RabbitMQ.Client.Core.DependencyInjection.Filters;
+using RabbitMQ.Client.Core.DependencyInjection.Middlewares;
+using RabbitMQ.Client.Core.DependencyInjection.Models;
 using RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces;
 using RabbitMQ.Client.Events;
 
@@ -12,52 +13,64 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
     public class MessageHandlingPipelineExecutingService : IMessageHandlingPipelineExecutingService
     {
         private readonly IMessageHandlingService _messageHandlingService;
-        private readonly IEnumerable<IMessageHandlingFilter> _handlingFilters;
-        private readonly IEnumerable<IMessageHandlingExceptionFilter> _exceptionFilters;
+        private readonly IEnumerable<IMessageHandlingMiddleware> _messageHandlingMiddlewares;
 
         public MessageHandlingPipelineExecutingService(
             IMessageHandlingService messageHandlingService,
-            IEnumerable<IMessageHandlingFilter> handlingFilters,
-            IEnumerable<IMessageHandlingExceptionFilter> exceptionFilters)
+            IEnumerable<IMessageHandlingMiddleware> messageHandlingMiddlewares)
         {
             _messageHandlingService = messageHandlingService;
-            _handlingFilters = handlingFilters;
-            _exceptionFilters = exceptionFilters;
+            _messageHandlingMiddlewares = messageHandlingMiddlewares;
         }
 
         /// <inheritdoc/>
-        public async Task Execute(BasicDeliverEventArgs eventArgs, IConsumingService consumingService)
+        public async Task Execute(BasicDeliverEventArgs eventArgs, Action<BasicDeliverEventArgs> ackAction)
         {
+            var context = new MessageHandlingContext(eventArgs, ackAction);
             try
             {
-                await ExecutePipeline(eventArgs, consumingService).ConfigureAwait(false);
+                await ExecutePipeline(context).ConfigureAwait(false);
             }
             catch (Exception exception)
             {
-                await ExecuteFailurePipeline(exception, eventArgs, consumingService).ConfigureAwait(false);
+                await ExecuteFailurePipeline(context, exception).ConfigureAwait(false);
             }
         }
 
-        private async Task ExecutePipeline(BasicDeliverEventArgs eventArgs, IConsumingService consumingService)
+        private async Task ExecutePipeline(MessageHandlingContext context)
         {
-            Func<BasicDeliverEventArgs, IConsumingService, Task> handle = _messageHandlingService.HandleMessageReceivingEvent;
-            foreach (var filter in _handlingFilters.Reverse())
+            if (!_messageHandlingMiddlewares.Any())
             {
-                handle = filter.Execute(handle);
+                await _messageHandlingService.HandleMessageReceivingEvent(context);
+                return;
             }
 
-            await handle(eventArgs, consumingService).ConfigureAwait(false);
+            Func<Task> handleFunction = async () => await _messageHandlingService.HandleMessageReceivingEvent(context);
+            foreach (var middleware in _messageHandlingMiddlewares)
+            {
+                var previousHandleFunction = handleFunction;
+                handleFunction = async () => await middleware.Handle(context, previousHandleFunction);
+            }
+
+            await handleFunction().ConfigureAwait(false);
         }
 
-        private async Task ExecuteFailurePipeline(Exception exception, BasicDeliverEventArgs eventArgs, IConsumingService consumingService)
+        private async Task ExecuteFailurePipeline(MessageHandlingContext context, Exception exception)
         {
-            Func<Exception, BasicDeliverEventArgs, IConsumingService, Task> handle = _messageHandlingService.HandleMessageProcessingFailure;
-            foreach (var filter in _exceptionFilters.Reverse())
+            if (!_messageHandlingMiddlewares.Any())
             {
-                handle = filter.Execute(handle);
+                await _messageHandlingService.HandleMessageProcessingFailure(context, exception);
+                return;
             }
 
-            await handle(exception, eventArgs, consumingService).ConfigureAwait(false);
+            Func<Task> handleFunction = async () => await _messageHandlingService.HandleMessageProcessingFailure(context, exception);
+            foreach (var middleware in _messageHandlingMiddlewares)
+            {
+                var previousHandleFunction = handleFunction;
+                handleFunction = async () => await middleware.HandleError(context, exception, previousHandleFunction);
+            }
+
+            await handleFunction().ConfigureAwait(false);
         }
     }
 }

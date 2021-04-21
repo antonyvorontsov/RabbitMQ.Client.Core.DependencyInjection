@@ -1,6 +1,6 @@
 using System;
 using System.Threading.Tasks;
-using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Core.DependencyInjection.Models;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces
 {
@@ -12,16 +12,14 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces
         /// <summary>
         /// Handle message receiving event.
         /// </summary>
-        /// <param name="eventArgs">Arguments of message receiving event.</param>
-        /// <param name="consumingService">An instance of consuming service <see cref="IConsumingService"/>.</param>
-        Task HandleMessageReceivingEvent(BasicDeliverEventArgs eventArgs, IConsumingService consumingService);
+        /// <param name="context">Model that contains consumed message alongside with additional actions <see cref="MessageHandlingContext"/>.</param>
+        Task HandleMessageReceivingEvent(MessageHandlingContext context);
         
         /// <summary>
         /// Handle message processing failure.
         /// </summary>
+        /// <param name="context">Model that contains consumed message alongside with additional actions <see cref="MessageHandlingContext"/>.</param>
         /// <param name="exception">An occured exception.</param>
-        /// <param name="eventArgs">Arguments of message receiving event.</param>
-        /// <param name="consumingService">An instance of consuming service <see cref="IConsumingService"/>.</param>
-        Task HandleMessageProcessingFailure(Exception exception, BasicDeliverEventArgs eventArgs, IConsumingService consumingService);
+        Task HandleMessageProcessingFailure(MessageHandlingContext context, Exception exception);
     }
 }

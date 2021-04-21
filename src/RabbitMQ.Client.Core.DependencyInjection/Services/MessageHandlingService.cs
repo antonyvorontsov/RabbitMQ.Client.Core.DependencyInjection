@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Core.DependencyInjection.InternalExtensions;
-using RabbitMQ.Client.Core.DependencyInjection.InternalExtensions.Validation;
 using RabbitMQ.Client.Core.DependencyInjection.MessageHandlers;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
 using RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces;
@@ -32,19 +31,21 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         }
 
         /// <inheritdoc />
-        public async Task HandleMessageReceivingEvent(BasicDeliverEventArgs eventArgs, IConsumingService consumingService)
+        public async Task HandleMessageReceivingEvent(MessageHandlingContext context)
         {
+            var eventArgs = context.Message;
             _loggingService.LogInformation($"A new message received with deliveryTag {eventArgs.DeliveryTag}.");
             var matchingRoutes = GetMatchingRoutePatterns(eventArgs.Exchange, eventArgs.RoutingKey);
             await ProcessMessageEvent(eventArgs, matchingRoutes).ConfigureAwait(false);
-            consumingService.Channel.EnsureIsNotNull().BasicAck(eventArgs.DeliveryTag, false);
+            context.AckAction(eventArgs);
             _loggingService.LogInformation($"Message processing finished successfully. Acknowledge has been sent with deliveryTag {eventArgs.DeliveryTag}.");
         }
 
         /// <inheritdoc />
-        public async Task HandleMessageProcessingFailure(Exception exception, BasicDeliverEventArgs eventArgs, IConsumingService consumingService)
+        public async Task HandleMessageProcessingFailure(MessageHandlingContext context, Exception exception)
         {
-            consumingService.Channel.EnsureIsNotNull().BasicAck(eventArgs.DeliveryTag, false);
+            var eventArgs = context.Message;
+            context.AckAction(eventArgs);
             _loggingService.LogError(exception, $"An error occurred while processing received message with the delivery tag {eventArgs.DeliveryTag}.");
             await HandleFailedMessageProcessing(eventArgs).ConfigureAwait(false);
         }
@@ -136,6 +137,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             }
         }
 
+        // TODO: DI.
+        // TODO: separate implementation.
         private async Task HandleFailedMessageProcessing(BasicDeliverEventArgs eventArgs)
         {
             var exchange = _exchanges.FirstOrDefault(x => x.Name == eventArgs.Exchange);

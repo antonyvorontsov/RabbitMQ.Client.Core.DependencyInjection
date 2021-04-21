@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Examples.AdvancedConfiguration.DbContexts;
 using Microsoft.Extensions.DependencyInjection;
-using RabbitMQ.Client.Core.DependencyInjection.Filters;
+using RabbitMQ.Client.Core.DependencyInjection.Middlewares;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
 using RabbitMQ.Client.Core.DependencyInjection.Services;
 using RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces;
@@ -19,10 +19,10 @@ namespace Examples.AdvancedConfiguration.Services
         public ConsumingWithProviderBatchMessageHandler(
             IRabbitMqConnectionFactory rabbitMqConnectionFactory,
             IEnumerable<BatchConsumerConnectionOptions> batchConsumerConnectionOptions,
-            IEnumerable<IBatchMessageHandlingFilter> batchMessageHandlingFilters,
+            IEnumerable<IBatchMessageHandlingMiddleware> batchMessageHandlingMiddlewares,
             ILoggingService loggingService,
             IServiceProvider provider)
-            : base(rabbitMqConnectionFactory, batchConsumerConnectionOptions, batchMessageHandlingFilters, loggingService)
+            : base(rabbitMqConnectionFactory, batchConsumerConnectionOptions, batchMessageHandlingMiddlewares, loggingService)
         {
             _dbContext = provider.GetRequiredService<ApplicationDbContext>();
         }

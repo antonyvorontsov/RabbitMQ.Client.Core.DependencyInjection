@@ -69,15 +69,15 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                 orderingModels,
                 messageHandlers,
                 asyncMessageHandlers);
-            var consumingService = CreateConsumingService();
-
+            
             var eventArgs = new BasicDeliverEventArgs
             {
                 Exchange = testDataModel.MessageExchange,
                 RoutingKey = testDataModel.MessageRoutingKey,
                 Body = Array.Empty<byte>()
             };
-            await service.HandleMessageReceivingEvent(eventArgs, consumingService);
+            var context = new MessageHandlingContext(eventArgs, _ => { });
+            await service.HandleMessageReceivingEvent(context);
 
             var messageHandlerTimes = testDataModel.MessageHandlerShouldTrigger ? Times.Once() : Times.Never();
             messageHandlerMock.Verify(x => x.Handle(It.IsAny<BasicDeliverEventArgs>(), It.IsAny<string>()), messageHandlerTimes);
@@ -89,14 +89,6 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             Assert.Equal(messageHandlerCallOrder, messageHandlerOrder);
             var asyncMessageHandlerCallOrder = testingOrderingModels.FirstOrDefault(x => x.MessageHandler.GetType() == asyncMessageHandlerMock.Object.GetType())?.CallOrder;
             Assert.Equal(asyncMessageHandlerCallOrder, asyncMessageHandlerOrder);
-        }
-
-        private static IConsumingService CreateConsumingService()
-        {
-            var channelMock = new Mock<IModel>();
-            var consumingServiceMock = new Mock<IConsumingService>();
-            consumingServiceMock.Setup(x => x.Channel).Returns(channelMock.Object);
-            return consumingServiceMock.Object;
         }
 
         private static IMessageHandlingService CreateService(

@@ -113,6 +113,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             }
         }
 
-        private Task ConsumerOnReceived(object sender, BasicDeliverEventArgs eventArgs) => _messageHandlingPipelineExecutingService.Execute(eventArgs, this);
+        private void AckAction(BasicDeliverEventArgs eventArgs) => Channel.EnsureIsNotNull().BasicAck(eventArgs.DeliveryTag, false);
+        
+        private Task ConsumerOnReceived(object sender, BasicDeliverEventArgs eventArgs) => _messageHandlingPipelineExecutingService.Execute(eventArgs, AckAction);
     }
 }

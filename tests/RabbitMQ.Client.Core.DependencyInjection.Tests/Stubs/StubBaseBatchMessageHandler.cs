@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using RabbitMQ.Client.Core.DependencyInjection.Filters;
+using RabbitMQ.Client.Core.DependencyInjection.Middlewares;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
 using RabbitMQ.Client.Core.DependencyInjection.Services;
 using RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces;
@@ -18,9 +18,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.Stubs
             IStubCaller caller,
             IRabbitMqConnectionFactory rabbitMqConnectionFactory,
             IEnumerable<BatchConsumerConnectionOptions> batchConsumerConnectionOptions,
-            IEnumerable<IBatchMessageHandlingFilter> batchMessageHandlingFilters,
+            IEnumerable<IBatchMessageHandlingMiddleware> batchMessageHandlingMiddlewares,
             ILoggingService loggingService)
-            : base(rabbitMqConnectionFactory, batchConsumerConnectionOptions, batchMessageHandlingFilters, loggingService)
+            : base(rabbitMqConnectionFactory, batchConsumerConnectionOptions, batchMessageHandlingMiddlewares, loggingService)
         {
             _caller = caller;
         }

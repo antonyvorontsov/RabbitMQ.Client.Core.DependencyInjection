@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Moq;
-using RabbitMQ.Client.Core.DependencyInjection.Filters;
+using RabbitMQ.Client.Core.DependencyInjection.Middlewares;
+using RabbitMQ.Client.Core.DependencyInjection.Models;
 using RabbitMQ.Client.Core.DependencyInjection.Services;
 using RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces;
 using RabbitMQ.Client.Core.DependencyInjection.Tests.Stubs;
@@ -15,141 +16,83 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
     public class MessageHandlingPipelineExecutingServiceTests
     {
         [Fact]
-        public async Task ShouldProperlyExecutePipelineWithNoFilters()
+        public async Task ShouldProperlyExecutePipelineWithNoAdditionalMiddlewares()
         {
             var argsMock = new Mock<BasicDeliverEventArgs>();
-            var consumingServiceMock = new Mock<IConsumingService>();
-            
             var messageHandlingServiceMock = new Mock<IMessageHandlingService>();
 
             var service = CreateService(
                 messageHandlingServiceMock.Object,
-                Enumerable.Empty<IMessageHandlingFilter>(),
-                Enumerable.Empty<IMessageHandlingExceptionFilter>());
+                Enumerable.Empty<IMessageHandlingMiddleware>());
 
-            await service.Execute(argsMock.Object, consumingServiceMock.Object);
-
-            messageHandlingServiceMock.Verify(x => x.HandleMessageReceivingEvent(argsMock.Object, consumingServiceMock.Object), Times.Once);
+            await service.Execute(argsMock.Object, AckAction);
+            messageHandlingServiceMock.Verify(x => x.HandleMessageReceivingEvent(It.IsAny<MessageHandlingContext>()), Times.Once);
         }
 
         [Fact]
-        public async Task ShouldProperlyExecutePipelineInReverseOrder()
+        public async Task ShouldProperlyExecutePipeline()
         {
             var argsMock = new Mock<BasicDeliverEventArgs>();
-            var consumingServiceMock = new Mock<IConsumingService>();
-            
             var messageHandlingServiceMock = new Mock<IMessageHandlingService>();
 
-            var handlerOrderMap = new Dictionary<int, int>();
-            var firstFilter = new StubMessageHandlingFilter(1, handlerOrderMap);
-            var secondFilter = new StubMessageHandlingFilter(2, handlerOrderMap);
-            var thirdFilter = new StubMessageHandlingFilter(3, handlerOrderMap);
-            
-            var handlingFilters = new List<IMessageHandlingFilter>
+            var middlewareOrderingMap = new Dictionary<int, int>();
+            var firstMiddleware = new StubMessageHandlingMiddleware(1, middlewareOrderingMap, new Dictionary<int, int>());
+            var secondMiddleware = new StubMessageHandlingMiddleware(2, middlewareOrderingMap, new Dictionary<int, int>());
+            var thirdMiddleware = new StubMessageHandlingMiddleware(3, middlewareOrderingMap, new Dictionary<int, int>());
+            var middlewares = new List<IMessageHandlingMiddleware>
             {
-                firstFilter,
-                secondFilter,
-                thirdFilter
+                firstMiddleware,
+                secondMiddleware,
+                thirdMiddleware
             };
 
             var service = CreateService(
                 messageHandlingServiceMock.Object,
-                handlingFilters,
-                Enumerable.Empty<IMessageHandlingExceptionFilter>());
-
-            await service.Execute(argsMock.Object, consumingServiceMock.Object);
+                middlewares);
+            await service.Execute(argsMock.Object, AckAction);
             
-            messageHandlingServiceMock.Verify(x => x.HandleMessageReceivingEvent(argsMock.Object, consumingServiceMock.Object), Times.Once);
-            Assert.Equal(1, handlerOrderMap[thirdFilter.MessageHandlerNumber]);
-            Assert.Equal(2, handlerOrderMap[secondFilter.MessageHandlerNumber]);
-            Assert.Equal(3, handlerOrderMap[firstFilter.MessageHandlerNumber]);
+            messageHandlingServiceMock.Verify(x => x.HandleMessageReceivingEvent(It.IsAny<MessageHandlingContext>()), Times.Once);
+            Assert.Equal(1, middlewareOrderingMap[thirdMiddleware.Number]);
+            Assert.Equal(2, middlewareOrderingMap[secondMiddleware.Number]);
+            Assert.Equal(3, middlewareOrderingMap[firstMiddleware.Number]);
         }
 
         [Fact]
-        public async Task ShouldProperlyExecuteFailurePipelineInReverseOrderWhenMessageHandlingServiceThrowsException()
+        public async Task ShouldProperlyExecuteFailurePipelineWhenMessageHandlingServiceThrowsException()
         {
             var argsMock = new Mock<BasicDeliverEventArgs>();
-            var consumingServiceMock = new Mock<IConsumingService>();
-
             var exception = new Exception();
             var messageHandlingServiceMock = new Mock<IMessageHandlingService>();
-            messageHandlingServiceMock.Setup(x => x.HandleMessageReceivingEvent(argsMock.Object, consumingServiceMock.Object))
+            messageHandlingServiceMock.Setup(x => x.HandleMessageReceivingEvent(It.IsAny<MessageHandlingContext>()))
                 .ThrowsAsync(exception);
 
-            var filterOrderMap = new Dictionary<int, int>();
-            var firstFilter = new StubMessageHandlingExceptionFilter(1, filterOrderMap);
-            var secondFilter = new StubMessageHandlingExceptionFilter(2, filterOrderMap);
-            var thirdFilter = new StubMessageHandlingExceptionFilter(3, filterOrderMap);
-            var exceptionFilters = new List<IMessageHandlingExceptionFilter>
+            var middlewareOrderingMap = new Dictionary<int, int>();
+            var firstMiddleware = new StubMessageHandlingMiddleware(1, new Dictionary<int, int>(), middlewareOrderingMap);
+            var secondMiddleware = new StubMessageHandlingMiddleware(2, new Dictionary<int, int>(), middlewareOrderingMap);
+            var thirdMiddleware = new StubMessageHandlingMiddleware(3, new Dictionary<int, int>(), middlewareOrderingMap);
+            var middlewares = new List<IMessageHandlingMiddleware>
             {
-                firstFilter,
-                secondFilter,
-                thirdFilter
+                firstMiddleware,
+                secondMiddleware,
+                thirdMiddleware
             };
-
+            
             var service = CreateService(
                 messageHandlingServiceMock.Object,
-                Enumerable.Empty<IMessageHandlingFilter>(),
-                exceptionFilters);
+                middlewares);
+            await service.Execute(argsMock.Object, AckAction);
             
-            await service.Execute(argsMock.Object, consumingServiceMock.Object);
-            
-            messageHandlingServiceMock.Verify(x => x.HandleMessageProcessingFailure(exception, argsMock.Object, consumingServiceMock.Object), Times.Once);
-            Assert.Equal(1, filterOrderMap[thirdFilter.FilterNumber]);
-            Assert.Equal(2, filterOrderMap[secondFilter.FilterNumber]);
-            Assert.Equal(3, filterOrderMap[firstFilter.FilterNumber]);
-        }
-
-        [Fact]
-        public async Task ShouldProperlyExecuteFailurePipelineInReverseOrderWhenMessageHandlingFilterThrowsException()
-        {
-            var argsMock = new Mock<BasicDeliverEventArgs>();
-            var consumingServiceMock = new Mock<IConsumingService>();
-            
-            var messageHandlingServiceMock = new Mock<IMessageHandlingService>();
-
-            var exception = new Exception();
-            var handlingFilter = new Mock<IMessageHandlingFilter>();
-            handlingFilter.Setup(x => x.Execute(It.IsAny<Func<BasicDeliverEventArgs, IConsumingService, Task>>()))
-                .Throws(exception);
-            var handlingFilters = new List<IMessageHandlingFilter>
-            {
-                handlingFilter.Object
-            };
-            
-            var filterOrderMap = new Dictionary<int, int>();
-            var firstFilter = new StubMessageHandlingExceptionFilter(1, filterOrderMap);
-            var secondFilter = new StubMessageHandlingExceptionFilter(2, filterOrderMap);
-            var thirdFilter = new StubMessageHandlingExceptionFilter(3, filterOrderMap);
-            var exceptionFilters = new List<IMessageHandlingExceptionFilter>
-            {
-                firstFilter,
-                secondFilter,
-                thirdFilter
-            };
-
-            var service = CreateService(
-                messageHandlingServiceMock.Object,
-                handlingFilters,
-                exceptionFilters);
-            
-            await service.Execute(argsMock.Object, consumingServiceMock.Object);
-            
-            messageHandlingServiceMock.Verify(x => x.HandleMessageProcessingFailure(exception, argsMock.Object, consumingServiceMock.Object), Times.Once);
-            Assert.Equal(1, filterOrderMap[thirdFilter.FilterNumber]);
-            Assert.Equal(2, filterOrderMap[secondFilter.FilterNumber]);
-            Assert.Equal(3, filterOrderMap[firstFilter.FilterNumber]);
+            messageHandlingServiceMock.Verify(x => x.HandleMessageProcessingFailure(It.IsAny<MessageHandlingContext>(), exception), Times.Once);
+            Assert.Equal(1, middlewareOrderingMap[thirdMiddleware.Number]);
+            Assert.Equal(2, middlewareOrderingMap[secondMiddleware.Number]);
+            Assert.Equal(3, middlewareOrderingMap[firstMiddleware.Number]);
         }
 
         private static IMessageHandlingPipelineExecutingService CreateService(
             IMessageHandlingService messageHandlingService,
-            IEnumerable<IMessageHandlingFilter> handlingFilters,
-            IEnumerable<IMessageHandlingExceptionFilter> exceptionFilters)
-        {
-            return new MessageHandlingPipelineExecutingService(
-                messageHandlingService,
-                handlingFilters,
-                exceptionFilters);
-        }
+            IEnumerable<IMessageHandlingMiddleware> middlewares) =>
+            new MessageHandlingPipelineExecutingService(messageHandlingService, middlewares);
+
+        private static void AckAction(BasicDeliverEventArgs message) { }
     }
 }
