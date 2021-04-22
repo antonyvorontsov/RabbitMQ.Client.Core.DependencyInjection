@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Moq;
-using RabbitMQ.Client.Core.DependencyInjection.Configuration;
 using RabbitMQ.Client.Core.DependencyInjection.MessageHandlers;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
 using RabbitMQ.Client.Core.DependencyInjection.Services;
@@ -20,11 +19,6 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
         [ClassData(typeof(HandleMessageReceivingEventTestData))]
         public async Task ShouldProperlyHandleMessageReceivingEvent(HandleMessageReceivingEventTestDataModel testDataModel)
         {
-            var exchanges = new List<RabbitMqExchange>
-            {
-                new(testDataModel.MessageExchange, ClientExchangeType.Consumption, new RabbitMqExchangeOptions())
-            };
-
             var callOrder = 0;
             int? messageHandlerOrder = null;
             var messageHandlerMock = new Mock<IMessageHandler>();
@@ -64,7 +58,6 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                 .ToList();
 
             var service = CreateService(
-                exchanges,
                 routers,
                 orderingModels,
                 messageHandlers,
@@ -92,7 +85,6 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
         }
 
         private static IMessageHandlingService CreateService(
-            IEnumerable<RabbitMqExchange> exchanges,
             IEnumerable<MessageHandlerRouter> routers,
             IEnumerable<MessageHandlerOrderingModel> orderingModels,
             IEnumerable<IMessageHandler> messageHandlers,
@@ -104,11 +96,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                 messageHandlers,
                 asyncMessageHandlers);
             var loggingServiceMock = new Mock<ILoggingService>();
-            var producingServiceMock = new Mock<IProducingService>();
             return new MessageHandlingService(
-                producingServiceMock.Object,
                 messageHandlerContainerBuilder,
-                exchanges,
                 loggingServiceMock.Object);
         }
 

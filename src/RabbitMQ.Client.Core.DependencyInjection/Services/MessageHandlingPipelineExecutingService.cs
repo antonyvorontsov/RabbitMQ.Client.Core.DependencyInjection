@@ -13,13 +13,16 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
     public class MessageHandlingPipelineExecutingService : IMessageHandlingPipelineExecutingService
     {
         private readonly IMessageHandlingService _messageHandlingService;
+        private readonly IErrorProcessingService _errorProcessingService;
         private readonly IEnumerable<IMessageHandlingMiddleware> _messageHandlingMiddlewares;
 
         public MessageHandlingPipelineExecutingService(
             IMessageHandlingService messageHandlingService,
+            IErrorProcessingService errorProcessingService,
             IEnumerable<IMessageHandlingMiddleware> messageHandlingMiddlewares)
         {
             _messageHandlingService = messageHandlingService;
+            _errorProcessingService = errorProcessingService;
             _messageHandlingMiddlewares = messageHandlingMiddlewares;
         }
 
@@ -59,11 +62,11 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         {
             if (!_messageHandlingMiddlewares.Any())
             {
-                await _messageHandlingService.HandleMessageProcessingFailure(context, exception);
+                await _errorProcessingService.HandleMessageProcessingFailure(context, exception);
                 return;
             }
 
-            Func<Task> handleFunction = async () => await _messageHandlingService.HandleMessageProcessingFailure(context, exception);
+            Func<Task> handleFunction = async () => await _errorProcessingService.HandleMessageProcessingFailure(context, exception);
             foreach (var middleware in _messageHandlingMiddlewares)
             {
                 var previousHandleFunction = handleFunction;

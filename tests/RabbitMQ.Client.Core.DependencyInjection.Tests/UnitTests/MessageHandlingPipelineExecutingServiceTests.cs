@@ -20,9 +20,11 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
         {
             var argsMock = new Mock<BasicDeliverEventArgs>();
             var messageHandlingServiceMock = new Mock<IMessageHandlingService>();
+            var errorProcessingServiceMock = new Mock<IErrorProcessingService>();
 
             var service = CreateService(
                 messageHandlingServiceMock.Object,
+                errorProcessingServiceMock.Object,
                 Enumerable.Empty<IMessageHandlingMiddleware>());
 
             await service.Execute(argsMock.Object, AckAction);
@@ -34,6 +36,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
         {
             var argsMock = new Mock<BasicDeliverEventArgs>();
             var messageHandlingServiceMock = new Mock<IMessageHandlingService>();
+            var errorProcessingServiceMock = new Mock<IErrorProcessingService>();
 
             var middlewareOrderingMap = new Dictionary<int, int>();
             var firstMiddleware = new StubMessageHandlingMiddleware(1, middlewareOrderingMap, new Dictionary<int, int>());
@@ -48,6 +51,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
 
             var service = CreateService(
                 messageHandlingServiceMock.Object,
+                errorProcessingServiceMock.Object,
                 middlewares);
             await service.Execute(argsMock.Object, AckAction);
             
@@ -65,6 +69,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             var messageHandlingServiceMock = new Mock<IMessageHandlingService>();
             messageHandlingServiceMock.Setup(x => x.HandleMessageReceivingEvent(It.IsAny<MessageHandlingContext>()))
                 .ThrowsAsync(exception);
+            var errorProcessingServiceMock = new Mock<IErrorProcessingService>();
 
             var middlewareOrderingMap = new Dictionary<int, int>();
             var firstMiddleware = new StubMessageHandlingMiddleware(1, new Dictionary<int, int>(), middlewareOrderingMap);
@@ -79,10 +84,11 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             
             var service = CreateService(
                 messageHandlingServiceMock.Object,
+                errorProcessingServiceMock.Object,
                 middlewares);
             await service.Execute(argsMock.Object, AckAction);
             
-            messageHandlingServiceMock.Verify(x => x.HandleMessageProcessingFailure(It.IsAny<MessageHandlingContext>(), exception), Times.Once);
+            errorProcessingServiceMock.Verify(x => x.HandleMessageProcessingFailure(It.IsAny<MessageHandlingContext>(), exception), Times.Once);
             Assert.Equal(1, middlewareOrderingMap[thirdMiddleware.Number]);
             Assert.Equal(2, middlewareOrderingMap[secondMiddleware.Number]);
             Assert.Equal(3, middlewareOrderingMap[firstMiddleware.Number]);
@@ -90,8 +96,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
 
         private static IMessageHandlingPipelineExecutingService CreateService(
             IMessageHandlingService messageHandlingService,
+            IErrorProcessingService errorProcessingService,
             IEnumerable<IMessageHandlingMiddleware> middlewares) =>
-            new MessageHandlingPipelineExecutingService(messageHandlingService, middlewares);
+            new MessageHandlingPipelineExecutingService(messageHandlingService, errorProcessingService, middlewares);
 
         private static void AckAction(BasicDeliverEventArgs message) { }
     }
