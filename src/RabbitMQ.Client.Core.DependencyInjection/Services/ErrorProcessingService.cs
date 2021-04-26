@@ -26,7 +26,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         }
 
         /// <inheritdoc />
-        public async Task HandleMessageProcessingFailure(MessageHandlingContext context, Exception exception)
+        public virtual async Task HandleMessageProcessingFailure(MessageHandlingContext context, Exception exception)
         {
             var eventArgs = context.Message;
             context.AckAction(eventArgs);
@@ -34,7 +34,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             await HandleFailedMessageProcessing(eventArgs).ConfigureAwait(false);
         }
 
-        private async Task HandleFailedMessageProcessing(BasicDeliverEventArgs eventArgs)
+        protected async Task HandleFailedMessageProcessing(BasicDeliverEventArgs eventArgs)
         {
             var exchange = _exchanges.FirstOrDefault(x => x.Name == eventArgs.Exchange);
             if (exchange is null)
@@ -91,7 +91,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             }
         }
         
-        private async Task RequeueMessage(BasicDeliverEventArgs eventArgs, int timeoutMilliseconds)
+        protected async Task RequeueMessage(BasicDeliverEventArgs eventArgs, int timeoutMilliseconds)
         {
             await _producingService.SendAsync(eventArgs.Body, eventArgs.BasicProperties, eventArgs.Exchange, eventArgs.RoutingKey, timeoutMilliseconds);
             _loggingService.LogInformation("The failed message has been re-queued");
