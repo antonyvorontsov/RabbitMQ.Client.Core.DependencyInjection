@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Moq;
 using RabbitMQ.Client.Core.DependencyInjection.Configuration;
-using RabbitMQ.Client.Core.DependencyInjection.Filters;
+using RabbitMQ.Client.Core.DependencyInjection.Middlewares;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
 using RabbitMQ.Client.Core.DependencyInjection.Services;
 using RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces;
@@ -51,7 +51,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                 null,
                 connectionFactoryMock.Object,
                 callerMock.Object,
-                Enumerable.Empty<IBatchMessageHandlingFilter>());
+                Enumerable.Empty<IBatchMessageHandlingMiddleware>());
             await messageHandler.StartAsync(CancellationToken.None);
 
             for (var i = 0; i < numberOfMessages; i++)
@@ -114,7 +114,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                 handlingPeriod,
                 connectionFactoryMock.Object,
                 caller,
-                Enumerable.Empty<IBatchMessageHandlingFilter>());
+                Enumerable.Empty<IBatchMessageHandlingMiddleware>());
             await messageHandler.StartAsync(CancellationToken.None);
 
             const int smallBatchSize = prefetchCount - 1;
@@ -145,7 +145,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
         }
         
         [Fact]
-        public async Task ShouldProperlyExecutePipelineInReverseOrder()
+        public async Task ShouldProperlyExecutePipeline()
         {
             const ushort prefetchCount = 5;
             const string queueName = "queue.name";
@@ -165,16 +165,16 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
 
             var callerMock = new Mock<IStubCaller>();
 
-            var handlerOrderMap = new Dictionary<int, int>();
-            var firstFilter = new StubBatchMessageHandlingFilter(1, handlerOrderMap);
-            var secondFilter = new StubBatchMessageHandlingFilter(2, handlerOrderMap);
-            var thirdFilter = new StubBatchMessageHandlingFilter(3, handlerOrderMap);
+            var orderingMap = new Dictionary<int, int>();
+            var firstMiddleware = new StubBatchMessageHandlingMiddleware(1, orderingMap);
+            var secondMiddleware = new StubBatchMessageHandlingMiddleware(2, orderingMap);
+            var thirdMiddleware = new StubBatchMessageHandlingMiddleware(3, orderingMap);
             
-            var handlingFilters = new List<IBatchMessageHandlingFilter>
+            var middlewares = new List<IBatchMessageHandlingMiddleware>
             {
-                firstFilter,
-                secondFilter,
-                thirdFilter
+                firstMiddleware,
+                secondMiddleware,
+                thirdMiddleware
             };
 
             using var messageHandler = CreateBatchMessageHandler(
@@ -183,7 +183,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                 null,
                 connectionFactoryMock.Object,
                 callerMock.Object,
-                handlingFilters);
+                middlewares);
             await messageHandler.StartAsync(CancellationToken.None);
 
             for (var i = 0; i < prefetchCount; i++)
@@ -199,9 +199,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             }
 
             callerMock.Verify(x => x.EmptyCall(), Times.Once);
-            Assert.Equal(1, handlerOrderMap[thirdFilter.MessageHandlerNumber]);
-            Assert.Equal(2, handlerOrderMap[secondFilter.MessageHandlerNumber]);
-            Assert.Equal(3, handlerOrderMap[firstFilter.MessageHandlerNumber]);
+            Assert.Equal(1, orderingMap[thirdMiddleware.Number]);
+            Assert.Equal(2, orderingMap[secondMiddleware.Number]);
+            Assert.Equal(3, orderingMap[firstMiddleware.Number]);
             
             await messageHandler.StopAsync(CancellationToken.None);
         }
@@ -212,7 +212,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             TimeSpan? handlingPeriod,
             IRabbitMqConnectionFactory connectionFactory,
             IStubCaller caller,
-            IEnumerable<IBatchMessageHandlingFilter> handlingFilters)
+            IEnumerable<IBatchMessageHandlingMiddleware> middlewares)
         {
             var connectionOptions = new BatchConsumerConnectionOptions(typeof(StubBaseBatchMessageHandler), new RabbitMqServiceOptions());
             var loggingServiceMock = new Mock<ILoggingService>();
@@ -220,7 +220,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                 caller,
                 connectionFactory,
                 new List<BatchConsumerConnectionOptions> { connectionOptions },
-                handlingFilters,
+                middlewares,
                 loggingServiceMock.Object)
             {
                 QueueName = queueName,

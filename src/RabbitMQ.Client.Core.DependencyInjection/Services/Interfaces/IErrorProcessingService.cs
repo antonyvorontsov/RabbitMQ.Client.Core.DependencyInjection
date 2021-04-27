@@ -1,17 +1,19 @@
+using System;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces
 {
     /// <summary>
-    /// Service that contains logic of handling message receiving (consumption) events and passing those messages to the message handlers.
+    /// Service that contains logic of handling errors that occured in the pipeline of processing consumed messages.
     /// </summary>
-    public interface IMessageHandlingService
+    public interface IErrorProcessingService
     {
         /// <summary>
-        /// Handle message receiving event.
+        /// Handle message processing failure.
         /// </summary>
         /// <param name="context">Model that contains consumed message alongside with additional actions <see cref="MessageHandlingContext"/>.</param>
-        Task HandleMessageReceivingEvent(MessageHandlingContext context);
+        /// <param name="exception">An occured exception.</param>
+        Task HandleMessageProcessingFailure(MessageHandlingContext context, Exception exception);
     }
 }

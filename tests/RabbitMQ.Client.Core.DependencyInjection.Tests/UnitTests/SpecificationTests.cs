@@ -24,19 +24,23 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
         }
         
         [Theory]
-        [InlineData(true, ExchangeType.Direct, true)]
-        [InlineData(true, ExchangeType.Topic, true)]
-        [InlineData(true, ExchangeType.Fanout, true)]
-        [InlineData(true, ExchangeType.Headers, true)]
-        [InlineData(true, "wrong.type", false)]
-        [InlineData(false, "wrong.type", true)]
-        [InlineData(false, ExchangeType.Headers, true)]
-        public void ShouldProperlyValidateDeadLetterExchangeTypeWhenResendingFailedMessagesIsEnabled(bool resendingEnabled, string type, bool expectedResult)
+        [InlineData("exchange", ExchangeType.Direct, true)]
+        [InlineData("exchange", ExchangeType.Topic, true)]
+        [InlineData("exchange", ExchangeType.Fanout, true)]
+        [InlineData("exchange", ExchangeType.Headers, true)]
+        [InlineData("exchange", "wrong.type", false)]
+        [InlineData(null, "wrong.type", true)]
+        [InlineData("", "wrong.type", true)]
+        [InlineData("", ExchangeType.Direct, true)]
+        [InlineData("", ExchangeType.Topic, true)]
+        [InlineData("", ExchangeType.Fanout, true)]
+        [InlineData("", ExchangeType.Headers, true)]
+        public void ShouldProperlyValidateDeadLetterExchangeTypeWhenResendingFailedMessagesIsEnabled(string exchangeName, string type, bool expectedResult)
         {
             var specification = new ValidDeadLetterExchangeTypeSpecification();
             var options = new RabbitMqExchangeOptions
             {
-                RequeueFailedMessages = resendingEnabled,
+                DeadLetterExchange = exchangeName,
                 DeadLetterExchangeType = type
             };
             var result = specification.IsSatisfiedBy(options);

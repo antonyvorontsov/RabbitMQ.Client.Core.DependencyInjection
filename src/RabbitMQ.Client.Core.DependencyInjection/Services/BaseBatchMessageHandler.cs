@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using RabbitMQ.Client.Core.DependencyInjection.Configuration;
 using RabbitMQ.Client.Core.DependencyInjection.Exceptions;
-using RabbitMQ.Client.Core.DependencyInjection.Filters;
 using RabbitMQ.Client.Core.DependencyInjection.InternalExtensions.Validation;
+using RabbitMQ.Client.Core.DependencyInjection.Middlewares;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
 using RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces;
 using RabbitMQ.Client.Events;
@@ -52,7 +52,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
 
         private readonly IRabbitMqConnectionFactory _rabbitMqConnectionFactory;
         private readonly RabbitMqServiceOptions _serviceOptions;
-        private readonly IEnumerable<IBatchMessageHandlingFilter> _batchMessageHandlingFilters;
+        private readonly IEnumerable<IBatchMessageHandlingMiddleware> _batchMessageHandlingMiddlewares;
         private readonly ILoggingService _loggingService;
 
         private readonly ConcurrentBag<BasicDeliverEventArgs> _messages = new ConcurrentBag<BasicDeliverEventArgs>();
@@ -63,7 +63,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         protected BaseBatchMessageHandler(
             IRabbitMqConnectionFactory rabbitMqConnectionFactory,
             IEnumerable<BatchConsumerConnectionOptions> batchConsumerConnectionOptions,
-            IEnumerable<IBatchMessageHandlingFilter> batchMessageHandlingFilters,
+            IEnumerable<IBatchMessageHandlingMiddleware> batchMessageHandlingMiddlewares,
             ILoggingService loggingService)
         {
             var optionsContainer = batchConsumerConnectionOptions.FirstOrDefault(x => x.Type == GetType());
@@ -74,7 +74,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
 
             _serviceOptions = optionsContainer.ServiceOptions;
             _rabbitMqConnectionFactory = rabbitMqConnectionFactory;
-            _batchMessageHandlingFilters = batchMessageHandlingFilters;
+            _batchMessageHandlingMiddlewares = batchMessageHandlingMiddlewares;
             _loggingService = loggingService;
         }
 
@@ -121,15 +121,22 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             await ExecutePipeline(messages, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task ExecutePipeline(IEnumerable<BasicDeliverEventArgs> messages, CancellationToken cancellationToken)
+        private async Task ExecutePipeline(IList<BasicDeliverEventArgs> messages, CancellationToken cancellationToken)
         {
-            Func<IEnumerable<BasicDeliverEventArgs>, CancellationToken, Task> handle = Handle;
-            foreach (var filter in _batchMessageHandlingFilters.Reverse())
+            if (!_batchMessageHandlingMiddlewares.Any())
             {
-                handle = filter.Execute(handle);
+                await Handle(messages, cancellationToken);
+                return;
             }
 
-            await handle(messages, cancellationToken).ConfigureAwait(false);
+            Func<Task> handleFunction = async () => await Handle(messages, cancellationToken);
+            foreach (var middleware in _batchMessageHandlingMiddlewares)
+            {
+                var previousHandleFunction = handleFunction;
+                handleFunction = async () => await middleware.Handle(messages, previousHandleFunction, cancellationToken);
+            }
+
+            await handleFunction().ConfigureAwait(false);
         }
 
         private async Task Handle(IEnumerable<BasicDeliverEventArgs> messages, CancellationToken cancellationToken)

@@ -17,7 +17,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Specifications
         protected override Expression<Func<RabbitMqExchangeOptions, bool>> ToExpression()
         {
             var allowedExchangeTypes = ExchangeType.All()!;
-            return options => !options.RequeueFailedMessages || allowedExchangeTypes.Contains(options.DeadLetterExchangeType);
+            // Do not validate dead letter exchange type if actual DeadLetterExchange is empty.
+            return options => string.IsNullOrEmpty(options.DeadLetterExchange) || allowedExchangeTypes.Contains(options.DeadLetterExchangeType);
         }
     }
 }
