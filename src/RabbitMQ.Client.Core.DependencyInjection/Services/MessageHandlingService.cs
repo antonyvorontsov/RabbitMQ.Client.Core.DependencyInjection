@@ -31,7 +31,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             _loggingService.LogInformation($"A new message received with deliveryTag {eventArgs.DeliveryTag}.");
             var matchingRoutes = GetMatchingRoutePatterns(eventArgs.Exchange, eventArgs.RoutingKey);
             await ProcessMessageEvent(eventArgs, matchingRoutes).ConfigureAwait(false);
-            context.AckAction(eventArgs);
+            context.AckAction?.Invoke(eventArgs);
             _loggingService.LogInformation($"Message processing finished successfully. Acknowledge has been sent with deliveryTag {eventArgs.DeliveryTag}.");
         }
 
