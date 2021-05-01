@@ -86,13 +86,13 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             var exchangeOptions = options ?? new RabbitMqExchangeOptions();
             ValidateExchangeTypes(exchangeName, exchangeOptions);
             EnsureExchangeHasNotBeenConfiguredYet(services, exchangeName, clientExchangeType);
-            
+
             var exchange = new RabbitMqExchange(exchangeName, clientExchangeType, exchangeOptions);
             var service = new ExchangeServiceDescriptor(typeof(RabbitMqExchange), exchange, exchangeName, clientExchangeType);
             services.Add(service);
             return services;
         }
-        
+
         private static void EnsureExchangeHasNotBeenConfiguredYet(IServiceCollection services, string exchangeName, ClientExchangeType clientExchangeType)
         {
             var specification = new DuplicatedRabbitMqExchangeDeclarationSpecification(exchangeName, clientExchangeType);

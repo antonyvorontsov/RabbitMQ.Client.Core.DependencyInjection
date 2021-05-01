@@ -5,15 +5,13 @@
 
 This repository contains the library that provides functionality for wrapping [RabbitMQ.Client](https://github.com/rabbitmq/rabbitmq-dotnet-client) code and adding it in your application via the dependency injection mechanism. That wrapper provides easy, managed message queue consume and publish operations. The library targets netstandard2.1.
 
-*(!)Current version of documentation is out of date for 5.0.0. Stay updated.(!)*
-
 ## Usage
 
 This section contains only an example of a basic usage of the library. You can find the [detailed documentation](./docs/index.md) in the docs directory where all functionality fully covered.
 
 ### Producer
 
-To produce messages in the RabbitMQ queue you have to go through the routine of configuring a RabbitMQ connection and exchanges. In your `Startup` file you can do it simply calling couple methods in a fluent-Api way.
+To produce messages in the RabbitMQ queue you have to go through the routine of configuring a RabbitMQ connection and exchanges. In your `Startup` file you can do it simply calling a couple of methods in a fluent-Api way.
 
 ```c#
 public static IConfiguration Configuration { get; set; }
@@ -23,29 +21,29 @@ public void ConfigureServices(IServiceCollection services)
     var rabbitMqSection = Configuration.GetSection("RabbitMq");
     var exchangeSection = Configuration.GetSection("RabbitMqExchange");
 
-    services.AddRabbitMqClient(rabbitMqSection)
-        .AddProductionExchange("exchange.name", exchangeSection);
+    services.AddRabbitMqServices(rabbitMqSection)
+        .AddExchange("exchange.name", exchangeSection);
 }
 ```
 
-By calling `AddRabbitMqClient` you add `IQueueService` that provides functionality of sending messages to queues. `AddProductionExchange` configures exchange to queues bindings (presented in json configuration) that allow messages to route properly.
-Example of `appsettings.json` is two sections below. You can also configure everything manually. For more information, see [rabbit-configuration](./docs/rabbit-configuration.md) and [exchange-configuration](./docs/exchange-configuration.md) documentation files.
+`AddRabbitMqServices` adds `IProducingService` and `IConsumingService` that provide functionality of producing and consuming messages respectively. `AddExchange` configures one exchange with queue bindings that allow messages to route properly.
+An example of `appsettings.json` is two sections below. You can also configure everything manually passing an instance of the `RabbitMqExchangeOptions` class. For more information, see [rabbit-configuration](./docs/rabbit-configuration.md) and [exchange-configuration](./docs/exchange-configuration.md) documentation files.
 
-Now you can inject an instance of `IQueueService` inside anything you want.
+Now you can inject an instance of `IProducingService` or `IConsumingService` inside anything you want.
 
 ```c#
 [Route("api/[controller]")]
 public class HomeController : Controller
 {
-    readonly IQueueService _queueService;
-    public HomeController(IQueueService queueService)
+    private readonly IProducingService _producingService;
+    public HomeController(IProducingService producingService)
     {
-        _queueService = queueService;
+        _producingService = producingService;
     }
 }
 ```
 
-Now you can send messages using `Send` or `SendAsync` methods.
+`IProducingService` provides different overloads of `Send` or `SendAsync` methods.
 
 ```c#
 var messageObject = new
@@ -54,23 +52,30 @@ var messageObject = new
     Name = "RandomName"
 };
 
-await _queueService.SendAsync(
+await _producingService.SendAsync(
     @object: messageObject,
     exchangeName: "exchange.name",
     routingKey: "routing.key");
 ```
 
-You can also send delayed messages.
+You can also send messages with delay.
 
 ```c#
-await _queueService.SendAsync(
+await _producingService.SendAsync(
     @object: messageObject,
     exchangeName: "exchange.name",
     routingKey: "routing.key",
-    millisecondsDelay: 10);
+    millisecondsDelay: 1500);
 ```
 
  The mechanism of sending delayed messages described in the [documentation](./docs/message-production.md). Dive into it for more detailed information.
+
+
+
+
+
+
+
 
 ### Consumer
 
@@ -161,49 +166,6 @@ public class CustomAsyncMessageHandler : IAsyncMessageHandler
 }
 ```
 
-If you want to send messages from the `Handle` method inside your message handler then use `INonCyclicMessageHandler`.
-You can't inject  `IQueueService` inside any message handlers, otherwise you will get a cyclic dependency exception. But `INonCyclicMessageHandler` allows you to avoid this as it accepts an instance of `IQueueService` as a parameter of the method `Handle`.
-
-```c#
-public class MyNonCyclicMessageHandler : INonCyclicMessageHandler
-{
-    // Inject anything you want except IQueueService.
-    readonly ILogger<MyNonCyclicMessageHandler> _logger;
-    public MyNonCyclicMessageHandler(ILogger<MyNonCyclicMessageHandler> logger)
-    {
-        _logger = logger;
-    }
-
-    public void Handle(BasicDeliverEventArgs eventArgs, string matchingRoute, IQueueService queueService)
-    {
-        // Send anything you want using IQueueService instance.
-        var anotherMessage = new MyMessage { Foo = "Bar" };
-        queueService.Send(anotherMessage, "exchange.name", "routing.key");
-    }
-}
-```
-
-`INonCyclicMessageHandler` has its asynchronous analogue `IAsyncNonCyclicMessageHandler`.
-
-```c#
-public class MyAsyncNonCyclicMessageHandler : IAsyncNonCyclicMessageHandler
-{
-    // Inject anything you want except IQueueService.
-    readonly ILogger<MyAsyncNonCyclicMessageHandler> _logger;
-    public MyAsyncNonCyclicMessageHandler(ILogger<MyAsyncNonCyclicMessageHandler> logger)
-    {
-        _logger = logger;
-    }
-
-    public async Task Handle(BasicDeliverEventArgs eventArgs, string matchingRoute, IQueueService queueService)
-    {
-        // Do async stuff.
-        var anotherMessage = new MyMessage { Foo = "Bar" };
-        await queueService.SendAsync(anotherMessage, "exchange.name", "routing.key");
-    }
-}
-```
-
 You can register any of those message handlers the same way you registered `IMessageHandler` before. There are similar extension methods for each type of message handlers. For more information, see the [message-consuming](./docs/message-consumption.md) documentation file.
 
 You can also find example projects in the repository inside the [examples](./examples) directory.
@@ -286,9 +248,14 @@ services.AddBatchMessageHandler<CustomBatchMessageHandler>(Configuration.GetSect
 The message handler will create a separate connection and use it for reading messages.
 When the message collection is full to the size of `PrefetchCount` they are passed to the `HandleMessage` method. You can also set a `MessageHandlingPeriod` property value and the method `HandleMessage` will be executed repeatedly so messages in unfilled batches could be processed too. For more information, see the [message-consuming](./docs/message-consumption.md) documentation file.
 
+
+
+
+
+
 ## Advanced usage and nuances
 
-RabbitMQ client implemented in this library (class which implements `IQueueService`) opens two connections to the RabbitMQ server. One connection is used for message production, and the other one is for message consumption.
+RabbitMQ services implemented in this library open two connections to the RabbitMQ server. One connection is used for message production, and the other one is for message consumption.
 This behavior covered in the [advanced usage documentation file](./docs/advanced-usage.md), dive into it deeply if you want to control the client behavior tighter.
 
 There is also an [example project](./examples/Examples.AdvancedConfiguration) that demonstrates an advanced usage of the RabbitMQ client.
