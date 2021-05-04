@@ -56,5 +56,10 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Configuration
         /// Collection of queues bound to the exchange.
         /// </summary>
         public IList<RabbitMqQueueOptions> Queues { get; set; } = new List<RabbitMqQueueOptions>();
+
+        /// <summary>
+        /// Do not auto-ack a received message after processing.
+        /// </summary>
+        public bool DisableAutoAck { get; set; } = false;
     }
 }

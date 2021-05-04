@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using RabbitMQ.Client.Core.DependencyInjection.Configuration;
+using RabbitMQ.Client.Core.DependencyInjection.InternalExtensions.Validation;
 using RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces;
 using RabbitMQ.Client.Core.DependencyInjection.Tests.Stubs;
 using Xunit;
@@ -42,7 +43,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
             channelDeclarationService.SetConnectionInfrastructureForRabbitMqServices();
             consumingService.StartConsuming();
             using var resetEvent = new AutoResetEvent(false);
-            consumingService.Consumer.Received += (_, _) =>
+            consumingService.Consumer.EnsureIsNotNull().Received += (_, _) =>
             {
                 resetEvent.Set();
                 return Task.CompletedTask;
@@ -76,7 +77,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
             channelDeclarationService.SetConnectionInfrastructureForRabbitMqServices();
             consumingService.StartConsuming();
             using var resetEvent = new AutoResetEvent(false);
-            consumingService.Consumer.Received += (_, _) =>
+            consumingService.Consumer.EnsureIsNotNull().Received += (_, _) =>
             {
                 resetEvent.Set();
                 return Task.CompletedTask;

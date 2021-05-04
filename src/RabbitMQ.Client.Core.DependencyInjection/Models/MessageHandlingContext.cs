@@ -5,7 +5,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Models
 {
     public class MessageHandlingContext
     {
-        public MessageHandlingContext(BasicDeliverEventArgs message, Action<BasicDeliverEventArgs> ackAction)
+        public MessageHandlingContext(BasicDeliverEventArgs message, Action<BasicDeliverEventArgs>? ackAction)
         {
             Message = message;
             AckAction = ackAction;
@@ -13,6 +13,6 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Models
 
         public BasicDeliverEventArgs Message { get; }
         
-        public Action<BasicDeliverEventArgs> AckAction { get; }
+        public Action<BasicDeliverEventArgs>? AckAction { get; }
     }
 }
