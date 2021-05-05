@@ -27,7 +27,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         }
 
         /// <inheritdoc/>
-        public async Task Execute(BasicDeliverEventArgs eventArgs, Action<BasicDeliverEventArgs> ackAction)
+        public async Task Execute(BasicDeliverEventArgs eventArgs, Action<BasicDeliverEventArgs>? ackAction)
         {
             var context = new MessageHandlingContext(eventArgs, ackAction);
             try
