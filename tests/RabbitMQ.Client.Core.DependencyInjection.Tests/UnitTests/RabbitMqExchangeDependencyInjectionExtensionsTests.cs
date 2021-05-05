@@ -25,7 +25,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                         .AddExchange("exchange.name", new RabbitMqExchangeOptions(), ClientExchangeType.Consumption);
                 });
         }
-        
+
         [Fact]
         public void ShouldProperlyNotThrowExceptionWhenRegisteringSameExchangeWithDifferentTypeTwice()
         {
@@ -46,7 +46,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                 return Task.CompletedTask;
             });
         }
-        
+
         [Fact]
         public void ShouldProperlyNotThrowExceptionWhenRegisteringSameExchangeWithDifferentTypeButSameConfigurationTwice()
         {
@@ -55,7 +55,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                 .AddConsumptionExchange("exchange.name", configurationMock.Object)
                 .AddProductionExchange("exchange.name", configurationMock.Object);
         }
-        
+
         [Fact]
         public void ShouldProperlyThrowExceptionWhenRegisteringConsumptionExchangeWhenUniversalExchangeWithSameNameAlreadyAdded()
         {
@@ -67,7 +67,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                         .AddExchange("exchange.name", new RabbitMqExchangeOptions(), ClientExchangeType.Consumption);
                 });
         }
-        
+
         [Fact]
         public void ShouldProperlyThrowExceptionWhenRegisteringProductionExchangeWhenUniversalExchangeWithSameNameAlreadyAdded()
         {
@@ -79,7 +79,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                         .AddExchange("exchange.name", new RabbitMqExchangeOptions(), ClientExchangeType.Production);
                 });
         }
-        
+
         [Fact]
         public void ShouldProperlyThrowExceptionWhenRegisteringExchangeWithWrongType()
         {
@@ -90,7 +90,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                         .AddExchange("exchange.name", new RabbitMqExchangeOptions { Type = "wrong.type" }, ClientExchangeType.Universal);
                 });
         }
-        
+
         [Fact]
         public void ShouldProperlyThrowExceptionWhenRegisteringDeadLetterExchangeWithWrongType()
         {

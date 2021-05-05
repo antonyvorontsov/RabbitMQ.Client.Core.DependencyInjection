@@ -62,7 +62,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                 orderingModels,
                 messageHandlers,
                 asyncMessageHandlers);
-            
+
             var eventArgs = new BasicDeliverEventArgs
             {
                 Exchange = testDataModel.MessageExchange,

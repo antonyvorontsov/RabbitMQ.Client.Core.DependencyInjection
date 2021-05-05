@@ -20,7 +20,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.Stubs
             {
                 orderingMap.Add(messageHandlerNumber, 0);
             }
-            
+
             if (!errorOrderingMap.ContainsKey(messageHandlerNumber))
             {
                 errorOrderingMap.Add(messageHandlerNumber, 0);
@@ -28,7 +28,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.Stubs
 
             _orderingMap = orderingMap;
             _errorOrderingMap = errorOrderingMap;
-            
+
             Number = messageHandlerNumber;
         }
 

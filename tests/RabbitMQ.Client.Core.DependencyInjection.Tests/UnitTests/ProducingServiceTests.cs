@@ -16,7 +16,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             var service = CreateService(new[] { consumptionExchange });
             Assert.Throws<ArgumentException>(() => service.ValidateArguments("another.exchange", "routing.key"));
         }
-        
+
         [Fact]
         public void ShouldProperlyThrowExceptionWhenThereIsAnExchangeWithSameNameButWithConsumptionType()
         {
@@ -25,7 +25,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             var service = CreateService(new[] { consumptionExchange });
             Assert.Throws<ArgumentException>(() => service.ValidateArguments(exchangeName, "routing.key"));
         }
-        
+
         [Fact]
         public void ShouldProperlyValidateWhenThereIsProductionExchange()
         {
@@ -34,7 +34,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             var service = CreateService(new[] { consumptionExchange });
             service.ValidateArguments(exchangeName, "routing.key");
         }
-        
+
         [Fact]
         public void ShouldProperlyValidateWhenThereIsUiversalExchange()
         {

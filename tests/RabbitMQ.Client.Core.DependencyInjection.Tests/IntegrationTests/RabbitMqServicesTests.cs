@@ -38,7 +38,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
             var consumingService = serviceProvider.GetRequiredService<IConsumingService>();
             var producingService = serviceProvider.GetRequiredService<IProducingService>();
             var channelDeclarationService = serviceProvider.GetRequiredService<IChannelDeclarationService>();
-            
+
             channelDeclarationService.SetConnectionInfrastructureForRabbitMqServices();
             consumingService.StartConsuming();
             using var resetEvent = new AutoResetEvent(false);
@@ -56,7 +56,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
             resetEvent.WaitOne(_globalTestsTimeout);
             callerMock.Verify(x => x.CallAsync(It.IsAny<string>()), Times.Once);
         }
-        
+
         [Fact]
         public async Task ShouldProperlyRequeueMessages()
         {
@@ -72,7 +72,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.IntegrationTests
             var consumingService = serviceProvider.GetRequiredService<IConsumingService>();
             var producingService = serviceProvider.GetRequiredService<IProducingService>();
             var channelDeclarationService = serviceProvider.GetRequiredService<IChannelDeclarationService>();
-            
+
             channelDeclarationService.SetConnectionInfrastructureForRabbitMqServices();
             consumingService.StartConsuming();
             using var resetEvent = new AutoResetEvent(false);

@@ -24,7 +24,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.Stubs
             _orderingMap = orderingMap;
             Number = messageHandlerNumber;
         }
-        
+
         public async Task Handle(IEnumerable<BasicDeliverEventArgs> messages, Func<Task> next, CancellationToken cancellationToken)
         {
             var order = _orderingMap.Values.Max();

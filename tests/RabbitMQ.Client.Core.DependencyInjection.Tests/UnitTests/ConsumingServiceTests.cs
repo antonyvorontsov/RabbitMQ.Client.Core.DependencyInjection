@@ -27,7 +27,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
 
             var messageHandlingPipelineExecutingServiceMock = new Mock<IMessageHandlingPipelineExecutingService>();
             var consumingService = CreateConsumingService(messageHandlingPipelineExecutingServiceMock.Object);
-            
+
             consumingService.UseConnection(connectionMock.Object);
             consumingService.UseChannel(channelMock.Object);
             consumingService.UseConsumer(consumer);
@@ -74,11 +74,11 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
 
             var messageHandlingPipelineExecutingServiceMock = new Mock<IMessageHandlingPipelineExecutingService>();
             var consumingService = CreateConsumingService(messageHandlingPipelineExecutingServiceMock.Object);
-            
+
             consumingService.UseConnection(connectionMock.Object);
             consumingService.UseChannel(channelMock.Object);
             consumingService.UseConsumer(consumer);
-            
+
             consumingService.StartConsuming();
             for (var i = 1; i <= numberOfMessages; i++)
             {

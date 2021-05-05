@@ -22,7 +22,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             var result = specification.IsSatisfiedBy(options);
             Assert.Equal(expectedResult, result);
         }
-        
+
         [Theory]
         [InlineData("exchange", ExchangeType.Direct, true)]
         [InlineData("exchange", ExchangeType.Topic, true)]
