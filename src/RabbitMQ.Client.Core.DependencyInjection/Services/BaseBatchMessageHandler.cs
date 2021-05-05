@@ -44,7 +44,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         /// Prefetch count value (batch size).
         /// </summary>
         public abstract ushort PrefetchCount { get; set; }
-        
+
         /// <summary>
         /// The TimeSpan period through which messages will be processing.
         /// </summary>
@@ -85,7 +85,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             Connection = _rabbitMqConnectionFactory.CreateRabbitMqConnection(_serviceOptions).EnsureIsNotNull();
             Channel = Connection.CreateModel().EnsureIsNotNull();
             Channel.BasicQos(PrefetchSize, PrefetchCount, false);
-            
+
             if (MessageHandlingPeriod != null)
             {
                 _timer = new Timer(async _ => await ProcessBatchOfMessages(cancellationToken).ConfigureAwait(false), null, MessageHandlingPeriod.Value, MessageHandlingPeriod.Value);
@@ -105,7 +105,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
 
                 await ProcessBatchOfMessages(cancellationToken).ConfigureAwait(false);
             };
-            
+
             Channel.BasicConsume(queue: QueueName, autoAck: false, consumer: consumer);
             return Task.CompletedTask;
         }
@@ -155,7 +155,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
                 {
                     return new List<BasicDeliverEventArgs>();
                 }
-                
+
                 var messages = _messages.ToList();
                 _messages.Clear();
                 return messages;
@@ -182,7 +182,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns></returns>
         public abstract Task HandleMessages(IEnumerable<BasicDeliverEventArgs> messages, CancellationToken cancellationToken);
-        
+
         public Task StopAsync(CancellationToken cancellationToken)
         {
             _timer?.Change(Timeout.Infinite, 0);

@@ -11,7 +11,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
     public class ConsumingHostedService : IHostedService
     {
         private readonly IConsumingService _consumingService;
-        
+
         public ConsumingHostedService(IConsumingService consumingService)
         {
             _consumingService = consumingService;
