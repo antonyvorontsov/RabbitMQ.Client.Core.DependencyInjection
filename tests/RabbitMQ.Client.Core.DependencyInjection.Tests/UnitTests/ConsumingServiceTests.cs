@@ -31,7 +31,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             var exchange = new RabbitMqExchange(exchangeName, ClientExchangeType.Consumption, new RabbitMqExchangeOptions());
             var consumingService = CreateConsumingService(messageHandlingPipelineExecutingServiceMock.Object, new[] { exchange });
 
-            var declaration = consumingService as IConsumingServiceDeclaration;
+            var declaration = (IConsumingServiceDeclaration)consumingService;
             declaration.UseConnection(connectionMock.Object);
             declaration.UseChannel(channelMock.Object);
             declaration.UseConsumer(consumer);
@@ -83,7 +83,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             var exchange = new RabbitMqExchange(exchangeName, ClientExchangeType.Consumption, new RabbitMqExchangeOptions { DisableAutoAck = true });
             var consumingService = CreateConsumingService(messageHandlingPipelineExecutingServiceMock.Object, new[] { exchange });
 
-            var declaration = consumingService as IConsumingServiceDeclaration;
+            var declaration = (IConsumingServiceDeclaration)consumingService;
             declaration.UseConnection(connectionMock.Object);
             declaration.UseChannel(channelMock.Object);
             declaration.UseConsumer(consumer);
@@ -133,7 +133,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             var exchange = new RabbitMqExchange(exchangeName, ClientExchangeType.Consumption, new RabbitMqExchangeOptions());
             var consumingService = CreateConsumingService(messageHandlingPipelineExecutingServiceMock.Object, new[] { exchange });
 
-            var declaration = consumingService as IConsumingServiceDeclaration;
+            var declaration = (IConsumingServiceDeclaration)consumingService;
             declaration.UseConnection(connectionMock.Object);
             declaration.UseChannel(channelMock.Object);
             declaration.UseConsumer(consumer);

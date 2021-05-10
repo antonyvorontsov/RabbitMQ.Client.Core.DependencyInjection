@@ -44,7 +44,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
                 var connection = CreateConnection(_connectionOptions.ProducerOptions).EnsureIsNotNull();
                 var channel = CreateChannel(connection);
                 StartClient(channel);
-                var declaration = _producingService as IProducingServiceDeclaration;
+                var declaration = (IProducingServiceDeclaration)_producingService;
                 declaration!.UseConnection(connection);
                 declaration.UseChannel(channel);
             }
@@ -55,8 +55,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
                 var channel = CreateChannel(connection);
                 StartClient(channel);
                 var consumer = _rabbitMqConnectionFactory.CreateConsumer(channel);
-                var declaration = _consumingService as IConsumingServiceDeclaration;
-                declaration!.UseConnection(connection);
+                var declaration = (IConsumingServiceDeclaration)_consumingService;
+                declaration.UseConnection(connection);
                 declaration.UseChannel(channel);
                 declaration.UseConsumer(consumer);
             }
