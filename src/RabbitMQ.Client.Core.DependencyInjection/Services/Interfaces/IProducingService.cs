@@ -6,7 +6,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces
     /// <summary>
     /// Custom RabbitMQ producing service interface.
     /// </summary>
-    public interface IProducingService : IRabbitMqService
+    public interface IProducingService
     {
         /// <summary>
         /// RabbitMQ producing connection.

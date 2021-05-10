@@ -44,7 +44,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             service.ValidateArguments(exchangeName, "routing.key");
         }
 
-        private ProducingService CreateService(IEnumerable<RabbitMqExchange> exchanges)
+        private static ProducingService CreateService(IEnumerable<RabbitMqExchange> exchanges)
         {
             return new ProducingService(exchanges);
         }

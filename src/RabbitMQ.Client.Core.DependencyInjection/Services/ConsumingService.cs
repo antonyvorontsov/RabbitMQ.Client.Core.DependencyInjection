@@ -11,14 +11,14 @@ using RabbitMQ.Client.Events;
 namespace RabbitMQ.Client.Core.DependencyInjection.Services
 {
     /// <inheritdoc cref="IConsumingService"/>
-    public class ConsumingService : IConsumingService, IDisposable
+    public sealed class ConsumingService : IConsumingService, IRabbitMqService, IDisposable
     {
         /// <inheritdoc/>
         public IConnection? Connection { get; private set; }
 
         /// <inheritdoc/>
         public IModel? Channel { get; private set; }
-        
+
         /// <inheritdoc/>
         public AsyncEventingBasicConsumer? Consumer { get; private set; }
 
@@ -82,7 +82,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             {
                 return;
             }
-            
+
             Consumer.Received += ConsumerOnReceived;
             _consumingStarted = true;
 

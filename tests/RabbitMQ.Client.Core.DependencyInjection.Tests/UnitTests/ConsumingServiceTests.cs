@@ -31,9 +31,10 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             var exchange = new RabbitMqExchange(exchangeName, ClientExchangeType.Consumption, new RabbitMqExchangeOptions());
             var consumingService = CreateConsumingService(messageHandlingPipelineExecutingServiceMock.Object, new[] { exchange });
 
-            consumingService.UseConnection(connectionMock.Object);
-            consumingService.UseChannel(channelMock.Object);
-            consumingService.UseConsumer(consumer);
+            var declaration = consumingService as IConsumingServiceDeclaration;
+            declaration.UseConnection(connectionMock.Object);
+            declaration.UseChannel(channelMock.Object);
+            declaration.UseConsumer(consumer);
 
             await consumer.HandleBasicDeliver(
                 "1",
@@ -82,9 +83,10 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             var exchange = new RabbitMqExchange(exchangeName, ClientExchangeType.Consumption, new RabbitMqExchangeOptions { DisableAutoAck = true });
             var consumingService = CreateConsumingService(messageHandlingPipelineExecutingServiceMock.Object, new[] { exchange });
 
-            consumingService.UseConnection(connectionMock.Object);
-            consumingService.UseChannel(channelMock.Object);
-            consumingService.UseConsumer(consumer);
+            var declaration = consumingService as IConsumingServiceDeclaration;
+            declaration.UseConnection(connectionMock.Object);
+            declaration.UseChannel(channelMock.Object);
+            declaration.UseConsumer(consumer);
 
             await consumer.HandleBasicDeliver(
                 "1",
@@ -131,9 +133,10 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             var exchange = new RabbitMqExchange(exchangeName, ClientExchangeType.Consumption, new RabbitMqExchangeOptions());
             var consumingService = CreateConsumingService(messageHandlingPipelineExecutingServiceMock.Object, new[] { exchange });
 
-            consumingService.UseConnection(connectionMock.Object);
-            consumingService.UseChannel(channelMock.Object);
-            consumingService.UseConsumer(consumer);
+            var declaration = consumingService as IConsumingServiceDeclaration;
+            declaration.UseConnection(connectionMock.Object);
+            declaration.UseChannel(channelMock.Object);
+            declaration.UseConsumer(consumer);
 
             consumingService.StartConsuming();
             for (var i = 1; i <= numberOfMessages; i++)

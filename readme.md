@@ -95,7 +95,7 @@ The other important part is adding custom message handlers by implementing the `
 You can also use **pattern matching** while adding message handlers where `*` (star) can substitute for exactly one word and `#` (hash) can substitute for zero or more words.
 You are also allowed to specify the exact exchange which will be "listened" by the selected message handler with the given routing key (or a pattern).
 
-Message consumption will be started automatically by the hosted service that is registered inside the `AddRabbitMqServices` method.
+Message consumption will be started automatically by the hosted service that is registered inside the `AddRabbitMqServices` method. That hosted services uses `IConsumingService` implementation that is responsible for message consumption basically. So you do not have to start consumption manually.
 
 ```c#
 services.AddRabbitMqServices(rabbitMqSection)
