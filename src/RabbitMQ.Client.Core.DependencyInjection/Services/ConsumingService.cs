@@ -11,7 +11,7 @@ using RabbitMQ.Client.Events;
 namespace RabbitMQ.Client.Core.DependencyInjection.Services
 {
     /// <inheritdoc cref="IConsumingService"/>
-    public sealed class ConsumingService : IConsumingService, IRabbitMqService, IDisposable
+    public sealed class ConsumingService : IConsumingService, IConsumingServiceDeclaration, IDisposable
     {
         /// <inheritdoc/>
         public IConnection? Connection { get; private set; }
