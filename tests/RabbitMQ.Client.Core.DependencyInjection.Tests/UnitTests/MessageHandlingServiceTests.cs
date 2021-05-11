@@ -69,7 +69,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                 RoutingKey = testDataModel.MessageRoutingKey,
                 Body = Array.Empty<byte>()
             };
-            var context = new MessageHandlingContext(eventArgs, _ => { });
+            var context = new MessageHandlingContext(eventArgs, _ => { }, false);
             await service.HandleMessageReceivingEvent(context);
 
             var messageHandlerTimes = testDataModel.MessageHandlerShouldTrigger ? Times.Once() : Times.Never();
