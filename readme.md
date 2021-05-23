@@ -125,7 +125,7 @@ public class CustomMessageHandler : IMessageHandler
 
 `IMessageHandler` consists of one method `Handle` that takes two parameters:
  - `MessageHandlingContext` is an object that contains consumed `BasicDeliverEventArgs` message and the `AcknowledgeMessage` method that allow you to acknowledge that message manually. `AcknowledgeMessage` is safe to call multiple times from client code because the behavior of the method is idempotent, and the real ack will be sent only once.
- - Matching routing key for that message and message handler.
+ - Matching routing key for that message and the message handler.
 
 If you want to use an async version of the handler then implement your custom `IAsyncMessageHandler`.
 
@@ -140,8 +140,8 @@ public class CustomAsyncMessageHandler : IAsyncMessageHandler
 
     public async Task Handle(MessageHandlingContext context, string matchingRoute)
     {
-	   // await something.
-	   context.AcknowledgeMessage(); // if you want to do it manually.
+        // await something.
+        context.AcknowledgeMessage(); // if you want to do it manually.
     }
 }
 ```
