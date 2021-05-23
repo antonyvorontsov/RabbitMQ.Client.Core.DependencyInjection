@@ -46,7 +46,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
                 return Enumerable.Empty<string>();
             }
 
-            var routingKeyParts = routingKey.Split(".");
+            // Change the string "." to a char to solve the compatibility issue in .Net Standard 2.0
+            var routingKeyParts = routingKey.Split('.');
             return WildcardExtensions.GetMatchingRoutePatterns(tree, routingKeyParts).ToList();
         }
 

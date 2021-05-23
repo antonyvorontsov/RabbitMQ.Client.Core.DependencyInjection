@@ -157,7 +157,11 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
                 }
                 
                 var messages = _messages.ToList();
-                _messages.Clear();
+                // Since a lock has been used here, this could be a workaround in .NET standard 2.0
+                while (!_messages.IsEmpty)
+                {
+                    _messages.TryTake(out BasicDeliverEventArgs _);
+                }
                 return messages;
             }
         }

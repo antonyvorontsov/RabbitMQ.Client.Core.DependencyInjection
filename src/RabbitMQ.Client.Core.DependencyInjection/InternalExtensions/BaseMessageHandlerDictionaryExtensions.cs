@@ -19,15 +19,16 @@ namespace RabbitMQ.Client.Core.DependencyInjection.InternalExtensions
             this IDictionary<string, IList<IBaseMessageHandler>> source,
             IDictionary<string, IList<IBaseMessageHandler>> addition)
         {
-            foreach (var (key, value) in addition)
+            // Rewrite the statements compatible to .Net Standard 2.0
+            foreach (var oneItem in addition)
             {
-                if (source.ContainsKey(key))
+                if (source.ContainsKey(oneItem.Key))
                 {
-                    source[key] = source[key].Union(value).ToList();
+                    source[oneItem.Key] = source[oneItem.Key].Union(oneItem.Value).ToList();
                 }
                 else
                 {
-                    source.Add(key, value);
+                    source.Add(oneItem.Key, oneItem.Value);
                 }
             }
             return source;

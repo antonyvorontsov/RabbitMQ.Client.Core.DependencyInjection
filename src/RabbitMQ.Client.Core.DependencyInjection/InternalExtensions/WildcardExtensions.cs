@@ -15,7 +15,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection.InternalExtensions
     /// </remarks>
     internal static class WildcardExtensions
     {
-        private const string Separator = ".";
+        // Change the string "." to a char to solve the compatibility issue in .Net Standard 2.0
+        private const char Separator = '.';
         private const string SingleWordPattern = "*";
         private const string MultipleWordsPattern = "#";
 
