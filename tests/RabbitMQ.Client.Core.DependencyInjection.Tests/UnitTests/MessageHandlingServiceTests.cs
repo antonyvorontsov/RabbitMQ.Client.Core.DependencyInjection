@@ -22,7 +22,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             var callOrder = 0;
             int? messageHandlerOrder = null;
             var messageHandlerMock = new Mock<IMessageHandler>();
-            messageHandlerMock.Setup(x => x.Handle(It.IsAny<BasicDeliverEventArgs>(), It.IsAny<string>()))
+            messageHandlerMock.Setup(x => x.Handle(It.IsAny<MessageHandlingContext>(), It.IsAny<string>()))
                 .Callback(() =>
                 {
                     callOrder++;
@@ -32,7 +32,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
 
             int? asyncMessageHandlerOrder = null;
             var asyncMessageHandlerMock = new Mock<IAsyncMessageHandler>();
-            asyncMessageHandlerMock.Setup(x => x.Handle(It.IsAny<BasicDeliverEventArgs>(), It.IsAny<string>()))
+            asyncMessageHandlerMock.Setup(x => x.Handle(It.IsAny<MessageHandlingContext>(), It.IsAny<string>()))
                 .Callback(() =>
                 {
                     callOrder++;
@@ -73,10 +73,10 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             await service.HandleMessageReceivingEvent(context);
 
             var messageHandlerTimes = testDataModel.MessageHandlerShouldTrigger ? Times.Once() : Times.Never();
-            messageHandlerMock.Verify(x => x.Handle(It.IsAny<BasicDeliverEventArgs>(), It.IsAny<string>()), messageHandlerTimes);
+            messageHandlerMock.Verify(x => x.Handle(It.IsAny<MessageHandlingContext>(), It.IsAny<string>()), messageHandlerTimes);
 
             var asyncMessageHandlerTimes = testDataModel.AsyncMessageHandlerShouldTrigger ? Times.Once() : Times.Never();
-            asyncMessageHandlerMock.Verify(x => x.Handle(It.IsAny<BasicDeliverEventArgs>(), It.IsAny<string>()), asyncMessageHandlerTimes);
+            asyncMessageHandlerMock.Verify(x => x.Handle(It.IsAny<MessageHandlingContext>(), It.IsAny<string>()), asyncMessageHandlerTimes);
 
             var messageHandlerCallOrder = testingOrderingModels.FirstOrDefault(x => x.MessageHandler.GetType() == messageHandlerMock.Object.GetType())?.CallOrder;
             Assert.Equal(messageHandlerCallOrder, messageHandlerOrder);

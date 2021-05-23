@@ -6,7 +6,6 @@ using RabbitMQ.Client.Core.DependencyInjection.InternalExtensions;
 using RabbitMQ.Client.Core.DependencyInjection.MessageHandlers;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
 using RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces;
-using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.Services
 {
@@ -30,10 +29,10 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             var eventArgs = context.Message;
             _loggingService.LogInformation($"A new message received with deliveryTag {eventArgs.DeliveryTag}.");
             var matchingRoutes = GetMatchingRoutePatterns(eventArgs.Exchange, eventArgs.RoutingKey);
-            await ProcessMessageEvent(eventArgs, matchingRoutes).ConfigureAwait(false);
+            await ProcessMessageEvent(context, matchingRoutes).ConfigureAwait(false);
             if (context.AutoAckEnabled)
             {
-                context.AckAction.Invoke(eventArgs);
+                context.AcknowledgeMessage();
             }
             _loggingService.LogInformation($"Message processing finished successfully. Acknowledge has been sent with deliveryTag {eventArgs.DeliveryTag}.");
         }
@@ -51,9 +50,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             return WildcardExtensions.GetMatchingRoutePatterns(tree, routingKeyParts).ToList();
         }
 
-        private async Task ProcessMessageEvent(BasicDeliverEventArgs eventArgs, IEnumerable<string> matchingRoutes)
+        private async Task ProcessMessageEvent(MessageHandlingContext context, IEnumerable<string> matchingRoutes)
         {
-            var container = _messageHandlerContainers.FirstOrDefault(x => x.Exchange == eventArgs.Exchange) ??
+            var container = _messageHandlerContainers.FirstOrDefault(x => x.Exchange == context.Message.Exchange) ??
                 _messageHandlerContainers.FirstOrDefault(x => x.IsGeneral);
             if (container is null)
             {
@@ -88,10 +87,10 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
                 switch (orderedContainer.MessageHandler)
                 {
                     case IMessageHandler messageHandler:
-                        RunMessageHandler(messageHandler, eventArgs, orderedContainer.MatchingRoute);
+                        RunMessageHandler(messageHandler, context, orderedContainer.MatchingRoute);
                         break;
                     case IAsyncMessageHandler asyncMessageHandler:
-                        await RunAsyncMessageHandler(asyncMessageHandler, eventArgs, orderedContainer.MatchingRoute).ConfigureAwait(false);
+                        await RunAsyncMessageHandler(asyncMessageHandler, context, orderedContainer.MatchingRoute).ConfigureAwait(false);
                         break;
                     default:
                         throw new NotSupportedException($"The type {orderedContainer.MessageHandler.GetType()} of message handler is not supported.");
@@ -101,19 +100,19 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             }
         }
 
-        private void RunMessageHandler(IMessageHandler handler, BasicDeliverEventArgs eventArgs, string matchingRoute)
+        private void RunMessageHandler(IMessageHandler handler, MessageHandlingContext context, string matchingRoute)
         {
             ValidateMessageHandler(handler);
             _loggingService.LogDebug($"Starting processing the message by message handler {handler.GetType().Name}");
-            handler.Handle(eventArgs, matchingRoute);
+            handler.Handle(context, matchingRoute);
             _loggingService.LogDebug($"The message has been processed by message handler {handler.GetType().Name}");
         }
 
-        private async Task RunAsyncMessageHandler(IAsyncMessageHandler handler, BasicDeliverEventArgs eventArgs, string matchingRoute)
+        private async Task RunAsyncMessageHandler(IAsyncMessageHandler handler, MessageHandlingContext context, string matchingRoute)
         {
             ValidateMessageHandler(handler);
             _loggingService.LogDebug($"Starting processing the message by async message handler {handler.GetType().Name}");
-            await handler.Handle(eventArgs, matchingRoute);
+            await handler.Handle(context, matchingRoute);
             _loggingService.LogDebug($"The message has been processed by async message handler {handler.GetType().Name}");
         }
 
