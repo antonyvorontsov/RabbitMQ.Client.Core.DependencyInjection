@@ -123,7 +123,7 @@ public class CustomMessageHandler : IMessageHandler
 }
 ```
 
-`IMessageHandler` consists of one method that takes two parameters:
+`IMessageHandler` consists of one method `Handle` that takes two parameters:
  - `MessageHandlingContext` is an object that contains consumed `BasicDeliverEventArgs` message and the `AcknowledgeMessage` method that allow you to acknowledge that message manually. `AcknowledgeMessage` is safe to call multiple times from client code because the behavior of the method is idempotent, and the real ack will be sent only once.
  - Matching routing key for that message and message handler.
 
