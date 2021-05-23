@@ -118,8 +118,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         private async Task ConsumerOnReceived(object sender, BasicDeliverEventArgs eventArgs)
         {
             var exchangeOptions = _exchanges.FirstOrDefault(x => string.Equals(x.Name, eventArgs.Exchange)).EnsureIsNotNull().Options;
-            Action<BasicDeliverEventArgs>? ackAction = !exchangeOptions.DisableAutoAck ? AckAction : null;
-            await _messageHandlingPipelineExecutingService.Execute(eventArgs, ackAction);
+            var context = new MessageHandlingContext(eventArgs, AckAction, exchangeOptions.DisableAutoAck);
+            await _messageHandlingPipelineExecutingService.Execute(context);
         }
     }
 }

@@ -29,7 +29,10 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         public virtual async Task HandleMessageProcessingFailure(MessageHandlingContext context, Exception exception)
         {
             var eventArgs = context.Message;
-            context.AckAction?.Invoke(eventArgs);
+            if (context.AutoAckEnabled)
+            {
+                context.AcknowledgeMessage();
+            }
 
             _loggingService.LogError(exception, $"An error occurred while processing received message with the delivery tag {eventArgs.DeliveryTag}.");
             await HandleFailedMessageProcessing(eventArgs).ConfigureAwait(false);

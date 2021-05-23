@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using RabbitMQ.Client.Core.DependencyInjection.Middlewares;
 using RabbitMQ.Client.Core.DependencyInjection.Models;
 using RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces;
-using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.Services
 {
@@ -27,9 +26,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         }
 
         /// <inheritdoc/>
-        public async Task Execute(BasicDeliverEventArgs eventArgs, Action<BasicDeliverEventArgs>? ackAction)
+        public async Task Execute(MessageHandlingContext context)
         {
-            var context = new MessageHandlingContext(eventArgs, ackAction);
             try
             {
                 await ExecutePipeline(context).ConfigureAwait(false);
