@@ -1,6 +1,6 @@
 using RabbitMQ.Client.Core.DependencyInjection.MessageHandlers;
+using RabbitMQ.Client.Core.DependencyInjection.Models;
 using RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces;
-using RabbitMQ.Client.Events;
 
 namespace Examples.ManualAck.MessageHandlers
 {
@@ -13,11 +13,11 @@ namespace Examples.ManualAck.MessageHandlers
             _producingService = producingService;
         }
         
-        public void Handle(BasicDeliverEventArgs eventArgs, string matchingRoute)
+        public void Handle(MessageHandlingContext context, string matchingRoute)
         {
             // Do anything you want.
             // E.g. send a message to the exchange with another routing key. Whatever.
-            _producingService.Send(eventArgs.Body, eventArgs.BasicProperties, "exchange", "other.routing.key");
+            _producingService.Send(context.Message.Body, context.Message.BasicProperties, "exchange", "other.routing.key");
         }
     }
 }

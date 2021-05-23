@@ -13,14 +13,14 @@ namespace Examples.ManualAck.Middlewares
             // Message handlers will be executed.
             await next();
             
-            context.AckAction?.Invoke(context.Message);
+            context.AcknowledgeMessage();
         }
 
         public async Task HandleError(MessageHandlingContext context, Exception exception, Func<Task> next)
         {
             await next();
             
-            context.AckAction?.Invoke(context.Message);
+            context.AcknowledgeMessage();
             throw exception;
         }
     }
