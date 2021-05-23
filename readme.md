@@ -7,7 +7,7 @@ This repository contains the library that provides functionality for wrapping [R
 
 ## Usage
 
-This section contains only an example of a basic usage of the library. You can find the [detailed documentation](./docs/index.md) in the docs directory where all functionality fully covered.
+This section contains only an example of a basic usage of the library. You can find the [detailed documentation](./docs/readme.md) in the docs directory where all functionality fully covered.
 
 ### Producer
 
@@ -72,7 +72,7 @@ await _producingService.SendAsync(
 
 ### Consumer
 
-The second part of working with AMPQ is message consumption. Let's assume that you have an API that also consumes messages from RabbitMQ.
+The second part of working with AMPQ is message consumption. Let's assume that you have a service that also consumes messages from RabbitMQ.
 
 ```c#
 public static IConfiguration Configuration { get; set; }
@@ -89,8 +89,8 @@ public void ConfigureServices(IServiceCollection services)
 ```
 
 You have to configure everything almost the same way as you have already done previously with the producer.
-`AddExchange` method configures an exchange both for production and consumption. but in case you do not want to produce messages to that queue you can alternative method `AddConsumptionExchange` instead. For more detailed information about difference in exchange declarations you may want to see the [documentation](./docs/exchange-configuration.md).
-The other important part is adding custom message handlers by implementing the `IMessageHandler` interface and calling `AddMessageHandlerSingleton<T>` or `AddMessageHandlerTransient<T>` methods. `IMessageHandler` is a simple subscriber, which receives messages from a queue by selected routing key. You are allowed to set multiple message handlers for one routing key (e.g. one is writing it in a database, and the other does the business logic).
+`AddExchange` method configures an exchange both for production and consumption, but in case you do not want to produce messages to that queue you can use an alternative method `AddConsumptionExchange` instead. For more detailed information about difference in exchange declarations you may want to see the [documentation](./docs/exchange-configuration.md).
+The other important part is adding custom message handlers by implementing the `IMessageHandler` interface and calling `AddMessageHandlerSingleton<T>` or `AddMessageHandlerTransient<T>` methods. `IMessageHandler` is a simple subscriber, which receives messages from a queue by selected routing key. You are allowed to set multiple message handlers for one routing key (e.g. one is writing it in a database, and the other does something with business logic).
 
 You can also use **pattern matching** while adding message handlers where `*` (star) can substitute for exactly one word and `#` (hash) can substitute for zero or more words.
 You are also allowed to specify the exact exchange which will be "listened" by the selected message handler with the given routing key (or a pattern).
@@ -115,13 +115,17 @@ public class CustomMessageHandler : IMessageHandler
         _logger = logger;
     }
 
-    public void Handle(BasicDeliverEventArgs eventArgs, string matchingRoute)
+    public void Handle(MessageHandlingContext context, string matchingRoute)
     {
         // Do whatever you want with the message.
         _logger.LogInformation("Hello world");
     }
 }
 ```
+
+`IMessageHandler` consists of one method that takes two parameters:
+ - `MessageHandlingContext` is an object that contains consumed `BasicDeliverEventArgs` message and the `AcknowledgeMessage` method that allow you to acknowledge that message manually. `AcknowledgeMessage` is safe to call multiple times from client code because the behavior of the method is idempotent, and the real ack will be sent only once.
+ - Matching routing key for that message and message handler.
 
 If you want to use an async version of the handler then implement your custom `IAsyncMessageHandler`.
 
@@ -134,9 +138,10 @@ public class CustomAsyncMessageHandler : IAsyncMessageHandler
         _logger = logger;
     }
 
-    public async Task Handle(BasicDeliverEventArgs eventArgs, string matchingRoute)
+    public async Task Handle(MessageHandlingContext context, string matchingRoute)
     {
 	   // await something.
+	   context.AcknowledgeMessage(); // if you want to do it manually.
     }
 }
 ```
@@ -164,6 +169,7 @@ Exchange sections define how to bind queues and exchanges with each other using 
     "AutoDelete": false,
     "DeadLetterExchange": "default.dlx.exchange",
     "RequeueFailedMessages": true,
+    "DisableAutoAck": false,
     "Queues": [
 	  {
         "Name": "myqueue",
@@ -174,12 +180,12 @@ Exchange sections define how to bind queues and exchanges with each other using 
 }
 ```
 
-For more information about `appsettings.json` and manual configuration features, see [rabbit-configuration](./docs/rabbit-configuration.md) and [exchange-configuration](./docs/exchange-configuration.md) documentation files.
+If you want to ack messages manually then set `DisableAutoAck` property to `true`. For more information about `appsettings.json` and manual configuration features, see [rabbit-configuration](./docs/rabbit-configuration.md) and [exchange-configuration](./docs/exchange-configuration.md) documentation files.
 
 ## Batch message handlers
 
 There are also a feature that you can use in case of necessity of handling messages in batches.
-First of all you have to create a class that inherits a `BaseBatchMessageHandler` class.
+First you have to create a class that inherits a `BaseBatchMessageHandler` class.
 You have to set up values for `QueueName` and `PrefetchCount` properties. These values are responsible for the queue that will be read by the message handler, and the size of batches of messages.
 
 ```c#
@@ -215,7 +221,7 @@ public class CustomBatchMessageHandler : BaseBatchMessageHandler
 }
 ```
 
-After all you have to register that batch message handler via DI.
+Finally, you have to register that batch message handler via DI.
 
 ```c#
 services.AddBatchMessageHandler<CustomBatchMessageHandler>(Configuration.GetSection("RabbitMq"));
