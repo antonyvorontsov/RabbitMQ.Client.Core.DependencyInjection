@@ -2,8 +2,7 @@
 
 ## Basic configuration
 
-To connect to a RabbitMQ server, it is necessary to instantiate `IQueueService` and configure it to use a desired endpoint, credentials and other valuable connection settings.
-`IQueueService` allows clients to configure queues to exchange bindings, and to consume and produce messages in different ways (sync or async, with or without delay). To add `IQueueService` in your application simply use the `AddRabbitMqClient` extension method as in the example below.
+In order to connect to a RabbitMQ server, it is necessary to register services that library provides and configure them to use an endpoint, credentials or other valuable connection settings. It can be done with the extension method `AddRabbitMqServices` that can be used with `IServiceCollection` inside the `Startup` class.
 
 ```c#
 public class Startup
@@ -17,7 +16,7 @@ public class Startup
 
     public void ConfigureServices(IServiceCollection services)
     {
-        services.AddRabbitMqClient(Configuration.GetSection("RabbitMq"));
+        services.AddRabbitMqServices(Configuration.GetSection("RabbitMq"));
     }
 
     public void Configure(IApplicationBuilder app, IHostingEnvironment env)
@@ -26,7 +25,14 @@ public class Startup
 }
 ```
 
-The `AddRabbitMqClient` method will add an `IQueueService` as a **singleton**, but you can register it in the **transient** mode simply calling the `AddRabbitMqClientTransient` method which takes the same set of parameters.
+
+
+
+
+
+
+
+The `AddRabbitMqServices` method will add an `IQueueService` as a **singleton**, but you can register it in the **transient** mode simply calling the `AddRabbitMqClientTransient` method which takes the same set of parameters.
 
 A RabbitMQ client can be configured via a configuration section located in the `appsettings.json` file. This configuration section must be of a certain format and down below is an example of all configuration options used in `IQueueService`.
 
@@ -63,7 +69,7 @@ A RabbitMQ connection can be configured with properties:
 - `RequestedConnectionTimeout` - timeout for connection attempts,
 - `RequestedHeartbeat` - heartbeat timeout,
 - `InitialConnectionRetries` - a number of retries which could be attempted while trying to make an initial connection,
-- `InitialConnectionRetryTimeoutMilliseconds` - timeout in milliseconds which could be used while trying to make an initial connection. 
+- `InitialConnectionRetryTimeoutMilliseconds` - timeout in milliseconds which could be used while trying to make an initial connection.
 
 `ClientProvidedName` is optional and can be null. Options `VirtualHost`, `AutomaticRecoveryEnabled`, `TopologyRecoveryEnabled`, `RequestedConnectionTimeout`, `RequestedHeartbeat`, `InitialConnectionRetries`, `InitialConnectionRetryTimeoutMilliseconds` are set with default values, so you can leave them.
 

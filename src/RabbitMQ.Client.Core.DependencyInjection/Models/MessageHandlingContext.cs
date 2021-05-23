@@ -1,5 +1,4 @@
 using System;
-using RabbitMQ.Client.Core.DependencyInjection.Exceptions;
 using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.Models
@@ -24,7 +23,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Models
         {
             if (_alreadyAcknowledged)
             {
-                throw new MessageHasAlreadyBeenAcknowledgedException();
+                return;
             }
 
             _ackAction(Message);

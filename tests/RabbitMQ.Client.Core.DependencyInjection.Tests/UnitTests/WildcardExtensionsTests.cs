@@ -34,7 +34,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             var countNodes = CountNodes(tree);
             Assert.Equal(15, countNodes);
 
-            Assert.Equal(4, tree.Count());
+            Assert.Equal(4, tree.Count);
             Assert.Contains(tree, x => x.IsLastNode && x.KeyPartition == "#");
             Assert.Contains(tree, x => !x.IsLastNode && x.KeyPartition == "#");
             Assert.Contains(tree, x => x.KeyPartition == "*");
@@ -100,7 +100,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
 
         private static int CountNodes(IList<TreeNode> nodes)
         {
-            var count = nodes.Count();
+            var count = nodes.Count;
             foreach (var node in nodes)
             {
                 if (node.Nodes.Any())

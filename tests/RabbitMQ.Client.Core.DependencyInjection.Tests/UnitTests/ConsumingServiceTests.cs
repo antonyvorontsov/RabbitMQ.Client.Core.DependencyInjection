@@ -27,14 +27,14 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             var consumer = new AsyncEventingBasicConsumer(channelMock.Object);
 
             var messageHandlingPipelineExecutingServiceMock = new Mock<IMessageHandlingPipelineExecutingService>();
-            
             const string exchangeName = "exchange";
             var exchange = new RabbitMqExchange(exchangeName, ClientExchangeType.Consumption, new RabbitMqExchangeOptions());
             var consumingService = CreateConsumingService(messageHandlingPipelineExecutingServiceMock.Object, new[] { exchange });
-            
-            consumingService.UseConnection(connectionMock.Object);
-            consumingService.UseChannel(channelMock.Object);
-            consumingService.UseConsumer(consumer);
+
+            var declaration = (IConsumingServiceDeclaration)consumingService;
+            declaration.UseConnection(connectionMock.Object);
+            declaration.UseChannel(channelMock.Object);
+            declaration.UseConsumer(consumer);
 
             await consumer.HandleBasicDeliver(
                 "1",
@@ -62,8 +62,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
 
             messageHandlingPipelineExecutingServiceMock.Verify(x => x.Execute(It.IsAny<MessageHandlingContext>()), Times.Exactly(numberOfMessages));
         }
-        
-        
+
+
         [Theory]
         [InlineData(1)]
         [InlineData(5)]
@@ -78,14 +78,15 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             var consumer = new AsyncEventingBasicConsumer(channelMock.Object);
 
             var messageHandlingPipelineExecutingServiceMock = new Mock<IMessageHandlingPipelineExecutingService>();
-            
+
             const string exchangeName = "exchange";
             var exchange = new RabbitMqExchange(exchangeName, ClientExchangeType.Consumption, new RabbitMqExchangeOptions { DisableAutoAck = true });
             var consumingService = CreateConsumingService(messageHandlingPipelineExecutingServiceMock.Object, new[] { exchange });
-            
-            consumingService.UseConnection(connectionMock.Object);
-            consumingService.UseChannel(channelMock.Object);
-            consumingService.UseConsumer(consumer);
+
+            var declaration = (IConsumingServiceDeclaration)consumingService;
+            declaration.UseConnection(connectionMock.Object);
+            declaration.UseChannel(channelMock.Object);
+            declaration.UseConsumer(consumer);
 
             await consumer.HandleBasicDeliver(
                 "1",
@@ -128,15 +129,15 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             var consumer = new AsyncEventingBasicConsumer(channelMock.Object);
 
             var messageHandlingPipelineExecutingServiceMock = new Mock<IMessageHandlingPipelineExecutingService>();
-
             const string exchangeName = "exchange";
             var exchange = new RabbitMqExchange(exchangeName, ClientExchangeType.Consumption, new RabbitMqExchangeOptions());
             var consumingService = CreateConsumingService(messageHandlingPipelineExecutingServiceMock.Object, new[] { exchange });
-            
-            consumingService.UseConnection(connectionMock.Object);
-            consumingService.UseChannel(channelMock.Object);
-            consumingService.UseConsumer(consumer);
-            
+
+            var declaration = (IConsumingServiceDeclaration)consumingService;
+            declaration.UseConnection(connectionMock.Object);
+            declaration.UseChannel(channelMock.Object);
+            declaration.UseConsumer(consumer);
+
             consumingService.StartConsuming();
             for (var i = 1; i <= numberOfMessages; i++)
             {

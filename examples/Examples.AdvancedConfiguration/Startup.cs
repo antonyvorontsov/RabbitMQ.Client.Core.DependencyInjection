@@ -19,6 +19,8 @@ namespace Examples.AdvancedConfiguration
 
         public void ConfigureServices(IServiceCollection services)
         {
+            // TODO: rework.
+            
             services.AddControllers();
             services.AddDbContext<ApplicationDbContext>();
             

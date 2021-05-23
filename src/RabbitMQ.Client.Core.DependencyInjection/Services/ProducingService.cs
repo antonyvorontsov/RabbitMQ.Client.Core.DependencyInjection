@@ -13,7 +13,7 @@ using RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces;
 namespace RabbitMQ.Client.Core.DependencyInjection.Services
 {
     /// <inheritdoc cref="IProducingService"/>
-    public sealed class ProducingService : IProducingService, IDisposable
+    public sealed class ProducingService : IProducingService, IProducingServiceDeclaration, IDisposable
     {
         /// <inheritdoc/>
         public IConnection? Connection { get; private set; }

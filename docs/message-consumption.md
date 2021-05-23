@@ -141,32 +141,10 @@ public class CustomMessageHandler : IMessageHandler
 }
 ```
 
-The only exception is the `IQueueService`. You can't inject it inside a message handler because of the appearance of cyclic dependencies. If you want to use an instance of `IQueueService` (e.g. handle one message and send another) use `INonCyclicMessageHandler`.
-An example of `INonCyclicMessageHandler` will look like this.
-
-```c#
-public class CustomNonCyclicMessageHandler : INonCyclicMessageHandler
-{
-    readonly ILogger<CustomNonCyclicMessageHandler> _logger;
-    public CustomNonCyclicMessageHandler(ILogger<CustomNonCyclicMessageHandler> logger)
-    {
-        _logger = logger;
-    }
-
-    public void Handle(BasicDeliverEventArgs eventArgs, string matchingRoute, IQueueService queueService)
-    {
-        _logger.LogInformation("Got a message. I will send it back to another queue.");
-        var response = new { Message = eventArgs.GetMessage() };
-        queueService.Send(response, "exchange.name", "routing.key");
-    }
-}
-```
-
 ### Asynchronous message handlers
 
-`IMessageHandler` and `INonCyclicMessageHandler` work synchronously, but if you want to use an async technology then use `IAsyncMessageHandler` and `IAsyncNonCyclicMessageHandler`.
+`IMessageHandler` works synchronously, but if you want to use an async version then there is another interface `IAsyncMessageHandler`.
 
-`IAsyncMessageHandler` will look like this.
 
 ```c#
 public class CustomAsyncMessageHandler : IAsyncMessageHandler
@@ -174,28 +152,6 @@ public class CustomAsyncMessageHandler : IAsyncMessageHandler
     public async Task Handle(BasicDeliverEventArgs eventArgs, string matchingRoute)
     {
         // Do whatever you want asynchronously!
-    }
-}
-```
-
-And `IAsyncNonCyclicMessageHandler` will be as in example below.
-
-```c#
-public class CustomAsyncNonCyclicMessageHandler : IAsyncNonCyclicMessageHandler
-{
-    readonly ILogger<CustomAsyncNonCyclicMessageHandler> _logger;
-
-	// Injecting services is a privilege, you can leave it clean.
-    public CustomAsyncNonCyclicMessageHandler(ILogger<CustomAsyncNonCyclicMessageHandler> logger)
-    {
-        _logger = logger;
-    }
-
-    public async Task Handle(BasicDeliverEventArgs eventArgs, string matchingRoute, IQueueService queueService)
-    {
-        _logger.LogInformation("You can do something async, e.g. send message back.");
-        var response = new { Message = eventArgs.GetMessage() };
-        await queueService.SendAsync(response, "exchange.name", "routing.key");
     }
 }
 ```
@@ -209,12 +165,8 @@ You can register `IMessageHandler` in your `Startup` calling one of `AddMessageH
 
 - `AddMessageHandlerTransient`
 - `AddMessageHandlerSingleton`
-- `AddNonCyclicMessageHandlerTransient`
-- `AddNonCyclicMessageHandlerSingleton`
 - `AddAsyncMessageHandlerTransient`
 - `AddAsyncMessageHandlerSingleton`
-- `AddAsyncNonCyclicMessageHandlerTransient`
-- `AddAsyncNonCyclicMessageHandlerSingleton`
 
 And this will look like this in your `Startup` code.
 
@@ -306,8 +258,8 @@ services.AddRabbitMqClient(clientConfiguration)
 The message handling process organized as follows:
 
 - `IQueueMessage` receives a message and delegates it to `IMessageHandlingService`.
-- `IMessageHandlingService` gets a message and checks if there are any message handlers in a combined collection of `IMessageHandler`, `IAsyncMessageHandler`, `INonCyclicMessageHandler` and `IAsyncNonCyclicMessageHandler` instances and forwards a message to them.
-- All subscribed message handlers (`IMessageHandler`, `IAsyncMessageHandler`, `INonCyclicMessageHandler`, `IAsyncNonCyclicMessageHandler`) process the given message in a given or a default order.
+- `IMessageHandlingService` gets a message and checks if there are any message handlers in a combined collection of `IMessageHandler` and `IAsyncMessageHandler` instances and forwards a message to them.
+- All subscribed message handlers (`IMessageHandler`, `IAsyncMessageHandler`) process the given message in a given or a default order.
 - `IMessageHandlingService` acknowledges the message by its `DeliveryTag`.
 - If any exception occurs `IMessageHandlingService` acknowledges the message anyway and checks if the message has to be re-send. If exchange option `RequeueFailedMessages` is set `true` then `IMessageHandlingService` adds a header `"re-queue-attempts"` to the message and sends it again with delay in value of `RequeueTimeoutMilliseconds` (default is 200 milliseconds). The number of attempts is configurable and re-delivery will be made that many times as the value of `RequeueAttempts` property. Mechanism of sending delayed messages covered in the message production [documentation](message-production.md).
 - If any exception occurs within handling the message that has been already re-sent that message will not be re-send again (re-send happens only once).
@@ -375,7 +327,7 @@ public class CustomMessageHandler : IMessageHandler
 
         // Or object payload.
         var payload = eventArgs.GetPayload<YourClass>();
-        
+
         // Or anonymous object by another example object.
         var anonymousObject = new { message = string.Empty, number = 0 };
         var anonymousPayload = eventArgs.GetAnonymousPayload(anonymousObject);

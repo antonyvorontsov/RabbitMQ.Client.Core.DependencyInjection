@@ -3,7 +3,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces
     /// <summary>
     /// Custom RabbitMQ service interface.
     /// </summary>
-    public interface IRabbitMqService
+    internal interface IRabbitMqService
     {
         /// <summary>
         /// Specify the connection that will be used by the service.

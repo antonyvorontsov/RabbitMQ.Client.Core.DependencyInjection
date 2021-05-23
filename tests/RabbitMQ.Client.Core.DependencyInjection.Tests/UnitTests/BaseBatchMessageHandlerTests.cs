@@ -18,7 +18,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
     public class BaseBatchMessageHandlerTests
     {
         private readonly TimeSpan _globalTestsTimeout = TimeSpan.FromSeconds(60);
-        
+
         [Theory]
         [InlineData(1, 10)]
         [InlineData(5, 47)]
@@ -74,7 +74,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
 
             await messageHandler.StopAsync(CancellationToken.None);
         }
-        
+
         [Theory]
         [InlineData(1)]
         [InlineData(5)]
@@ -134,16 +134,16 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                         null,
                         new ReadOnlyMemory<byte>());
                 }
-                
+
                 waitHandle.WaitOne(_globalTestsTimeout);
             }
 
             callerMock.Verify(x => x.EmptyCall(), Times.Exactly(numberOfSmallBatches));
             callerMock.Verify(x => x.Call(It.IsAny<ReadOnlyMemory<byte>>()), Times.Exactly(numberOfMessages));
-            
+
             await messageHandler.StopAsync(CancellationToken.None);
         }
-        
+
         [Fact]
         public async Task ShouldProperlyExecutePipeline()
         {
@@ -169,7 +169,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             var firstMiddleware = new StubBatchMessageHandlingMiddleware(1, orderingMap);
             var secondMiddleware = new StubBatchMessageHandlingMiddleware(2, orderingMap);
             var thirdMiddleware = new StubBatchMessageHandlingMiddleware(3, orderingMap);
-            
+
             var middlewares = new List<IBatchMessageHandlingMiddleware>
             {
                 firstMiddleware,
@@ -202,7 +202,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
             Assert.Equal(1, orderingMap[thirdMiddleware.Number]);
             Assert.Equal(2, orderingMap[secondMiddleware.Number]);
             Assert.Equal(3, orderingMap[firstMiddleware.Number]);
-            
+
             await messageHandler.StopAsync(CancellationToken.None);
         }
 

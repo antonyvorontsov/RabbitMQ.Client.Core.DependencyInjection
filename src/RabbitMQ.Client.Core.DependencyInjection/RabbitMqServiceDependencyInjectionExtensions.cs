@@ -91,7 +91,8 @@ namespace RabbitMQ.Client.Core.DependencyInjection
 
         private static IServiceCollection AddConsumptionStarter(this IServiceCollection services)
         {
-            services.AddHostedService<ConsumingHostedService>();
+            // TODO: change to TryAdd method
+            services.AddHostedService<ConsumptionStarterHostedService>();
             return services;
         }
 
@@ -114,6 +115,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection
             services.TryAddSingleton<IErrorProcessingService, ErrorProcessingService>();
             services.TryAddSingleton<IChannelDeclarationService, ChannelDeclarationService>();
             services.TryAddSingleton<ILoggingService, LoggingService>();
+            // TODO: change to TryAdd method
             services.AddHostedService<ChannelDeclarationHostedService>();
             return services;
         }

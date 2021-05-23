@@ -7,7 +7,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.Stubs
     public class StubCallerDecorator : IStubCaller
     {
         private readonly IStubCaller Caller;
-        
+
         public StubCallerDecorator(IStubCaller caller)
         {
             Caller = caller;

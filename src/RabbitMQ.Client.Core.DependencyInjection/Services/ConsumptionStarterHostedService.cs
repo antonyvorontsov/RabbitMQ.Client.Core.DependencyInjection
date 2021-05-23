@@ -8,11 +8,11 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
     /// <summary>
     /// Hosted service that is responsible for starting the consumer.
     /// </summary>
-    public class ConsumingHostedService : IHostedService
+    public class ConsumptionStarterHostedService : IHostedService
     {
         private readonly IConsumingService _consumingService;
-        
-        public ConsumingHostedService(IConsumingService consumingService)
+
+        public ConsumptionStarterHostedService(IConsumingService consumingService)
         {
             _consumingService = consumingService;
         }

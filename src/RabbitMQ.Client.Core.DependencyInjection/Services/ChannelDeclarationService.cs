@@ -19,7 +19,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         private readonly IRabbitMqConnectionFactory _rabbitMqConnectionFactory;
         private readonly IEnumerable<RabbitMqExchange> _exchanges;
         private readonly ILoggingService _loggingService;
-        
+
         public ChannelDeclarationService(
             IProducingService producingService,
             IConsumingService consumingService,
@@ -44,8 +44,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
                 var connection = CreateConnection(_connectionOptions.ProducerOptions).EnsureIsNotNull();
                 var channel = CreateChannel(connection);
                 StartClient(channel);
-                _producingService.UseConnection(connection);
-                _producingService.UseChannel(channel);
+                var declaration = (IProducingServiceDeclaration)_producingService;
+                declaration!.UseConnection(connection);
+                declaration.UseChannel(channel);
             }
 
             if (_connectionOptions.ConsumerOptions != null)
@@ -54,9 +55,10 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
                 var channel = CreateChannel(connection);
                 StartClient(channel);
                 var consumer = _rabbitMqConnectionFactory.CreateConsumer(channel);
-                _consumingService.UseConnection(connection);
-                _consumingService.UseChannel(channel);
-                _consumingService.UseConsumer(consumer);
+                var declaration = (IConsumingServiceDeclaration)_consumingService;
+                declaration.UseConnection(connection);
+                declaration.UseChannel(channel);
+                declaration.UseConsumer(consumer);
             }
         }
 
@@ -69,7 +71,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             {
                 recoveringConnection.ConnectionRecoveryError += HandleConnectionRecoveryError;
             }
-            
+
             var channel = connection.CreateModel();
             channel.CallbackException += HandleChannelCallbackException;
             channel.BasicRecoverOk += HandleChannelBasicRecoverOk;
@@ -183,7 +185,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             {
                 return;
             }
-            
+
             _loggingService.LogInformation("Connection has been reestablished");
         }
 
