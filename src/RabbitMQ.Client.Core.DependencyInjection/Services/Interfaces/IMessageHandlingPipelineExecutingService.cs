@@ -1,6 +1,5 @@
-using System;
 using System.Threading.Tasks;
-using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Core.DependencyInjection.Models;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces
 {
@@ -12,8 +11,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services.Interfaces
         /// <summary>
         /// Execute message handling pipeline.
         /// </summary>
-        /// <param name="eventArgs">Received message.</param>
-        /// <param name="ackAction">Acknowledgement action which will be used for ack'ing message.</param>
-        Task Execute(BasicDeliverEventArgs eventArgs, Action<BasicDeliverEventArgs>? ackAction);
+        /// <param name="context">Model that contains consumed message alongside with additional actions <see cref="MessageHandlingContext"/>.</param>
+        Task Execute(MessageHandlingContext context);
     }
 }

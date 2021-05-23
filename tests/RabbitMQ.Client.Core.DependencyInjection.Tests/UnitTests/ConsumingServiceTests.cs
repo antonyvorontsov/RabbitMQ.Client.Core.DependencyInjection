@@ -44,7 +44,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                 "routing,key",
                 null,
                 new ReadOnlyMemory<byte>());
-            messageHandlingPipelineExecutingServiceMock.Verify(x => x.Execute(It.IsAny<BasicDeliverEventArgs>(), It.IsAny<Action<BasicDeliverEventArgs>>()), Times.Never);
+            messageHandlingPipelineExecutingServiceMock.Verify(x => x.Execute(It.IsAny<MessageHandlingContext>()), Times.Never);
 
             consumingService.StartConsuming();
 
@@ -60,7 +60,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                     new ReadOnlyMemory<byte>());
             }
 
-            messageHandlingPipelineExecutingServiceMock.Verify(x => x.Execute(It.IsAny<BasicDeliverEventArgs>(), It.IsNotNull<Action<BasicDeliverEventArgs>>()), Times.Exactly(numberOfMessages));
+            messageHandlingPipelineExecutingServiceMock.Verify(x => x.Execute(It.IsAny<MessageHandlingContext>()), Times.Exactly(numberOfMessages));
         }
         
         
@@ -95,7 +95,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                 "routing,key",
                 null,
                 new ReadOnlyMemory<byte>());
-            messageHandlingPipelineExecutingServiceMock.Verify(x => x.Execute(It.IsAny<BasicDeliverEventArgs>(), It.IsAny<Action<BasicDeliverEventArgs>>()), Times.Never);
+            messageHandlingPipelineExecutingServiceMock.Verify(x => x.Execute(It.IsAny<MessageHandlingContext>()), Times.Never);
 
             consumingService.StartConsuming();
 
@@ -111,7 +111,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                     new ReadOnlyMemory<byte>());
             }
 
-            messageHandlingPipelineExecutingServiceMock.Verify(x => x.Execute(It.IsAny<BasicDeliverEventArgs>(), null), Times.Exactly(numberOfMessages));
+            messageHandlingPipelineExecutingServiceMock.Verify(x => x.Execute(It.IsAny<MessageHandlingContext>()), Times.Exactly(numberOfMessages));
         }
 
         [Theory]
@@ -150,7 +150,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                     new ReadOnlyMemory<byte>());
             }
 
-            messageHandlingPipelineExecutingServiceMock.Verify(x => x.Execute(It.IsAny<BasicDeliverEventArgs>(), It.IsNotNull<Action<BasicDeliverEventArgs>>()), Times.Exactly(numberOfMessages));
+            messageHandlingPipelineExecutingServiceMock.Verify(x => x.Execute(It.IsAny<MessageHandlingContext>()), Times.Exactly(numberOfMessages));
 
             consumingService.StopConsuming();
             await consumer.HandleBasicDeliver(
@@ -162,7 +162,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.UnitTests
                 null,
                 new ReadOnlyMemory<byte>());
 
-            messageHandlingPipelineExecutingServiceMock.Verify(x => x.Execute(It.IsAny<BasicDeliverEventArgs>(), It.IsAny<Action<BasicDeliverEventArgs>>()), Times.Exactly(numberOfMessages));
+            messageHandlingPipelineExecutingServiceMock.Verify(x => x.Execute(It.IsAny<MessageHandlingContext>()), Times.Exactly(numberOfMessages));
         }
 
         private static IConsumingService CreateConsumingService(
