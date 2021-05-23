@@ -31,7 +31,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             var eventArgs = context.Message;
             if (context.AutoAckEnabled)
             {
-                context.AckAction.Invoke(eventArgs);
+                context.AcknowledgeMessage();
             }
 
             _loggingService.LogError(exception, $"An error occurred while processing received message with the delivery tag {eventArgs.DeliveryTag}.");

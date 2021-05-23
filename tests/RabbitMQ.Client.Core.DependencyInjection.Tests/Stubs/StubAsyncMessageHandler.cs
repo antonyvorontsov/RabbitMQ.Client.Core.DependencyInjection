@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 using RabbitMQ.Client.Core.DependencyInjection.MessageHandlers;
-using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Core.DependencyInjection.Models;
 
 namespace RabbitMQ.Client.Core.DependencyInjection.Tests.Stubs
 {
@@ -13,9 +13,9 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Tests.Stubs
             _caller = caller;
         }
 
-        public async Task Handle(BasicDeliverEventArgs eventArgs, string matchingRoute)
+        public async Task Handle(MessageHandlingContext context, string matchingRoute)
         {
-            await _caller.CallAsync($"{eventArgs.GetMessage()}:{matchingRoute}");
+            await _caller.CallAsync($"{context.Message.GetMessage()}:{matchingRoute}");
         }
     }
 }
