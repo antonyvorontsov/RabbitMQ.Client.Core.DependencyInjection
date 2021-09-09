@@ -36,5 +36,10 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Configuration
         /// Additional arguments.
         /// </summary>
         public IDictionary<string, object> Arguments { get; set; } = new Dictionary<string, object>();
+
+        /// <summary>
+        /// Declare queue in passive mode
+        /// </summary>
+        public bool PassiveMode { get; set; } = false;
     }
 }

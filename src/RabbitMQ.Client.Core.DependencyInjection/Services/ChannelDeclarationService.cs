@@ -81,7 +81,7 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             var deadLetterExchanges = _exchanges
                 .Select(x => x.Options)
                 .Where(x => !string.IsNullOrEmpty(x.DeadLetterExchange))
-                .Select(x => new DeadLetterExchange(x.DeadLetterExchange, x.DeadLetterExchangeType))
+                .Select(x => new DeadLetterExchange(x.DeadLetterExchange, x.DeadLetterExchangeType, x.PassiveMode))
                 .Distinct(new DeadLetterExchangeEqualityComparer())
                 .ToList();
 
@@ -92,11 +92,21 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
         {
             foreach (var exchange in deadLetterExchanges)
             {
+                if(exchange.PassiveMode)
+                {
+                    StartDeadLetterExchangePassive(channel, exchange);
+                    continue;
+                }
                 StartDeadLetterExchange(channel, exchange);
             }
 
             foreach (var exchange in exchanges)
             {
+                if (exchange.Options.PassiveMode)
+                {
+                    StartExchangePassive(channel, exchange);
+                    continue;
+                }
                 StartExchange(channel, exchange);
             }
         }
@@ -111,6 +121,11 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
                 arguments: null);
         }
 
+        private static void StartDeadLetterExchangePassive(IModel channel, DeadLetterExchange exchange)
+        {
+            channel.ExchangeDeclarePassive(exchange: exchange.Name);
+        }
+
         private static void StartExchange(IModel channel, RabbitMqExchange exchange)
         {
             channel.ExchangeDeclare(
@@ -122,6 +137,21 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
 
             foreach (var queue in exchange.Options.Queues)
             {
+                StartQueue(channel, queue, exchange.Name);
+            }
+        }
+
+        private static void StartExchangePassive(IModel channel, RabbitMqExchange exchange)
+        {
+            channel.ExchangeDeclarePassive(exchange: exchange.Name);
+
+            foreach (var queue in exchange.Options.Queues)
+            {
+                if (queue.PassiveMode)
+                {
+                    StartQueuePassive(channel, queue);
+                    continue;
+                }
                 StartQueue(channel, queue, exchange.Name);
             }
         }
@@ -153,6 +183,11 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
                     exchange: exchangeName,
                     routingKey: queue.Name);
             }
+        }
+
+        private static void StartQueuePassive(IModel channel, RabbitMqQueueOptions queue)
+        {
+            channel.QueueDeclarePassive(queue: queue.Name);
         }
 
         private void HandleConnectionCallbackException(object sender, CallbackExceptionEventArgs? @event)

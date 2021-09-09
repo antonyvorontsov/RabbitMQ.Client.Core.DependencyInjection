@@ -12,6 +12,13 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Models
         {
             Name = name;
             Type = type;
+            PassiveMode = false;
+        }
+
+        internal DeadLetterExchange(string name, string type, bool passiveMode) 
+            : this(name, type)
+        {
+            PassiveMode = passiveMode;
         }
         
         /// <summary>
@@ -23,6 +30,11 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Models
         /// Exchange type.
         /// </summary>
         internal string Type { get; }
+
+        /// <summary>
+        /// Passive mode.
+        /// </summary>
+        internal bool PassiveMode { get; }
     }
     
     /// <summary>

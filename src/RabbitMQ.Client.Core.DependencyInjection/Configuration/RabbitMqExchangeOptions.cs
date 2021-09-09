@@ -61,5 +61,10 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Configuration
         /// Do not auto-ack a received message after processing.
         /// </summary>
         public bool DisableAutoAck { get; set; } = false;
+
+        /// <summary>
+        /// Declare exchange in passive mode
+        /// </summary>
+        public bool PassiveMode { get; set; } = false;
     }
 }
