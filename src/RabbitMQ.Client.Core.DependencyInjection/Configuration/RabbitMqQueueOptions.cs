@@ -36,5 +36,11 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Configuration
         /// Additional arguments.
         /// </summary>
         public IDictionary<string, object> Arguments { get; set; } = new Dictionary<string, object>();
+
+
+        /// <summary>
+        /// Initial prefetchCount
+        /// </summary>
+        public ushort PrefetchCount { get; set; } = 0;
     }
 }

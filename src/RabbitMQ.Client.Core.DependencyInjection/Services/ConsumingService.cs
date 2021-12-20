@@ -89,7 +89,10 @@ namespace RabbitMQ.Client.Core.DependencyInjection.Services
             var consumptionExchanges = _exchanges.Where(x => x.IsConsuming);
             _consumerTags = consumptionExchanges.SelectMany(
                     exchange => exchange.Options.Queues.Select(
-                        queue => Channel.BasicConsume(queue: queue.Name, autoAck: false, consumer: Consumer)))
+                        queue => {
+                            Channel.BasicQos(prefetchSize: 0, prefetchCount: queue.PrefetchCount, false);
+                            return Channel.BasicConsume(queue: queue.Name, autoAck: false, consumer: Consumer);
+                        }))
                 .Distinct()
                 .ToList();
         }
